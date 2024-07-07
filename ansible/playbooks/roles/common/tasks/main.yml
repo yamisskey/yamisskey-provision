@@ -27,35 +27,6 @@
     line: 'experimental-features = nix-command flakes'
     create: yes
 
-- name: Source Nix profile
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: |
-    if [ -e /home/{{ user_name }}/.nix-profile/etc/profile.d/nix.sh ]; then
-      source /home/{{ user_name }}/.nix-profile/etc/profile.d/nix.sh
-    fi
-    if [ -e /home/{{ user_name }}/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
-      source /home/{{ user_name }}/.nix-profile/etc/profile.d/hm-session-vars.sh
-    fi
-  args:
-    executable: /bin/bash
-  ignore_errors: true
-
-- name: Activate Home Manager
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: |
-    if [ -e /home/{{ user_name }}/.nix-profile/etc/profile.d/nix.sh ]; then
-      source /home/{{ user_name }}/.nix-profile/etc/profile.d/nix.sh
-    fi
-    if [ -e /home/{{ user_name }}/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
-      source /home/{{ user_name }}/.nix-profile/etc/profile.d/hm-session-vars.sh
-    fi
-    nix run home-manager -- switch --flake "{{ set_dir }}#myHome"
-  args:
-    chdir: '{{ set_dir }}'
-    executable: /bin/bash
-
 - name: Ensure Docker is enabled and running
   systemd:
     name: docker
