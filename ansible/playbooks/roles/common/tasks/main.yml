@@ -36,7 +36,7 @@
   become: yes
   shell: sudo -i -u {{ user_name }} nix run home-manager -- switch --flake ".#myHome"
   args:
-    chdir: '{{ set_dir }}'
+    chdir: /home/{{ user_name }}/provision
     executable: /bin/bash
 
 - name: Ensure Docker is enabled and running
