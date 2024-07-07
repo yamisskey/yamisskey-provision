@@ -1,0 +1,13 @@
+packages:
+  - docker
+  - docker-buildx-plugin
+  - docker-compose
+  - nginx
+  - certbot
+  - python3-certbot-dns-cloudflare
+  - tor
+  - privoxy
+  - mecab
+  - libmecab-dev
+  - mecab-ipadic-utf8
+  - prometheus

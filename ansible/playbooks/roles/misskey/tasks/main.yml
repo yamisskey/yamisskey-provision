@@ -1,0 +1,164 @@
+- name: Ensure Misskey directory exists
+  file:
+    path: '{{ misskey_dir }}'
+    state: directory
+    owner: '{{ user_name }}'
+    group: '{{ user_name }}'
+
+- name: Check if required files exist
+  stat:
+    path: '{{ item }}'
+  loop:
+    - '{{ misskey_dir }}/docker-compose.yml'
+    - '{{ misskey_dir }}/.config/default.yml'
+    - '{{ misskey_dir }}/.config/docker.env'
+  register: required_files
+
+- name: Fail if required files are missing
+  fail:
+    msg: 'Required file {{ item.item }} not found'
+  when: not item.stat.exists
+  loop: '{{ required_files.results }}'
+
+- name: Stash local changes
+  shell: git stash
+  args:
+    chdir: '{{ misskey_dir }}'
+  register: stash_output
+  ignore_errors: yes
+
+- name: Checkout master branch
+  shell: git checkout master
+  args:
+    chdir: '{{ misskey_dir }}'
+
+- name: Pull latest changes
+  shell: git pull
+  args:
+    chdir: '{{ misskey_dir }}'
+
+- name: Update submodules
+  shell: git submodule update --init
+  args:
+    chdir: '{{ misskey_dir }}'
+
+- name: Apply stashed changes
+  shell: git stash pop
+  args:
+    chdir: '{{ misskey_dir }}'
+  when: "'No local changes to save' not in stash_output.stdout"
+
+- name: Build and initialize Misskey
+  become: yes
+  become_method: sudo
+  shell: |
+    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
+    docker-compose run --rm web pnpm run init
+  args:
+    chdir: '{{ misskey_dir }}'
+    executable: /bin/bash
+
+- name: Change permissions of files directory to upload files
+  become: yes
+  become_method: sudo
+  file:
+    path: '{{ misskey_dir }}/files'
+    mode: '0777'
+
+- name: Start Misskey
+  become: yes
+  become_method: sudo
+  shell: docker-compose up -d
+  args:
+    chdir: '{{ misskey_dir }}'
+    executable: /bin/bash
+
+- name: Copy misskey.conf to /etc/nginx/conf.d/
+  copy:
+    src: ~/provision/nginx/misskey.conf
+    dest: /etc/nginx/conf.d/misskey.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload Nginx
+
+- name: Copy misskey-onion.conf to /etc/nginx/conf.d/
+  copy:
+    src: ~/provision/nginx/misskey-onion.conf
+    dest: /etc/nginx/conf.d/misskey-onion.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload Nginx
+
+- name: Check if Nginx configuration exists
+  stat:
+    path: '/etc/nginx/conf.d/misskey.conf'
+  register: nginx_conf
+
+- name: Notify user if Nginx configuration does not exist
+  fail:
+    msg: 'Nginx configuration file /etc/nginx/conf.d/misskey.conf does not exist.'
+  when: not nginx_conf.stat.exists
+
+- name: Check if Nginx onion configuration exists
+  stat:
+    path: '/etc/nginx/conf.d/misskey-onion.conf'
+  register: nginx_onion_conf
+
+- name: Notify user if Nginx onion configuration does not exist
+  fail:
+    msg: 'Nginx onion configuration file /etc/nginx/conf.d/misskey-onion.conf does not exist.'
+  when: not nginx_onion_conf.stat.exists
+
+- name: Verify Cloudflare configuration exists
+  stat:
+    path: '/etc/cloudflare/cloudflare.ini'
+  register: cloudflare_conf
+
+- name: Fail if Cloudflare configuration does not exist
+  fail:
+    msg: 'Cloudflare configuration file /etc/cloudflare/cloudflare.ini does not exist.'
+  when: not cloudflare_conf.stat.exists
+
+- name: Reload Nginx if configuration files exist
+  become: yes
+  become_user: root
+  systemd:
+    name: nginx
+    state: reloaded
+  when: nginx_conf.stat.exists or nginx_onion_conf.stat.exists or cloudflare_conf.stat.exists
+
+- name: Check if VAPID keys file exists
+  stat:
+    path: '{{ misskey_dir }}/vapid_keys.txt'
+  register: vapid_keys_file
+
+- name: Generate VAPID keys
+  when: not vapid_keys_file.stat.exists
+  shell: docker run node npx web-push generate-vapid-keys
+  register: vapid_keys
+
+- name: Save VAPID keys to a file
+  when: not vapid_keys_file.stat.exists
+  copy:
+    content: '{{ vapid_keys.stdout }}'
+    dest: '{{ misskey_dir }}/vapid_keys.txt'
+
+- name: Load VAPID keys from file
+  slurp:
+    src: '{{ misskey_dir }}/vapid_keys.txt'
+  register: vapid_keys_content
+
+- name: Set VAPID keys variables
+  set_fact:
+    vapid_public_key: "{{ vapid_keys_content.content | b64decode | regex_search('Public Key:\\s*(.+)', '\\1') | first }}"
+    vapid_private_key: "{{ vapid_keys_content.content | b64decode | regex_search('Private Key:\\s*(.+)', '\\1') | first }}"
+
+- name: Print VAPID keys
+  debug:
+    msg:
+      - 'Public Key: {{ vapid_public_key }}'
+      - 'Private Key: {{ vapid_private_key }}'

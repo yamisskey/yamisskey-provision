@@ -1,0 +1,6 @@
+- name: Reload Nginx
+  become: yes
+  become_user: root
+  systemd:
+    name: nginx
+    state: reloaded

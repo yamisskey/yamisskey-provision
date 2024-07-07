@@ -1,0 +1,41 @@
+- name: Update and upgrade apt packages
+  apt:
+    update_cache: yes
+    upgrade: 'dist'
+  tags:
+    - update
+
+- name: Install essential packages
+  apt:
+    name: '{{ packages }}'
+    state: present
+  tags:
+    - packages
+
+- name: Install Nix (multi-user setup)
+  become: true
+  shell: curl -L https://nixos.org/nix/install | sh -s -- --daemon
+  args:
+    creates: '/nix/store'
+  tags:
+    - nix_install
+
+- name: Configure Nix to use flakes
+  lineinfile:
+    path: '/etc/nix/nix.conf'
+    line: 'experimental-features = nix-command flakes'
+    create: yes
+
+- name: Activate Home Manager
+  become: no
+  become_user: '{{ user_name }}'
+  shell: nix run home-manager -- switch --flake ".#myHome"
+  args:
+    chdir: '{{ set_dir }}'
+    executable: /bin/bash
+
+- name: Ensure Docker is enabled and running
+  systemd:
+    name: docker
+    enabled: yes
+    state: started

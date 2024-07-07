@@ -1,0 +1,6 @@
+- name: Setup monitoring tools
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - monitoring

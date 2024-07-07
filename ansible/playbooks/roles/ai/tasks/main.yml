@@ -1,0 +1,60 @@
+- name: Check if mecab-ipadic-neologd is already installed
+  stat:
+    path: '/usr/lib/x86_64-linux-gnu/mecab/dic/mecab-ipadic-neologd'
+  register: mecab_ipadic_neologd_installed
+
+- name: Clone mecab-ipadic-neologd repository
+  git:
+    repo: 'https://github.com/neologd/mecab-ipadic-neologd.git'
+    dest: '/tmp/mecab-ipadic-neologd'
+    depth: 1
+  when: not mecab_ipadic_neologd_installed.stat.exists
+
+- name: Install mecab-ipadic-neologd
+  shell: ./bin/install-mecab-ipadic-neologd -n -a -y
+  args:
+    chdir: '/tmp/mecab-ipadic-neologd'
+    executable: /bin/bash
+  when: not mecab_ipadic_neologd_installed.stat.exists
+
+- name: Clean up mecab-ipadic-neologd repository
+  file:
+    path: '/tmp/mecab-ipadic-neologd'
+    state: absent
+  when: not mecab_ipadic_neologd_installed.stat.exists
+
+- name: Check if ai instance directory exists
+  stat:
+    path: '{{ ai_dir }}'
+  register: ai_directory
+
+- name: Fail if ai instance directory does not exist
+  fail:
+    msg: 'ai instance directory {{ ai_dir }} does not exist. Please clone the repository first.'
+  when: not ai_directory.stat.exists
+
+- name: Check if config.json exists for ai instance
+  stat:
+    path: '{{ ai_dir }}/config.json'
+  register: ai_config
+
+- name: Fail if config.json does not exist for ai instance
+  fail:
+    msg: 'config.json does not exist in {{ ai_dir }}. Please create it manually.'
+  when: not ai_config.stat.exists
+
+- name: Build ai instance
+  become: yes
+  become_method: sudo
+  shell: COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
+  args:
+    chdir: '{{ ai_dir }}'
+    executable: /bin/bash
+
+- name: Start ai instance
+  become: yes
+  become_method: sudo
+  shell: docker-compose up -d
+  args:
+    chdir: '{{ ai_dir }}'
+    executable: /bin/bash
