@@ -32,7 +32,7 @@
   become_user: "{{ user_name }}"
   shell: nix run home-manager -- switch --flake ".#myHome"
   args:
-    chdir: {{ set_dir }}
+    chdir: '{{ set_dir }}'
     executable: /bin/bash
 
 - name: Ensure Docker is enabled and running
