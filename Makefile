@@ -3,6 +3,7 @@
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
 IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
+SSH_PORT=2222
 MISSKEY_DIR=/var/www/misskey
 AI_DIR=~/ai
 
@@ -22,7 +23,7 @@ clone:
 
 invent:
 	echo "[servers]" > ansible/inventory
-	echo "$(HOSTNAME) ansible_host=$(IP_ADDRESS) ansible_user=$(SSH_USER)" >> ansible/inventory
+	echo "$(HOSTNAME) ansible_host=$(IP_ADDRESS) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	echo "Inventory file created at ansible/inventory"
 
 provision:
