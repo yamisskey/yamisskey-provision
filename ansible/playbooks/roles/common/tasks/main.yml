@@ -14,17 +14,12 @@
 
 - name: Install Nix (multi-user setup)
   become: true
+  become_user: "{{ user_name }}"
   shell: curl -L https://nixos.org/nix/install | sh -s -- --daemon
   args:
     creates: '/nix/store'
   tags:
     - nix_install
-
-- name: Source nix profile script
-  shell: . /etc/profile.d/nix.sh
-  become: true
-  tags:
-    - nix_source
 
 - name: Configure Nix to use flakes
   lineinfile:
@@ -34,9 +29,10 @@
 
 - name: Activate Home Manager
   become: yes
-  shell: sudo -i -u {{ user_name }} nix run home-manager -- switch --flake ".#myHome"
+  become_user: "{{ user_name }}"
+  shell: nix run home-manager -- switch --flake ".#myHome"
   args:
-    chdir: /home/{{ user_name }}/provision
+    chdir: {{ set_dir }}
     executable: /bin/bash
 
 - name: Ensure Docker is enabled and running
