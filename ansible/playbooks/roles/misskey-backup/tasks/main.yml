@@ -59,6 +59,13 @@
   notify:
     - Restart backup container
 
+- name: Copy crontab file to target
+  copy:
+    src: '{{ backup_script_dir }}/config/crontab'
+    dest: /opt/misskey-backup/config/crontab
+  notify:
+    - Restart backup container
+
 - name: Create rclone config file
   template:
     src: templates/rclone.conf.j2
