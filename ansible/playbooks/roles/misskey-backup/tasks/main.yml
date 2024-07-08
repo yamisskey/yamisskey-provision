@@ -86,4 +86,3 @@
 
 - name: Run manual backup script
   command: sudo docker exec backup /root/backup.sh
-
