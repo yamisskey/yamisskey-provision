@@ -45,7 +45,7 @@ backup:
 	@echo "Converting .env to env.yml..."
 	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
 	@while IFS= read -r line; do \
-	  if [[ ! $$line =~ ^# && ! -z $$line ]]; then \
+	  if [ ! "$$line" = "" ] && [ "$${line#\#}" = "$$line" ]; then \
 	    key=$$(echo $$line | cut -d '=' -f 1); \
 	    value=$$(echo $$line | cut -d '=' -f 2-); \
 	    echo "$$key: $$value" >> $(BACKUP_SCRIPT_DIR)/env.yml; \
