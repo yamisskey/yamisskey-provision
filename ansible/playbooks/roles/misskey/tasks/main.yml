@@ -163,49 +163,51 @@
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
 
-- name: Deploy and configure backup container
-  hosts: all
-  become: true
-  tasks:
-    - name: Ensure backup directory exists
-      file:
-        path: /misskey-data/backups
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0755'
+- name: Ensure backup directory exists
+  file:
+    path: /misskey-data/backups
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
 
-    - name: Ensure misskey-backup directory exists
-      file:
-        path: /misskey-backup
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0755'
+- name: Ensure misskey-backup directory exists
+  file:
+    path: /misskey-backup
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
 
-    - name: Copy Dockerfile to target
-      copy:
-        src: /mnt/data/Dockerfile
-        dest: /misskey-backup/Dockerfile
-      notify:
-        - Restart backup container
+- name: Copy Dockerfile to target
+  copy:
+    src: /mnt/data/Dockerfile
+    dest: /misskey-backup/Dockerfile
+  notify:
+    - Restart backup container
 
-    - name: Copy docker-compose.yaml to target
-      copy:
-        src: /mnt/data/compose.yaml
-        dest: /misskey-backup/docker-compose.yaml
-      notify:
-        - Restart backup container
+- name: Copy docker-compose.yaml to target
+  copy:
+    src: /mnt/data/compose.yaml
+    dest: /misskey-backup/docker-compose.yaml
+  notify:
+    - Restart backup container
 
-    - name: Pull and build Docker images
-      docker_compose:
-        project_src: /misskey-backup
-        state: present
-        pull: yes
-        build: yes
+- name: Pull and build Docker images
+  docker_compose:
+    project_src: /misskey-backup
+    state: present
+    pull: yes
+    build: yes
 
-    - name: Start Docker Compose services
-      docker_compose:
-        project_src: /misskey-backup
-        state: started
-        restarted: yes
+- name: Start Docker Compose services
+  docker_compose:
+    project_src: /misskey-backup
+    state: started
+    restarted: yes
+
+handlers:
+  - name: Restart backup container
+    docker_compose:
+      project_src: /misskey-backup
+      state: restarted
