@@ -38,14 +38,12 @@ invent:
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
 
 backup:
-	@echo "Running backup script..."
-	docker-compose -f $(BACKUP_SCRIPT_DIR)/docker-compose.yaml run backup
+	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 
@@ -62,6 +60,6 @@ help:
 	@echo "  clone     - Clone the misskey repository if it doesn't exist"
 	@echo "  invent    - Create the Ansible inventory file automatically"
 	@echo "  provision - Provision the server using Ansible"
-	@echo "  backup    - Run the backup script"
+	@echo "  backup    - Run the backup playbook"
 	@echo "  encrypt   - Encrypt configuration files"
 	@echo "  decrypt   - Decrypt configuration files"
