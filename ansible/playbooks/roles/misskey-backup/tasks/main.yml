@@ -43,9 +43,17 @@
   notify:
     - Restart backup container
 
+- name: Load environment variables from .env file
+  shell: |
+    set -o allexport
+    source /opt/misskey-backup/config/.env
+    set +o allexport
+  args:
+    executable: /bin/bash
+
 - name: Create rclone config file
   template:
-    src:  '{{ set_dir }}/ansible/playbooks/templates/rclone.conf.j2'
+    src: ansible/playbooks/templates/rclone.conf.j2
     dest: /opt/misskey-backup/config/rclone.conf
   notify:
     - Restart backup container
@@ -62,3 +70,4 @@
     project_src: /opt/misskey-backup
     state: started
     restarted: yes
+
