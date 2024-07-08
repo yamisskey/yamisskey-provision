@@ -1,0 +1,4 @@
+- name: Restart backup container
+  docker_compose:
+    project_src: /misskey-backup
+    state: restarted
