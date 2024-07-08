@@ -83,5 +83,5 @@
 - name: Start Docker Compose services
   docker_compose:
     project_src: /opt/misskey-backup
-    state: started
+    state: present
     restarted: yes
