@@ -44,7 +44,7 @@ provision:
 
 backup:
 	@echo "Running backup script..."
-	sudo /bin/sh $(BACKUP_SCRIPT_DIR)/src/backup.sh
+	docker-compose -f $(BACKUP_SCRIPT_DIR)/docker-compose.yaml run backup
 
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 
