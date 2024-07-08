@@ -205,9 +205,3 @@
     project_src: /misskey-backup
     state: started
     restarted: yes
-
-handlers:
-  - name: Restart backup container
-    docker_compose:
-      project_src: /misskey-backup
-      state: restarted
