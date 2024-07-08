@@ -170,6 +170,22 @@ make encrypt
 make decrypt
 ```
 
+14. Ensure that you have the necessary environment variables set up to backup. Create a .env file in the misskey-backup directory if it does not exist, and provide the required values:
+
+```config
+POSTGRES_HOST=your_postgres_host_in_misskey_config
+POSTGRES_USER=your_postgres_user_in_misskey_config
+POSTGRES_DB=your_postgres_namein_misskey_config
+POSTGRES_PASSWORD=your_postgres_passwordin_misskey_config
+R2_PREFIX=your_cloudflare_r2_bucket_prefix
+DISCORD_WEBHOOK_URL=your_discord_server_channel_webhook_url
+NOTIFICATION=true
+```
+
+```consol
+make backup
+```
+
 ## Additional Commands
 
 The Makefile provides additional commands for managing your Misskey setup:
