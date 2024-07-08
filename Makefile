@@ -56,7 +56,7 @@ backup:
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 	@echo "Running manual backup script..."
-	sudo docker exec backup /opt/misskey-backup/src/backup.sh
+	sudo docker exec backup /root/backup.sh
 
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)
