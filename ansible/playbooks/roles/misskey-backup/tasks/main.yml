@@ -45,7 +45,7 @@
 
 - name: Create rclone config file
   template:
-    src: ansible/playbooks/templates/rclone.conf.j2
+    src:  '{{ set_dir }}/ansible/playbooks/templates/rclone.conf.j2'
     dest: /opt/misskey-backup/config/rclone.conf
   notify:
     - Restart backup container
