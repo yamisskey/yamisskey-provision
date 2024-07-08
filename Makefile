@@ -51,6 +51,8 @@ backup:
 	    echo "$$key: $$value" >> $(BACKUP_SCRIPT_DIR)/env.yml; \
 	  fi \
 	done < $(BACKUP_SCRIPT_DIR)/.env
+	@echo "Copying env.yml to remote server..."
+	scp $(BACKUP_SCRIPT_DIR)/env.yml $(SSH_USER)@$(IP_ADDRESS):/opt/misskey-backup/config/env.yml
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 
