@@ -38,8 +38,15 @@
 
 - name: Copy .env file to target
   copy:
-    src: ~/misskey-backup/config/.env
+    src: ~/misskey-backup/.env
     dest: /opt/misskey-backup/config/.env
+  notify:
+    - Restart backup container
+
+- name: Create rclone config file
+  template:
+    src: ansible/playbooks/templates/rclone.conf.j2
+    dest: /opt/misskey-backup/config/rclone.conf
   notify:
     - Restart backup container
 
