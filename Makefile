@@ -45,14 +45,14 @@ backup:
 	@echo "Converting .env to env.yml..."
 	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
 	@while IFS= read -r line; do \
-	  if [ ! "$$line" = "" ] && [ "$${line#\#}" = "$$line" ]; then \
+	  if [ ! "$$line" = "${line#\#}" -a ! -z "$$line" ]; then \
 	    key=$$(echo $$line | cut -d '=' -f 1); \
 	    value=$$(echo $$line | cut -d '=' -f 2-); \
 	    echo "$$key: $$value" >> $(BACKUP_SCRIPT_DIR)/env.yml; \
-	  fi \
+	  fi; \
 	done < $(BACKUP_SCRIPT_DIR)/.env
-	@echo "Moving env.yml to target directory..."
-	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
+	@echo "Copying env.yml to remote server..."
+	scp -P 2222 $(BACKUP_SCRIPT_DIR)/env.yml $(USER)@$(IP_ADDRESS):/opt/misskey-backup/config/env.yml
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 	@echo "Running manual backup script..."
