@@ -25,6 +25,7 @@ clone:
 	if [ ! -d "$(AI_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yui.git $(AI_DIR); \
 	fi
+	mkdir -p $(BACKUP_SCRIPT_DIR)
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
