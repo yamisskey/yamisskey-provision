@@ -15,6 +15,22 @@
     group: '{{ ansible_user }}'
     mode: '0755'
 
+- name: Ensure config directory exists
+  file:
+    path: /opt/misskey-backup/config
+    state: directory
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0755'
+
+- name: Ensure src directory exists
+  file:
+    path: /opt/misskey-backup/src
+    state: directory
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0755'
+
 - name: Copy Dockerfile to target
   copy:
     src: '{{ backup_script_dir }}/Dockerfile'
@@ -28,14 +44,6 @@
     dest: /opt/misskey-backup/docker-compose.yaml
   notify:
     - Restart backup container
-
-- name: Ensure config directory exists
-  file:
-    path: /opt/misskey-backup/config
-    state: directory
-    owner: '{{ ansible_user }}'
-    group: '{{ ansible_user }}'
-    mode: '0755'
 
 - name: Copy env.yml file to target
   copy:
