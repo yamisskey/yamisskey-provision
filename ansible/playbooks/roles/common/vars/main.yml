@@ -11,3 +11,4 @@ packages:
   - libmecab-dev
   - mecab-ipadic-utf8
   - prometheus
+  - rclone
