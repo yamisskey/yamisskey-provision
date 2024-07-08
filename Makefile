@@ -5,8 +5,8 @@ HOSTNAME=$(shell hostname)
 IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
 SSH_PORT=2222
 MISSKEY_DIR=/var/www/misskey
-BACKUP_SCRIPT_DIR=~/misskey-backup
-AI_DIR=~/ai
+AI_DIR=$(HOME)/ai
+BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 
 all: install clone invent provision encrypt
 
