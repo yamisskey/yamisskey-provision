@@ -36,42 +36,54 @@
     src: '{{ backup_script_dir }}/Dockerfile'
     dest: /opt/misskey-backup/Dockerfile
   notify:
-    - Restart backup container
+    - Stop backup container
 
 - name: Copy docker-compose.yaml to target
   copy:
     src: '{{ backup_script_dir }}/compose.yaml'
     dest: /opt/misskey-backup/docker-compose.yaml
   notify:
-    - Restart backup container
+    - Stop backup container
 
 - name: Copy env.yml file to target
   copy:
     src: '{{ backup_script_dir }}/env.yml'
     dest: /opt/misskey-backup/config/env.yml
   notify:
-    - Restart backup container
+    - Stop backup container
 
 - name: Copy backup.sh to target
   copy:
     src: '{{ backup_script_dir }}/src/backup.sh'
     dest: /opt/misskey-backup/src/backup.sh
   notify:
-    - Restart backup container
+    - Stop backup container
 
 - name: Copy crontab file to target
   copy:
     src: '{{ backup_script_dir }}/config/crontab'
     dest: /opt/misskey-backup/config/crontab
   notify:
-    - Restart backup container
+    - Stop backup container
 
 - name: Create rclone config file
   template:
     src: templates/rclone.conf.j2
     dest: /opt/misskey-backup/config/rclone.conf
   notify:
-    - Restart backup container
+    - Stop backup container
+
+- name: Stop Docker Compose services
+  docker_compose:
+    project_src: /opt/misskey-backup
+    state: absent
+  when: docker_compose_state is defined and docker_compose_state == 'restarted'
+
+- name: Start Docker Compose services
+  docker_compose:
+    project_src: /opt/misskey-backup
+    state: present
+  when: docker_compose_state is defined and docker_compose_state == 'restarted'
 
 - name: Pull and build Docker images
   docker_compose:
@@ -84,4 +96,3 @@
   docker_compose:
     project_src: /opt/misskey-backup
     state: present
-    restarted: yes

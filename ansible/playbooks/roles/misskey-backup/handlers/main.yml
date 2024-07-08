@@ -1,4 +1,12 @@
+- name: Stop backup container
+  docker_compose:
+    project_src: /opt/misskey-backup
+    state: absent
+  listen: Restart backup container
+
 - name: Restart backup container
   docker_compose:
     project_src: /opt/misskey-backup
-    state: restarted
+    state: present
+  listen: Restart backup container
+
