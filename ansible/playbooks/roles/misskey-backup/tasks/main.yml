@@ -28,6 +28,21 @@
   notify:
     - Restart backup container
 
+- name: Ensure config directory exists
+  file:
+    path: /opt/misskey-backup/config
+    state: directory
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0755'
+
+- name: Copy .env file to target
+  copy:
+    src: ~/misskey-backup/config/.env
+    dest: /opt/misskey-backup/config/.env
+  notify:
+    - Restart backup container
+
 - name: Pull and build Docker images
   docker_compose:
     project_src: /opt/misskey-backup
