@@ -85,5 +85,3 @@
     project_src: /opt/misskey-backup
     state: started
     restarted: yes
-  networks:
-    - misskey-postgres
