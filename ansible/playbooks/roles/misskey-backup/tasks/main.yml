@@ -44,6 +44,13 @@
   notify:
     - Restart backup container
 
+- name: Copy backup.sh to target
+  copy:
+    src: '{{ backup_script_dir }}/src/backup.sh'
+    dest: /opt/misskey-backup/src/backup.sh
+  notify:
+    - Restart backup container
+
 - name: Create rclone config file
   template:
     src: templates/rclone.conf.j2
