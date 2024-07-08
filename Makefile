@@ -1,18 +1,22 @@
-.PHONY: all install clone invent provision backup encrypt decrypt help
+.PHONY: all install clone provision backup encrypt decrypt help
 
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
 IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
 SSH_PORT=2222
 MISSKEY_DIR=/var/www/misskey
+CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 
-all: install clone invent provision encrypt
+all: install clone provision encrypt
 
 install:
 	sudo apt-get update
 	sudo apt-get install -y ansible
+	echo "[servers]" > ansible/inventory
+	echo "$(HOSTNAME) ansible_host=$(IP_ADDRESS) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	echo "Inventory file created at ansible/inventory"
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
@@ -30,11 +34,6 @@ clone:
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
 
-invent:
-	echo "[servers]" > ansible/inventory
-	echo "$(HOSTNAME) ansible_host=$(IP_ADDRESS) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
-	echo "Inventory file created at ansible/inventory"
-
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass
@@ -43,9 +42,17 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
 
 backup:
+	@echo "Converting .env to env.yml..."
+	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
+	@while IFS= read -r line; do \
+	  if [[ ! $$line =~ ^# && ! -z $$line ]]; then \
+	    key=$$(echo $$line | cut -d '=' -f 1); \
+	    value=$$(echo $$line | cut -d '=' -f 2-); \
+	    echo "$$key: $$value" >> $(BACKUP_SCRIPT_DIR)/env.yml; \
+	  fi \
+	done < $(BACKUP_SCRIPT_DIR)/.env
+	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
-
-CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)
@@ -58,7 +65,6 @@ help:
 	@echo "  all       - Install, clone, invent, provision, and encrypt"
 	@echo "  install   - Update and install necessary packages"
 	@echo "  clone     - Clone the misskey repository if it doesn't exist"
-	@echo "  invent    - Create the Ansible inventory file automatically"
 	@echo "  provision - Provision the server using Ansible"
 	@echo "  backup    - Run the backup playbook"
 	@echo "  encrypt   - Encrypt configuration files"

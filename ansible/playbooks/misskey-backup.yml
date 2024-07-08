@@ -2,5 +2,7 @@
   hosts: all
   become: true
   become_method: sudo
+  vars_files:
+    - /opt/misskey-backup/config/env.yml
   roles:
     - misskey-backup
