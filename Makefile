@@ -1,10 +1,11 @@
-.PHONY: all clone install provision encrypt decrypt help invent
+.PHONY: all install clone invent provision backup encrypt decrypt help
 
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
 IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
 SSH_PORT=2222
 MISSKEY_DIR=/var/www/misskey
+BACKUP_SCRIPT_DIR=~/misskey-backup
 AI_DIR=~/ai
 
 all: install clone invent provision encrypt
@@ -16,10 +17,17 @@ install:
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
 	sudo chown $(USER):$(USER) $(MISSKEY_DIR)
-	git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR)
-	cd $(MISSKEY_DIR) && git checkout master
+	if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR); \
+		cd $(MISSKEY_DIR) && git checkout master; \
+	fi
 	mkdir -p $(AI_DIR)
-	git clone https://github.com/yamisskey/yui.git $(AI_DIR)
+	if [ ! -d "$(AI_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yui.git $(AI_DIR); \
+	fi
+	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
+	fi
 
 invent:
 	echo "[servers]" > ansible/inventory
@@ -33,6 +41,10 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
 
+backup:
+	@echo "Running backup script..."
+	cd $(BACKUP_SCRIPT_DIR) && sh backup.sh
+
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 
 encrypt:
@@ -45,8 +57,9 @@ help:
 	@echo "Available targets:"
 	@echo "  all       - Install, clone, invent, provision, and encrypt"
 	@echo "  install   - Update and install necessary packages"
-	@echo "  clone     - Clone the misskey repository"
+	@echo "  clone     - Clone the misskey repository if it doesn't exist"
 	@echo "  invent    - Create the Ansible inventory file automatically"
 	@echo "  provision - Provision the server using Ansible"
+	@echo "  backup    - Run the backup script"
 	@echo "  encrypt   - Encrypt configuration files"
 	@echo "  decrypt   - Decrypt configuration files"
