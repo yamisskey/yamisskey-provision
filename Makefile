@@ -44,7 +44,7 @@ provision:
 
 backup:
 	@echo "Running backup script..."
-	cd $(BACKUP_SCRIPT_DIR) && sh backup.sh
+	sudo $(BACKUP_SCRIPT_DIR)/src/backup.sh
 
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 
