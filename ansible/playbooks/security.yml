@@ -1,0 +1,6 @@
+- name: Configure Tor and Privoxy for secure connection
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - security

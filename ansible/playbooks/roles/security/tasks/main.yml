@@ -1,0 +1,31 @@
+- name: Backup original jail.conf
+  copy:
+    src: /etc/fail2ban/jail.conf
+    dest: /etc/fail2ban/jail.conf.bak
+    remote_src: yes
+  become: true
+  notify: Restart fail2ban
+
+- name: Copy custom jail.local
+  copy:
+    src: ../../../../fail2ban/jail.local
+    dest: /etc/fail2ban/jail.local
+  become: true
+  notify: Restart fail2ban
+
+- name: Ensure fail2ban is started and enabled
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: true
+  become: true
+
+- name: Check fail2ban status for sshd
+  command: fail2ban-client status sshd
+  register: result
+  failed_when: "'sshd' not in result.stdout"
+  become: true
+
+- name: Debug fail2ban status
+  debug:
+    msg: "{{ result.stdout }}"
