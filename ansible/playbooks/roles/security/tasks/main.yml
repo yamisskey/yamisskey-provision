@@ -30,9 +30,29 @@
   debug:
     msg: "{{ result.stdout }}"
 
+- name: Ensure log directory for ClamAV exists
+  file:
+    path: /var/log/clamav
+    state: directory
+    owner: clamav
+    group: adm
+    mode: '0755'
+  become: true
+
+- name: Ensure freshclam log file is writable
+  file:
+    path: /var/log/clamav/freshclam.log
+    state: touch
+    owner: clamav
+    group: adm
+    mode: '0644'
+  become: true
+
 - name: Update ClamAV virus database
   command: freshclam
   become: true
+  failed_when: false
+  changed_when: false
 
 - name: Ensure ClamAV daemon is started and enabled
   systemd:
