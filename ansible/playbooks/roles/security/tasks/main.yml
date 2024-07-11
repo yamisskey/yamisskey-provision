@@ -30,18 +30,6 @@
   debug:
     msg: "{{ result.stdout }}"
 
-- name: Install ClamAV
-  apt:
-    name: clamav
-    state: present
-  become: true
-
-- name: Install ClamAV daemon
-  apt:
-    name: clamav-daemon
-    state: present
-  become: true
-
 - name: Update ClamAV virus database
   command: freshclam
   become: true
