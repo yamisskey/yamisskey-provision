@@ -12,19 +12,13 @@
   tags:
     - packages
 
-- name: Configure periodic updates for unattended-upgrades
-  lineinfile:
+- name: Copy unattended-upgrades configuration file
+  copy:
+    src: ../../../apt/20auto-upgrades
     dest: /etc/apt/apt.conf.d/20auto-upgrades
-    create: yes
-    line: "{{ item }}"
-  with_items:
-    - 'APT::Periodic::Update-Package-Lists "1";'
-    - 'APT::Periodic::Download-Upgradeable-Packages "1";'
-    - 'APT::Periodic::AutocleanInterval "7";'
-    - 'APT::Periodic::Unattended-Upgrade "1";'
-  owner: root
-  group: root
-  mode: '0644'
+    owner: root
+    group: root
+    mode: '0644'
   tags:
     - unattended-upgrades
 
