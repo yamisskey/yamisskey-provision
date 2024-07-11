@@ -13,3 +13,4 @@ packages:
   - prometheus
   - rclone
   - fail2ban
+  - unattended-upgrades

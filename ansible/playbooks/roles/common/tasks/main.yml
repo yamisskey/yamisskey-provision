@@ -12,6 +12,35 @@
   tags:
     - packages
 
+- name: Install unattended-upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+  tags:
+    - unattended-upgrades
+
+- name: Configure unattended-upgrades
+  copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Unattended-Upgrade "1";
+  owner: root
+  group: root
+  mode: '0644'
+  tags:
+    - unattended-upgrades
+
+- name: Ensure unattended-upgrades service is enabled and started
+  systemd:
+    name: unattended-upgrades
+    enabled: yes
+    state: started
+  tags:
+    - unattended-upgrades
+
 - name: Install Nix (multi-user setup)
   become: true
   become_user: "{{ user_name }}"
