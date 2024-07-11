@@ -29,3 +29,22 @@
 - name: Debug fail2ban status
   debug:
     msg: "{{ result.stdout }}"
+
+- name: Update ClamAV virus database
+  command: freshclam
+  become: true
+
+- name: Ensure ClamAV daemon is started and enabled
+  systemd:
+    name: clamav-daemon
+    state: started
+    enabled: true
+  become: true
+
+- name: Schedule daily ClamAV scan
+  cron:
+    name: "Daily ClamAV scan"
+    minute: "0"
+    hour: "2"
+    job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\%Y\%m\%d).log"
+  become: true
