@@ -30,6 +30,18 @@
   debug:
     msg: "{{ result.stdout }}"
 
+- name: Install ClamAV
+  apt:
+    name: clamav
+    state: present
+  become: true
+
+- name: Install ClamAV daemon
+  apt:
+    name: clamav-daemon
+    state: present
+  become: true
+
 - name: Update ClamAV virus database
   command: freshclam
   become: true
@@ -46,5 +58,5 @@
     name: "Daily ClamAV scan"
     minute: "0"
     hour: "2"
-    job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\%Y\%m\%d).log"
+    job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
