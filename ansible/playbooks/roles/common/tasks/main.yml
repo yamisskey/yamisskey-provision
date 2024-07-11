@@ -14,7 +14,7 @@
 
 - name: Copy unattended-upgrades configuration file
   copy:
-    src: ../../../apt/20auto-upgrades
+    src: 20auto-upgrades
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     owner: root
     group: root
