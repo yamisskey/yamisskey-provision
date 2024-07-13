@@ -86,10 +86,17 @@
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
   register: build_output
+  failed_when: build_output.rc != 0
+  ignore_errors: yes
 
 - name: Show build and init output
   debug:
     var: build_output
+
+- name: Fail if build and init failed
+  fail:
+    msg: "Build and init of Misskey failed with error: {{ build_output.stderr }}"
+  when: build_output.rc != 0
 
 - name: Start Misskey
   become: yes
@@ -99,6 +106,7 @@
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
   register: start_output
+  failed_when: start_output.rc != 0
 
 - name: Show start output
   debug:
