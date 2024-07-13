@@ -79,7 +79,7 @@
   become_method: sudo
   shell: |
     COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
-    yes | docker-compose run --rm web pnpm run init
+    echo y | docker-compose run --rm web pnpm run init
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
