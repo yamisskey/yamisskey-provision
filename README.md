@@ -67,7 +67,7 @@ make clone
 cd ~/misskey
 cp docker-compose_example.yml docker-compose.yml
 cd .config
-cp example.yml default.yml
+cp docker_example.yml default.yml
 cp docker_example.env docker.env
 ```
 
