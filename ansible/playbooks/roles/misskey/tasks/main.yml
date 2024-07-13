@@ -27,25 +27,51 @@
   register: stash_output
   ignore_errors: yes
 
+- name: Show git stash output (if necessary)
+  debug:
+    var: stash_output
+
 - name: Checkout master branch
   shell: git checkout master
   args:
     chdir: '{{ misskey_dir }}'
+  register: checkout_output
+
+- name: Show git checkout output (if necessary)
+  debug:
+    var: checkout_output
 
 - name: Pull latest changes
   shell: git pull
   args:
     chdir: '{{ misskey_dir }}'
+  register: pull_output
+
+- name: Show git pull output (if necessary)
+  debug:
+    var: pull_output
 
 - name: Update submodules
   shell: git submodule update --init
   args:
     chdir: '{{ misskey_dir }}'
+  register: submodule_output
+
+- name: Show git submodule update output (if necessary)
+  debug:
+    var: submodule_output
 
 - name: Apply stashed changes
   shell: git stash pop
   args:
     chdir: '{{ misskey_dir }}'
+  when: "'No local changes to save' not in stash_output.stdout"
+  register: stash_pop_output
+  ignore_errors: yes
+
+- name: Show git stash pop output (if necessary)
+  debug:
+    var: stash_pop_output
   when: "'No local changes to save' not in stash_output.stdout"
 
 - name: Build and initialize Misskey
@@ -57,6 +83,11 @@
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
+  register: build_output
+
+- name: Show build and init output
+  debug:
+    var: build_output
 
 - name: Change permissions of files directory to upload files
   become: yes
@@ -64,6 +95,11 @@
   file:
     path: '{{ misskey_dir }}/files'
     mode: '0777'
+  register: chmod_output
+
+- name: Show chmod output (if necessary)
+  debug:
+    var: chmod_output
 
 - name: Start Misskey
   become: yes
@@ -72,6 +108,11 @@
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
+  register: start_output
+
+- name: Show start output
+  debug:
+    var: start_output
 
 - name: Copy misskey.conf to /etc/nginx/conf.d/
   copy:

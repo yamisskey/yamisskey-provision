@@ -39,12 +39,12 @@ clone:
 	fi
 
 provision:
-	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass -vv
-	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass -vv
-	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass -vv
-	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass -vv
-	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass -vv
-	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass -vv
+	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
@@ -59,7 +59,7 @@ backup:
 	@echo "Moving env.yml to target directory..."                                                                                                  │
 	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml   
 	@echo "Running backup script..."
-	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass -vv
+	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)
