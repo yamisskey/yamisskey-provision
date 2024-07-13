@@ -24,6 +24,7 @@
   shell: git stash
   args:
     chdir: '{{ misskey_dir }}'
+  register: stash_output
   ignore_errors: yes
 
 - name: Checkout master branch
@@ -45,7 +46,7 @@
   shell: git stash pop
   args:
     chdir: '{{ misskey_dir }}'
-  when: "'No local changes to save' not in stash_output.stdout"
+  when: stash_output is defined and "'No local changes to save' not in stash_output.stdout"
   ignore_errors: yes
 
 - name: Build and initialize Misskey
