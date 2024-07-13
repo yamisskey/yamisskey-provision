@@ -46,10 +46,18 @@
 - name: Build ai instance
   become: yes
   become_method: sudo
-  shell: COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
+  shell: |
+    IMAGE_TAG="ai_app:{{ ansible_date_time.iso8601_basic }}"
+    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --build-arg TAG=$IMAGE_TAG
+    docker tag ai_app:latest $IMAGE_TAG
   args:
     chdir: '{{ ai_dir }}'
     executable: /bin/bash
+  register: build_output
+
+- name: Show build output
+  debug:
+    var: build_output
 
 - name: Start ai instance
   become: yes
@@ -58,3 +66,8 @@
   args:
     chdir: '{{ ai_dir }}'
     executable: /bin/bash
+  register: start_output
+
+- name: Show start output
+  debug:
+    var: start_output

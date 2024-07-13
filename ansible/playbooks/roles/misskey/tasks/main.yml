@@ -78,7 +78,9 @@
   become: yes
   become_method: sudo
   shell: |
-    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
+    IMAGE_TAG="misskey_web:{{ ansible_date_time.iso8601_basic }}"
+    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --build-arg TAG=$IMAGE_TAG
+    docker tag misskey_web:latest $IMAGE_TAG
     echo y | docker-compose run --rm web pnpm run init
   args:
     chdir: '{{ misskey_dir }}'
@@ -88,18 +90,6 @@
 - name: Show build and init output
   debug:
     var: build_output
-
-- name: Change permissions of files directory to upload files
-  become: yes
-  become_method: sudo
-  file:
-    path: '{{ misskey_dir }}/files'
-    mode: '0777'
-  register: chmod_output
-
-- name: Show chmod output (if necessary)
-  debug:
-    var: chmod_output
 
 - name: Start Misskey
   become: yes
@@ -113,6 +103,18 @@
 - name: Show start output
   debug:
     var: start_output
+
+- name: Change permissions of files directory to upload files
+  become: yes
+  become_method: sudo
+  file:
+    path: '{{ misskey_dir }}/files'
+    mode: '0777'
+  register: chmod_output
+
+- name: Show chmod output (if necessary)
+  debug:
+    var: chmod_output
 
 - name: Copy misskey.conf to /etc/nginx/conf.d/
   copy:
