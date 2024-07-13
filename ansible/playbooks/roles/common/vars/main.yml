@@ -1,4 +1,10 @@
 packages:
+  - htop
+  - net-tools
+  - sysstat
+  - nmap
+  - rsync
+  - zip
   - docker
   - docker-buildx-plugin
   - docker-compose
