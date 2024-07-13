@@ -104,7 +104,7 @@
 - name: Start Misskey
   become: yes
   become_method: sudo
-  shell: sudo docker compose stop && sudo docker compose up -d
+  shell: sudo docker-compose stop && sudo docker-compose up -d
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
