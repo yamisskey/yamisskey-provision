@@ -150,7 +150,6 @@ sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudfl
 
 ```consol
 cd ~/provision
-make invent
 make provision
 ```
 
@@ -185,17 +184,3 @@ NOTIFICATION=true
 ```consol
 make backup
 ```
-
-## Additional Commands
-
-The Makefile provides additional commands for managing your Misskey setup:
-
-- `make help`: Display available targets and their descriptions.
-- `make all`: Install dependencies, clone the misskey repository, provision the server, and encrypt the configuration files.
-- `make install`: Update and install the necessary packages.
-- `make clone`: Clone the misskey repository.
-- `make provision`: Provision the server using the Ansible playbook.
-- `make encrypt`: Encrypt the configuration files.
-- `make decrypt`: Decrypt the configuration files.
-
-By following these steps and utilizing the provided Makefile and Ansible playbook, you can easily set up and configure Misskey on your server.
