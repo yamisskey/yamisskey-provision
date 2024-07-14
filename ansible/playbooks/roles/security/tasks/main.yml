@@ -1,3 +1,4 @@
+---
 - name: Discover cloudflared tunnel UUID
   shell: cloudflared tunnel list --origincert /home/{{ user_name }}/.cloudflared/cert.pem | awk '/yamisskey/ {print $1}'
   register: tunnel_uuid
@@ -30,7 +31,8 @@
       [Service]
       TimeoutStartSec=0
       Type=notify
-      ExecStart=/usr/bin/cloudflared tunnel run yamisskey --origincert /home/{{ user_name }}/.cloudflared/cert.pem
+      Environment="TUNNEL_ORIGIN_CERT=/home/{{ user_name }}/.cloudflared/cert.pem"
+      ExecStart=/usr/bin/cloudflared tunnel run yamisskey
       Restart=on-failure
       User={{ user_name }}
       StandardOutput=journal
@@ -139,4 +141,3 @@
     hour: "2"
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
-
