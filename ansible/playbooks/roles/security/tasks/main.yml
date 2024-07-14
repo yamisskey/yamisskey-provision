@@ -46,7 +46,10 @@
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
 
-- name: Enable and start cloudflared service
+- name: Enable cloudflared service
+  command: systemctl enable cloudflared
+
+- name: Start cloudflared service
   systemd:
     name: cloudflared
     state: started
