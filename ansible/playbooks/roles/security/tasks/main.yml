@@ -39,6 +39,9 @@
     dest: /etc/systemd/system/cloudflared.service
     mode: '0644'
 
+- name: Reload systemd to apply new service file
+  command: systemctl daemon-reload
+
 - name: Enable and start cloudflared service
   systemd:
     name: cloudflared
