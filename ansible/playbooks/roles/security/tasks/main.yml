@@ -1,7 +1,19 @@
-- name: Discover cloudflared tunnel UUID
-  shell: cloudflared tunnel list --origincert /home/{{ user_name }}/.cloudflared/cert.pem | awk '/yamisskey/ {print $1}'
-  register: tunnel_uuid
+- name: Find cloudflared UUID file
+  find:
+    paths: '/home/{{ user_name }}/.cloudflared'
+    patterns: '*.json'
+  register: uuid_files
+
+- name: Set tunnel UUID
+  set_fact:
+    tunnel_uuid: "{{ item.path | regex_replace('^.*/(.*)\\.json$', '\\1') }}"
+  loop: '{{ uuid_files.files }}'
+  when: uuid_files.matched > 0
   changed_when: false
+
+- name: Debug tunnel_uuid
+  debug:
+    msg: 'Tunnel UUID: {{ tunnel_uuid }}'
 
 - name: Set cloudflared config.yml content
   template:
@@ -101,4 +113,3 @@
     hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
-
