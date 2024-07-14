@@ -1,5 +1,5 @@
 - name: Discover cloudflared tunnel UUID
-  command: cloudflared tunnel list | awk '/yamisskey/ {print $1}'
+  shell: cloudflared tunnel list --origincert /home/{{ user_name }}/.cloudflared/cert.pem | awk '/yamisskey/ {print $1}'
   register: tunnel_uuid
   changed_when: false
 
@@ -80,7 +80,7 @@
 
 - name: Debug fail2ban status
   debug:
-    msg: "{{ result.stdout }}"
+    msg: '{{ result.stdout }}'
 
 - name: Ensure log directory for ClamAV exists
   file:
@@ -115,8 +115,9 @@
 
 - name: Schedule daily ClamAV scan
   cron:
-    name: "Daily ClamAV scan"
-    minute: "0"
-    hour: "2"
+    name: 'Daily ClamAV scan'
+    minute: '0'
+    hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
+
