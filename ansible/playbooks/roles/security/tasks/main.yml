@@ -1,3 +1,55 @@
+- name: Discover cloudflared tunnel UUID
+  command: cloudflared tunnel list | awk '/yamisskey/ {print $1}'
+  register: tunnel_uuid
+  changed_when: false
+
+- name: Set cloudflared config.yml content
+  copy:
+    content: |
+      tunnel: {{ tunnel_uuid.stdout }}
+      credentials-file: /home/{{ user_name }}/.cloudflared/{{ tunnel_uuid.stdout }}.json
+
+      ingress:
+        - hostname: yami.ski
+          service: http://localhost:8080
+        - hostname: grafana.yami.ski
+          service: http://localhost:3000
+        - service: http_status:404
+    dest: '/home/{{ user_name }}/.cloudflared/config.yml'
+    owner: '{{ user_name }}'
+    mode: '0600'
+
+- name: Create systemd service file for cloudflared
+  copy:
+    content: |
+      [Unit]
+      Description=cloudflared
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      TimeoutStartSec=0
+      Type=notify
+      ExecStart=/usr/bin/cloudflared tunnel run yamisskey
+      Restart=on-failure
+      User={{ user_name }}
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/cloudflared.service
+    mode: '0644'
+
+- name: Enable and start cloudflared service
+  systemd:
+    name: cloudflared
+    state: started
+    enabled: true
+
+- name: Reload Nginx
+  systemd:
+    name: nginx
+    state: reloaded
+
 - name: Backup original jail.conf
   copy:
     src: /etc/fail2ban/jail.conf
@@ -8,7 +60,7 @@
 
 - name: Copy custom jail.local
   copy:
-    src: ../../../../fail2ban/jail.local
+    src: '{{ set_dir }}/fail2ban/jail.local'
     dest: /etc/fail2ban/jail.local
   become: true
   notify: Restart fail2ban
