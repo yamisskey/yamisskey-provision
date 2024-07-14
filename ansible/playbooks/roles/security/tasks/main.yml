@@ -15,8 +15,8 @@
         - hostname: grafana.yami.ski
           service: http://localhost:3000
         - service: http_status:404
-    dest: '/home/{{ user_name }}/.cloudflared/config.yml'
-    owner: '{{ user_name }}'
+    dest: "/home/{{ user_name }}/.cloudflared/config.yml"
+    owner: "{{ user_name }}"
     mode: '0600'
 
 - name: Create systemd service file for cloudflared
@@ -33,6 +33,8 @@
       ExecStart=/usr/bin/cloudflared tunnel run yamisskey --origincert /home/{{ user_name }}/.cloudflared/cert.pem
       Restart=on-failure
       User={{ user_name }}
+      StandardOutput=journal
+      StandardError=journal
 
       [Install]
       WantedBy=multi-user.target
@@ -59,7 +61,7 @@
 
 - name: Debug cloudflared service logs
   debug:
-    msg: '{{ cloudflared_service_logs.stdout }}'
+    msg: "{{ cloudflared_service_logs.stdout }}"
   when: cloudflared_service_result.failed
 
 - name: Reload Nginx
@@ -77,7 +79,7 @@
 
 - name: Copy custom jail.local
   copy:
-    src: '{{ set_dir }}/fail2ban/jail.local'
+    src: "{{ set_dir }}/fail2ban/jail.local"
     dest: /etc/fail2ban/jail.local
   become: true
   notify: Restart fail2ban
@@ -97,7 +99,7 @@
 
 - name: Debug fail2ban status
   debug:
-    msg: '{{ result.stdout }}'
+    msg: "{{ result.stdout }}"
 
 - name: Ensure log directory for ClamAV exists
   file:
@@ -132,9 +134,9 @@
 
 - name: Schedule daily ClamAV scan
   cron:
-    name: 'Daily ClamAV scan'
-    minute: '0'
-    hour: '2'
+    name: "Daily ClamAV scan"
+    minute: "0"
+    hour: "2"
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
 
