@@ -2,15 +2,15 @@
   shell: cloudflared tunnel list --origincert /home/{{ user_name }}/.cloudflared/cert.pem | awk '/yamisskey/ {print $1}'
   register: tunnel_uuid
   changed_when: false
-  
+
 - name: Set cloudflared config.yml content
   template:
     src: templates/cloudflared.config.yml.j2
     dest: '/etc/cloudflared/config.yml'
     owner: 'root'
     mode: '0600'
-    vars:
-      tunnel_uuid: "{{ tunnel_uuid.stdout }}"
+  vars:
+    tunnel_uuid: '{{ tunnel_uuid.stdout }}'
 
 - name: Install cloudflared as a system service
   command: cloudflared service install
@@ -101,3 +101,4 @@
     hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
+
