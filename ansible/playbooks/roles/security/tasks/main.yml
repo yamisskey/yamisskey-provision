@@ -30,7 +30,7 @@
       [Service]
       TimeoutStartSec=0
       Type=notify
-      ExecStart=/usr/bin/cloudflared tunnel run yamisskey
+      ExecStart=/usr/bin/cloudflared tunnel run yamisskey --origincert /home/{{ user_name }}/.cloudflared/cert.pem
       Restart=on-failure
       User={{ user_name }}
 
@@ -44,6 +44,20 @@
     name: cloudflared
     state: started
     enabled: true
+  register: cloudflared_service_result
+  failed_when: cloudflared_service_result.failed
+
+- name: Check cloudflared service status on failure
+  shell: |
+    systemctl status cloudflared.service
+    journalctl -xeu cloudflared.service
+  when: cloudflared_service_result.failed
+  register: cloudflared_service_logs
+
+- name: Debug cloudflared service logs
+  debug:
+    msg: '{{ cloudflared_service_logs.stdout }}'
+  when: cloudflared_service_result.failed
 
 - name: Reload Nginx
   systemd:
