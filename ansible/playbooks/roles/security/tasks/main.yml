@@ -2,22 +2,15 @@
   shell: cloudflared tunnel list --origincert /home/{{ user_name }}/.cloudflared/cert.pem | awk '/yamisskey/ {print $1}'
   register: tunnel_uuid
   changed_when: false
-
+  
 - name: Set cloudflared config.yml content
-  copy:
-    content: |
-      tunnel: "{{ tunnel_uuid.stdout }}"
-      credentials-file: "/home/{{ user_name }}/.cloudflared/{{ tunnel_uuid.stdout }}.json"
-
-      ingress:
-        - hostname: yami.ski
-          service: http://localhost:8080
-        - hostname: grafana.yami.ski
-          service: http://localhost:3000
-        - service: http_status:404
+  template:
+    src: templates/cloudflared.config.yml.j2
     dest: '/etc/cloudflared/config.yml'
     owner: 'root'
     mode: '0600'
+    vars:
+      tunnel_uuid: "{{ tunnel_uuid.stdout }}"
 
 - name: Install cloudflared as a system service
   command: cloudflared service install

@@ -1,0 +1,9 @@
+tunnel: "{{ tunnel_uuid }}"
+credentials-file: "/home/{{ user_name }}/.cloudflared/{{ tunnel_uuid }}.json"
+
+ingress:
+  - hostname: yami.ski
+    service: http://localhost:8080
+  - hostname: grafana.yami.ski
+    service: http://localhost:3000
+  - service: http_status:404
