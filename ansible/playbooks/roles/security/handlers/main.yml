@@ -28,10 +28,3 @@
     state: restarted
   become: true
 
-- name: Restart Shadowsocks
-  systemd:
-    name: shadowsocks-libev
-    state: restarted
-    enabled: true
-  become: true
-

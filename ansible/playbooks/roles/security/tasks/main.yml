@@ -87,11 +87,9 @@
   systemd:
     name: '{{ item }}'
     state: stopped
-  become: true
   loop:
     - nginx
     - privoxy
-    - shadowsocks-libev
 
 - name: Clean up Unix socket
   file:
@@ -128,20 +126,10 @@
     msg: 'Privoxy configuration is invalid. Please check the configuration file.'
   when: privoxy_config_check.rc != 0
 
-- name: Restart Shadowsocks
-  systemd:
-    name: shadowsocks-libev
-    state: restarted
-
 - name: Restart Privoxy
   systemd:
     name: privoxy
     state: restarted
-
-- name: Start Shadowsocks
-  systemd:
-    name: shadowsocks-libev
-    state: started
 
 - name: Exclude Nginx from VPN
   command: mullvad-exclude /usr/sbin/nginx
