@@ -87,11 +87,11 @@
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
 - name: Exclude SSH from VPN
-  command: "mullvad-exclude $(pgrep sshd)"
+  command: mullvad-exclude /usr/sbin/sshd
   become: true
 
-- name: Exclude HTTP from VPN
-  command: "mullvad-exclude $(pgrep nginx)"
+- name: Exclude Nginx from VPN
+  command: mullvad-exclude /usr/sbin/nginx
   become: true
 
 - name: Add routing rule to exclude SSH traffic from VPN
@@ -99,7 +99,7 @@
   become: true
 
 - name: Add default route for main table
-  command: ip route add default via $(ip route | grep default | awk '{print $3}') dev $(ip route | grep default | awk '{print $5}') table main
+  command: ip route add default via {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }} table main
   become: true
 
 - name: Ensure Mullvad VPN service is enabled and running
