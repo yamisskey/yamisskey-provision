@@ -23,24 +23,15 @@
     mode: '0600'
   vars:
     tunnel_uuid: '{{ tunnel_uuid }}'
-  notify: Restart Privoxy
+  notify: Restart Cloudflared
 
 - name: Install cloudflared as a system service
   command: cloudflared service install
   args:
     creates: /etc/systemd/system/cloudflared.service
-  notify: Reload Nginx
 
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
-
-- name: Restart cloudflared service
-  systemd:
-    name: cloudflared
-    state: restarted
-    enabled: true
-  notify:
-    - Reload Nginx
 
 - name: Remove existing Mullvad VPN configuration
   file:
@@ -77,13 +68,6 @@
 - name: Debug Mullvad VPN token
   debug:
     msg: 'Mullvad VPN token: {{ mullvad_token }}'
-
-- name: Restart Shadowsocks service
-  systemd:
-    name: shadowsocks-libev
-    state: restarted
-    enabled: true
-  become: true
 
 - name: Ensure Privoxy is installed
   apt:
@@ -142,7 +126,10 @@
   ignore_errors: true
 
 - name: Kill process using port 8118
-  shell: kill -9 $(lsof -t -i :8118)
+  shell: |
+    if [ -n "{{ port_8118_check.stdout }}" ]; then
+      lsof -t -i :8118 | xargs -r kill -9
+    fi
   when: port_8118_check.stdout != ""
   ignore_errors: true
   become: true
@@ -157,24 +144,18 @@
     msg: "Privoxy configuration is invalid. Please check the configuration file."
   when: privoxy_config_check.rc != 0
 
-- name: Start Privoxy
+- name: Restart Shadowsocks
+  systemd:
+    name: shadowsocks-libev
+    state: restarted
+    enabled: true
+  become: true
+
+- name: Restart Privoxy
   systemd:
     name: privoxy
     state: restarted
   become: true
-  when: privoxy_config_check.rc == 0
-
-- name: Check Privoxy status
-  systemd:
-    name: privoxy
-    state: started
-  become: true
-  register: privoxy_status
-
-- name: Fail if Privoxy service did not start
-  fail:
-    msg: "Privoxy service failed to start."
-  when: privoxy_status.rc != 0
 
 - name: Start Shadowsocks
   systemd:

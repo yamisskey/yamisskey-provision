@@ -5,6 +5,12 @@
     enabled: true
   become: true
 
+- name: Restart Cloudflared
+  systemd:
+    name: privoxy
+    state: restarted
+  become: true
+
 - name: Reload Nginx
   systemd:
     name: nginx
@@ -29,4 +35,3 @@
     state: restarted
     enabled: true
   become: true
-
