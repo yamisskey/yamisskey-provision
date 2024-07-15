@@ -110,6 +110,22 @@
     state: stopped
   become: true
 
+- name: Identify processes using ports 80 and 443
+  shell: |
+    lsof -i :80 -sTCP:LISTEN -t || true
+    lsof -i :443 -sTCP:LISTEN -t || true
+    lsof -t /var/run/tor-misskey.sock || true
+  register: port_processes
+  become: true
+
+- name: Kill processes using ports 80 and 443
+  shell: |
+    for pid in {{ port_processes.stdout_lines | join(' ') }}; do
+      kill -9 $pid || true
+    done
+  become: true
+  when: port_processes.stdout_lines | length > 0
+
 - name: Clean up Unix socket
   file:
     path: /var/run/tor-misskey.sock
