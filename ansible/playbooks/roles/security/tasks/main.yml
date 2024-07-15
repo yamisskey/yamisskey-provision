@@ -90,8 +90,20 @@
   command: mullvad-exclude /usr/sbin/sshd
   become: true
 
+- name: Stop Nginx temporarily
+  systemd:
+    name: nginx
+    state: stopped
+  become: true
+
 - name: Exclude Nginx from VPN
   command: mullvad-exclude /usr/sbin/nginx
+  become: true
+
+- name: Start Nginx
+  systemd:
+    name: nginx
+    state: started
   become: true
 
 - name: Add routing rule to exclude SSH traffic from VPN
