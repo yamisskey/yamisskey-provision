@@ -115,73 +115,16 @@
   debug:
     msg: "Mullvad VPN status: {{ vpn_status.stdout }}"
 
-- name: Backup original jail.conf
-  copy:
-    src: /etc/fail2ban/jail.conf
-    dest: /etc/fail2ban/jail.conf.bak
-    remote_src: yes
-  become: true
-  notify: Restart fail2ban
-
-- name: Copy custom jail.local
-  copy:
-    src: '{{ set_dir }}/fail2ban/jail.local'
-    dest: /etc/fail2ban/jail.local
-  become: true
-  notify: Restart fail2ban
-
-- name: Ensure fail2ban is started and enabled
-  systemd:
-    name: fail2ban
-    state: started
-    enabled: true
+- name: Configure DNS
+  lineinfile:
+    path: /etc/resolv.conf
+    line: "nameserver 8.8.8.8"
+    state: present
   become: true
 
-- name: Check fail2ban status for sshd
-  command: fail2ban-client status sshd
-  register: result
-  failed_when: "'sshd' not in result.stdout"
-  become: true
-
-- name: Debug fail2ban status
-  debug:
-    msg: '{{ result.stdout }}'
-
-- name: Ensure log directory for ClamAV exists
-  file:
-    path: /var/log/clamav
-    state: directory
-    owner: clamav
-    group: adm
-    mode: '0755'
-  become: true
-
-- name: Ensure freshclam log file is writable
-  file:
-    path: /var/log/clamav/freshclam.log
-    state: touch
-    owner: clamav
-    group: adm
-    mode: '0644'
-  become: true
-
-- name: Update ClamAV virus database
-  command: freshclam
-  become: true
-  failed_when: false
-  changed_when: false
-
-- name: Ensure ClamAV daemon is started and enabled
-  systemd:
-    name: clamav-daemon
-    state: started
-    enabled: true
-  become: true
-
-- name: Schedule daily ClamAV scan
-  cron:
-    name: 'Daily ClamAV scan'
-    minute: '0'
-    hour: '2'
-    job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
+- name: Add secondary DNS
+  lineinfile:
+    path: /etc/resolv.conf
+    line: "nameserver 8.8.4.4"
+    state: present
   become: true
