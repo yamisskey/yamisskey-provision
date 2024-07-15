@@ -3,7 +3,7 @@
     "server_port": {{ shadowsocks_server_port | default(8388) }},
     "local_address": "127.0.0.1",
     "local_port": {{ shadowsocks_local_port | default(1080) }},
-    "password": "{{ shadowsocks_password | default('password') }}",
+    "password": "{{ shadowsocks_password }}",
     "timeout": {{ shadowsocks_timeout | default(300) }},
     "method": "{{ shadowsocks_method | default('aes-256-gcm') }}",
     "fast_open": {{ shadowsocks_fast_open | default(false) }},
