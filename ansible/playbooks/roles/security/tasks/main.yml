@@ -94,6 +94,18 @@
     enabled: true
   become: true
 
+- name: Enable Split Tunneling for Mullvad VPN
+  command: mullvad split-tunnel set on
+  become: true
+
+- name: Add routing rule to exclude SSH traffic from VPN
+  command: ip rule add from {{ ansible_default_ipv4.address }} table main
+  become: true
+
+- name: Add default route for main table
+  command: ip route add default via {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }} table main
+  become: true
+
 - name: Check Mullvad VPN status
   command: mullvad status
   register: vpn_status
