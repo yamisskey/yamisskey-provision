@@ -86,12 +86,12 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Exclude SSH traffic from VPN
-  command: mullvad-exclude sshd
+- name: Exclude SSH from VPN
+  command: "mullvad-exclude $(pgrep sshd)"
   become: true
 
-- name: Exclude HTTP traffic from VPN
-  command: mullvad-exclude nginx
+- name: Exclude HTTP from VPN
+  command: "mullvad-exclude $(pgrep nginx)"
   become: true
 
 - name: Add routing rule to exclude SSH traffic from VPN
