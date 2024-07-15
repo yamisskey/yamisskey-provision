@@ -1,3 +1,4 @@
+include_vars: vault.yml
 user_name: taka
 set_dir: '/home/{{ user_name }}/provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
