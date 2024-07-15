@@ -84,7 +84,7 @@
     mode: '0600'
   become: true
   vars:
-    shadowsocks_password: "{{ lookup('password', '/etc/ansible/shadowsocks_pass length=20 chars=ascii_letters') }}"
+    shadowsocks_password: "{{ vault.shadowsocks_password }}"
   notify:
     - Restart Shadowsocks service
 
