@@ -2,8 +2,5 @@
   hosts: all
   become: true
   become_method: sudo
-  vars_files:
-    - ../group_vars/all.yml
-    - ../group_vars/all/vault.yml
   roles:
     - security
