@@ -136,11 +136,45 @@
   become: true
   ignore_errors: true
 
+- name: Check if port 8118 is in use
+  shell: lsof -i :8118
+  register: port_8118_check
+  ignore_errors: true
+
+- name: Kill process using port 8118
+  shell: kill -9 $(lsof -t -i :8118)
+  when: port_8118_check.stdout != ""
+  ignore_errors: true
+  become: true
+
+- name: Validate Privoxy configuration
+  command: privoxy --no-daemon /etc/privoxy/config
+  register: privoxy_config_check
+  ignore_errors: true
+
+- name: Fail if Privoxy configuration is invalid
+  fail:
+    msg: "Privoxy configuration is invalid. Please check the configuration file."
+  when: privoxy_config_check.rc != 0
+
 - name: Start Privoxy
+  systemd:
+    name: privoxy
+    state: restarted
+  become: true
+  when: privoxy_config_check.rc == 0
+
+- name: Check Privoxy status
   systemd:
     name: privoxy
     state: started
   become: true
+  register: privoxy_status
+
+- name: Fail if Privoxy service did not start
+  fail:
+    msg: "Privoxy service failed to start."
+  when: privoxy_status.rc != 0
 
 - name: Start Shadowsocks
   systemd:
