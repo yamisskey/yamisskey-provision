@@ -7,9 +7,8 @@
 
 - name: Restart Cloudflared
   systemd:
-    name: privoxy
+    name: cloudflared
     state: restarted
-  become: true
 
 - name: Reload Nginx
   systemd:
@@ -29,9 +28,10 @@
     state: restarted
   become: true
 
-- name: Restart Shadowsocks service
+- name: Restart Shadowsocks
   systemd:
     name: shadowsocks-libev
     state: restarted
     enabled: true
   become: true
+

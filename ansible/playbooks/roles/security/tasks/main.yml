@@ -42,19 +42,16 @@
   file:
     path: /etc/systemd/system/mullvad-daemon.service
     state: absent
-  become: true
 
 - name: Remove Mullvad VPN early boot blocking service
   file:
     path: /etc/systemd/system/mullvad-daemon.service.wants/mullvad-early-boot-blocking.service
     state: absent
-  become: true
 
 - name: Install Mullvad VPN
   apt:
     name: mullvad-vpn
     state: present
-  become: true
 
 - name: Retrieve Mullvad VPN token
   command: mullvad account get
@@ -73,7 +70,6 @@
   apt:
     name: privoxy
     state: present
-  become: true
 
 - name: Configure Privoxy
   blockinfile:
@@ -86,38 +82,27 @@
 
 - name: Exclude SSH from VPN
   command: mullvad-exclude /usr/sbin/sshd
-  become: true
 
-- name: Stop Nginx
+- name: Stop conflicting services
   systemd:
-    name: nginx
+    name: '{{ item }}'
     state: stopped
   become: true
-
-- name: Stop Privoxy
-  systemd:
-    name: privoxy
-    state: stopped
-  become: true
-
-- name: Stop Shadowsocks
-  systemd:
-    name: shadowsocks-libev
-    state: stopped
-  become: true
+  loop:
+    - nginx
+    - privoxy
+    - shadowsocks-libev
 
 - name: Clean up Unix socket
   file:
     path: /var/run/tor-misskey.sock
     state: absent
-  become: true
 
 - name: Kill processes using ports 80 and 443
   shell: |
     for pid in $(lsof -t -i:80 -i:443); do
       kill -9 $pid || true
     done
-  become: true
   ignore_errors: true
 
 - name: Check if port 8118 is in use
@@ -132,7 +117,6 @@
     fi
   when: port_8118_check.stdout != ""
   ignore_errors: true
-  become: true
 
 - name: Validate Privoxy configuration
   command: privoxy --no-daemon /etc/privoxy/config
@@ -141,37 +125,26 @@
 
 - name: Fail if Privoxy configuration is invalid
   fail:
-    msg: "Privoxy configuration is invalid. Please check the configuration file."
+    msg: 'Privoxy configuration is invalid. Please check the configuration file.'
   when: privoxy_config_check.rc != 0
 
 - name: Restart Shadowsocks
   systemd:
     name: shadowsocks-libev
     state: restarted
-    enabled: true
-  become: true
 
 - name: Restart Privoxy
   systemd:
     name: privoxy
     state: restarted
-  become: true
 
 - name: Start Shadowsocks
   systemd:
     name: shadowsocks-libev
     state: started
-  become: true
-
-- name: Start Nginx
-  systemd:
-    name: nginx
-    state: started
-  become: true
 
 - name: Exclude Nginx from VPN
   command: mullvad-exclude /usr/sbin/nginx
-  become: true
 
 - name: Check Nginx configuration
   command: nginx -t
@@ -186,23 +159,19 @@
   systemd:
     name: nginx
     state: started
-  become: true
   when: nginx_test.rc == 0
 
 - name: Add routing rule to exclude SSH traffic from VPN
   command: ip rule add from {{ ansible_default_ipv4.address }} table main
-  become: true
 
 - name: Add default route for main table
   command: ip route add default via {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }} table main
-  become: true
 
 - name: Ensure Mullvad VPN service is enabled and running
   systemd:
     name: mullvad-vpn
     state: started
     enabled: true
-  become: true
 
 - name: Check Mullvad VPN status
   command: mullvad status
@@ -218,7 +187,6 @@
     path: /etc/resolv.conf
     line: 'nameserver 8.8.8.8'
     state: present
-  become: true
 
 - name: Add secondary DNS
   lineinfile:
@@ -227,7 +195,6 @@
     state: present
 
 - name: Start Tor
-  become: true
   systemd:
     name: tor@default
     enabled: yes
@@ -240,7 +207,6 @@
     owner: debian-tor
     group: debian-tor
     mode: '0700'
-  become: true
 
 - name: Configure Tor hidden service
   blockinfile:
@@ -256,7 +222,6 @@
   command: cat /var/lib/tor/misskey/hostname
   register: tor_hostname
   changed_when: false
-  become: true
 
 - name: Display Tor URL for Misskey
   debug:
@@ -268,4 +233,3 @@
     dest: '{{ misskey_dir }}/tor.txt'
     owner: root
     mode: '0644'
-  become: true
