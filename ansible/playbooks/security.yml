@@ -5,5 +5,7 @@
   vars_files:
     - ../group_vars/all.yml
     - ../group_vars/all/vault.yml
+  include_vars:
+    - vault.yml
   roles:
     - security
