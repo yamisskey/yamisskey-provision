@@ -49,6 +49,30 @@
     state: present
   become: true
 
+- name: Remove existing Mullvad VPN configuration
+  file:
+    path: /etc/mullvad-vpn
+    state: absent
+  become: true
+
+- name: Remove Mullvad VPN systemd service
+  file:
+    path: /etc/systemd/system/mullvad-daemon.service
+    state: absent
+  become: true
+
+- name: Remove Mullvad VPN early boot blocking service
+  file:
+    path: /etc/systemd/system/mullvad-daemon.service.wants/mullvad-early-boot-blocking.service
+    state: absent
+  become: true
+
+- name: Install Mullvad VPN
+  apt:
+    name: mullvad-vpn
+    state: present
+  become: true
+
 - name: Retrieve Mullvad VPN token
   command: mullvad account get
   register: mullvad_account_info
@@ -61,12 +85,6 @@
 - name: Debug Mullvad VPN token
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
-
-- name: Remove existing Mullvad VPN configuration
-  file:
-    path: /etc/mullvad-vpn
-    state: absent
-  become: true
 
 - name: Ensure Mullvad VPN configuration directory exists
   file:
@@ -93,13 +111,6 @@
   command: mullvad account login {{ mullvad_token }}
   become: true
 
-- name: Ensure Mullvad VPN service is enabled and running
-  systemd:
-    name: mullvad-vpn
-    state: started
-    enabled: true
-  become: true
-
 - name: Enable Split Tunneling for Mullvad VPN
   command: mullvad split-tunnel set on
   become: true
@@ -110,6 +121,13 @@
 
 - name: Add default route for main table
   command: ip route add default via {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }} table main
+  become: true
+
+- name: Ensure Mullvad VPN service is enabled and running
+  systemd:
+    name: mullvad-vpn
+    state: started
+    enabled: true
   become: true
 
 - name: Check Mullvad VPN status
