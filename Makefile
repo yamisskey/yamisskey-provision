@@ -21,17 +21,21 @@ install:
 	curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 	sudo apt-get update
 	sudo apt-get install -y tailscale
+	# Disable Tailscale DNS management
 	sudo tailscale up --accept-dns=false
 	sudo mkdir -p --mode=0755 /usr/share/keyrings
 	curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 	echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared bookworm main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 	sudo apt-get update
 	sudo apt-get install -y cloudflared
+	# Mullvad VPNの既存設定を削除
 	sudo rm -rf /etc/mullvad-vpn
 	sudo curl -fsSLo /usr/share/keyrings/mullvad-keyring.asc https://repository.mullvad.net/deb/mullvad-keyring.asc
 	echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$$(dpkg --print-architecture)] https://repository.mullvad.net/deb/stable $$(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/mullvad.list
 	sudo apt-get update
 	sudo apt-get install -y mullvad-vpn
+	# Mullvad VPNのファクトリーリセットを実行
+	echo "y" | sudo mullvad factory-reset
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)

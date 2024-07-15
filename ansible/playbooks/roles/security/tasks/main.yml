@@ -62,6 +62,12 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
+- name: Remove existing Mullvad VPN configuration
+  file:
+    path: /etc/mullvad-vpn
+    state: absent
+  become: true
+
 - name: Ensure Mullvad VPN configuration directory exists
   file:
     path: /etc/mullvad-vpn
