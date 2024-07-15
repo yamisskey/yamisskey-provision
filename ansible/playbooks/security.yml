@@ -2,6 +2,5 @@
   hosts: all
   become: true
   become_method: sudo
-  vars_files: '/home/taka/provision/ansible/group_vars/vault.yml'
   roles:
     - security
