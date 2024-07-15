@@ -146,7 +146,23 @@ sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudfl
 }
 ```
 
-10. Return to the provision directory and use the Makefile to provision the server:
+10. You need to manually prepare the configuration file `/etc/shadowsocks-libev/config.json`  and return to the provision directory and use the Makefile to provision the server:
+
+```config
+{
+    "server": "0.0.0.0",
+    "server_port": 8388,
+    "local_address": "127.0.0.1",
+    "local_port": 1080,
+    "password": "your_secure_password",
+    "timeout": 300,
+    "method": "aes-256-gcm",
+    "fast_open": false,
+    "reuse_port": true,
+    "no_delay": true,
+    "mode": "tcp_and_udp"
+}
+```
 
 ```consol
 cd ~/provision

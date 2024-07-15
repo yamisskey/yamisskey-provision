@@ -76,22 +76,6 @@
   debug:
     msg: 'Mullvad VPN token: {{ mullvad_token }}'
 
-- name: Debug shadowsocks_password
-  debug:
-    msg: 'Shadowsocks Password: {{ shadowsocks_password }}'
-
-- name: Configure Shadowsocks
-  template:
-    src: templates/shadowsocks-config.json.j2
-    dest: /etc/shadowsocks-libev/config.json
-    owner: root
-    mode: '0600'
-  become: true
-  vars:
-    shadowsocks_password: "{{ shadowsocks_password }}"
-  notify:
-    - Restart Shadowsocks service
-
 - name: Restart Shadowsocks service
   systemd:
     name: shadowsocks-libev
