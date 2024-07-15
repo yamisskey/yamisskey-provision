@@ -1,4 +1,3 @@
-vars_files: vault.yml
 user_name: taka
 set_dir: '/home/{{ user_name }}/provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
@@ -6,3 +5,6 @@ misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 shadowsocks_config: '/etc/shadowsocks-libev/config.json'
 ai_dir: '/home/{{ user_name }}/ai'
+
+vars_files:
+  - vault.yml

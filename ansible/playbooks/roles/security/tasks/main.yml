@@ -76,6 +76,10 @@
   debug:
     msg: 'Mullvad VPN token: {{ mullvad_token }}'
 
+- name: Debug all variables
+  debug:
+    var: vars
+
 - name: Debug shadowsocks_password
   debug:
     msg: 'Shadowsocks Password: {{ shadowsocks_password }}'
