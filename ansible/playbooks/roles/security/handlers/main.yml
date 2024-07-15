@@ -5,17 +5,28 @@
     enabled: true
   become: true
 
+- name: Reload Nginx
+  systemd:
+    name: nginx
+    state: reloaded
+  become: true
+
 - name: Reload Tor
   systemd:
     name: tor@default
     state: reloaded
+  become: true
 
 - name: Restart Privoxy
   systemd:
     name: privoxy
     state: restarted
+  become: true
 
-- name: Reload Nginx
+- name: Restart Shadowsocks service
   systemd:
-    name: nginx
-    state: reloaded
+    name: shadowsocks-libev
+    state: restarted
+    enabled: true
+  become: true
+

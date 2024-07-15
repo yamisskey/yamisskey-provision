@@ -70,24 +70,52 @@
 
 - name: Set Mullvad VPN token
   set_fact:
-    mullvad_token: "{{ mullvad_account_info.stdout_lines[0].split()[2] }}"
+    mullvad_token: '{{ mullvad_account_info.stdout_lines[0].split()[2] }}'
 
 - name: Debug Mullvad VPN token
   debug:
-    msg: "Mullvad VPN token: {{ mullvad_token }}"
+    msg: 'Mullvad VPN token: {{ mullvad_token }}'
 
 - name: Configure Shadowsocks
   template:
     src: templates/shadowsocks-config.json.j2
-    dest: '{{ shadowsocks_config }}'
+    dest: /etc/shadowsocks-libev/config.json
     owner: root
     mode: '0600'
+  become: true
+  vars:
+    shadowsocks_password: "{{ lookup('password', '/etc/ansible/shadowsocks_pass length=20 chars=ascii_letters') }}"
+  notify:
+    - Restart Shadowsocks service
 
 - name: Restart Shadowsocks service
   systemd:
     name: shadowsocks-libev
     state: restarted
     enabled: true
+  become: true
+
+- name: Ensure Privoxy is installed
+  apt:
+    name: privoxy
+    state: present
+  become: true
+
+- name: Configure Privoxy
+  blockinfile:
+    path: /etc/privoxy/config
+    block: |
+      listen-address 127.0.0.1:8118
+      forward-socks5 / 127.0.0.1:1080 .
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
+  become: true
+  notify:
+    - Restart Privoxy
+
+- name: Restart Privoxy
+  systemd:
+    name: privoxy
+    state: restarted
   become: true
 
 - name: Exclude SSH from VPN
@@ -127,7 +155,7 @@
 
 - name: Debug Nginx configuration test result
   debug:
-    msg: "Nginx configuration test result: {{ nginx_test.stdout }}"
+    msg: 'Nginx configuration test result: {{ nginx_test.stdout }}'
 
 - name: Start Nginx
   systemd:
@@ -158,23 +186,23 @@
 
 - name: Display Mullvad VPN status
   debug:
-    msg: "Mullvad VPN status: {{ vpn_status.stdout }}"
+    msg: 'Mullvad VPN status: {{ vpn_status.stdout }}'
 
 - name: Configure DNS
   lineinfile:
     path: /etc/resolv.conf
-    line: "nameserver 8.8.8.8"
+    line: 'nameserver 8.8.8.8'
     state: present
   become: true
 
 - name: Add secondary DNS
   lineinfile:
     path: /etc/resolv.conf
-    line: "nameserver 8.8.4.4"
+    line: 'nameserver 8.8.4.4'
     state: present
 
 - name: Start Tor
-  become_user: root
+  become: true
   systemd:
     name: tor@default
     enabled: yes
@@ -187,6 +215,7 @@
     owner: debian-tor
     group: debian-tor
     mode: '0700'
+  become: true
 
 - name: Configure Tor hidden service
   blockinfile:
@@ -196,13 +225,14 @@
       HiddenServicePort 80 unix:/var/run/tor-misskey.sock
       HiddenServiceVersion 3
     marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service'
-    insertafter: EOF
-  notify: Reload Tor
+  notify:
+    - Reload Tor
 
 - name: Read and display Tor URL for Misskey
   command: cat /var/lib/tor/misskey/hostname
   register: tor_hostname
   changed_when: false
+  become: true
 
 - name: Display Tor URL for Misskey
   debug:
@@ -212,18 +242,6 @@
   copy:
     content: 'http://{{ tor_hostname.stdout }}'
     dest: '{{ misskey_dir }}/tor.txt'
-
-- name: Configure Privoxy to route traffic through Tor
-  blockinfile:
-    path: /etc/privoxy/config
-    block: |
-      forward-socks5 / 127.0.0.1:9050 .
-    marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
-    insertafter: EOF
-  notify: Restart Privoxy
-
-- name: Ensure Privoxy is enabled and running
-  systemd:
-    name: privoxy
-    enabled: yes
-    state: started
+    owner: root
+    mode: '0644'
+  become: true
