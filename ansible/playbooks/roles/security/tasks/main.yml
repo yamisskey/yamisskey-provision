@@ -109,12 +109,6 @@
 - name: Add routing rule to exclude SSH traffic from VPN
   command: ip rule add from {{ ansible_default_ipv4.address }} table main
 
-- name: Ensure Mullvad VPN service is enabled and running
-  systemd:
-    name: mullvad-vpn
-    state: started
-    enabled: true
-
 - name: Check Mullvad VPN status
   command: mullvad status
   register: vpn_status
