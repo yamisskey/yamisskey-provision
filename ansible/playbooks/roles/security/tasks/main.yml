@@ -106,21 +106,6 @@
 - name: Exclude Nginx from VPN
   command: mullvad-exclude /usr/sbin/nginx
 
-- name: Check Nginx configuration
-  command: nginx -t
-  register: nginx_test
-  ignore_errors: yes
-
-- name: Debug Nginx configuration test result
-  debug:
-    msg: 'Nginx configuration test result: {{ nginx_test.stdout }}'
-
-- name: Start Nginx
-  systemd:
-    name: nginx
-    state: started
-  when: nginx_test.rc == 0
-
 - name: Add routing rule to exclude SSH traffic from VPN
   command: ip rule add from {{ ansible_default_ipv4.address }} table main
 
