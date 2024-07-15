@@ -86,10 +86,6 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Set Mullvad VPN account token
-  command: mullvad account login {{ mullvad_token }}
-  become: true
-
 - name: Enable Split Tunneling for Mullvad VPN
   command: mullvad split-tunnel set on
   become: true

@@ -150,6 +150,7 @@ sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudfl
 
 ```consol
 cd ~/provision
+mullvad account login your_mullvad_token
 make provision
 ```
 
