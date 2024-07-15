@@ -86,17 +86,20 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Enable Split Tunneling for Mullvad VPN
-  command: mullvad split-tunnel set on
+- name: Exclude SSH traffic from VPN
+  command: mullvad-exclude sshd
   become: true
-  ignore_errors: yes
+
+- name: Exclude HTTP traffic from VPN
+  command: mullvad-exclude nginx
+  become: true
 
 - name: Add routing rule to exclude SSH traffic from VPN
   command: ip rule add from {{ ansible_default_ipv4.address }} table main
   become: true
 
 - name: Add default route for main table
-  command: ip route add default via {{ ansible_default_ipv4.gateway }} dev {{ ansible_default_ipv4.interface }} table main
+  command: ip route add default via $(ip route | grep default | awk '{print $3}') dev $(ip route | grep default | awk '{print $5}') table main
   become: true
 
 - name: Ensure Mullvad VPN service is enabled and running
