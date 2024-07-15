@@ -23,11 +23,13 @@
     mode: '0600'
   vars:
     tunnel_uuid: '{{ tunnel_uuid }}'
+  notify: Restart Privoxy
 
 - name: Install cloudflared as a system service
   command: cloudflared service install
   args:
     creates: /etc/systemd/system/cloudflared.service
+  notify: Reload Nginx
 
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
@@ -96,15 +98,7 @@
       listen-address 127.0.0.1:8118
       forward-socks5 / 127.0.0.1:1080 .
     marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
-  become: true
-  notify:
-    - Restart Privoxy
-
-- name: Restart Privoxy
-  systemd:
-    name: privoxy
-    state: restarted
-  become: true
+  notify: Restart Privoxy
 
 - name: Exclude SSH from VPN
   command: mullvad-exclude /usr/sbin/sshd
@@ -213,8 +207,7 @@
       HiddenServicePort 80 unix:/var/run/tor-misskey.sock
       HiddenServiceVersion 3
     marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service'
-  notify:
-    - Reload Tor
+  notify: Reload Tor
 
 - name: Read and display Tor URL for Misskey
   command: cat /var/lib/tor/misskey/hostname
