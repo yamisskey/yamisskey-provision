@@ -103,11 +103,6 @@
     done
   ignore_errors: true
 
-- name: Check if port 8118 is in use
-  shell: lsof -i :8118
-  register: port_8118_check
-  ignore_errors: true
-
 - name: Kill process using port 8118
   shell: |
     if [ -n "{{ port_8118_check.stdout }}" ]; then
@@ -115,16 +110,6 @@
     fi
   when: port_8118_check.stdout != ""
   ignore_errors: true
-
-- name: Validate Privoxy configuration
-  command: privoxy --no-daemon /etc/privoxy/config
-  register: privoxy_config_check
-  ignore_errors: true
-
-- name: Fail if Privoxy configuration is invalid
-  fail:
-    msg: 'Privoxy configuration is invalid. Please check the configuration file.'
-  when: privoxy_config_check.rc != 0
 
 - name: Restart Privoxy
   systemd:
