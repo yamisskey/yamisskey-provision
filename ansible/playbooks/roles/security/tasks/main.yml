@@ -84,7 +84,7 @@
     mode: '0600'
   become: true
   vars:
-    shadowsocks_password: "{{ vault.shadowsocks_password }}"
+    shadowsocks_password: "{{ shadowsocks_password }}"
   notify:
     - Restart Shadowsocks service
 
