@@ -76,6 +76,10 @@
   debug:
     msg: 'Mullvad VPN token: {{ mullvad_token }}'
 
+- name: Debug shadowsocks_password
+  debug:
+    msg: 'Shadowsocks Password: {{ shadowsocks_password }}'
+
 - name: Configure Shadowsocks
   template:
     src: templates/shadowsocks-config.json.j2
