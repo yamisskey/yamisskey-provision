@@ -4,3 +4,14 @@
     state: restarted
     enabled: true
   become: true
+
+
+    - name: Reload Tor
+      systemd:
+        name: tor@default
+        state: reloaded
+
+    - name: Restart Privoxy
+      systemd:
+        name: privoxy
+        state: restarted

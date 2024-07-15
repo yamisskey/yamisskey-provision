@@ -43,17 +43,10 @@
     name: nginx
     state: reloaded
 
-- name: Ensure jq is installed
-  apt:
-    name: jq
-    state: present
-  become: true
-
 - name: Remove existing Mullvad VPN configuration
   file:
     path: /etc/mullvad-vpn
     state: absent
-  become: true
 
 - name: Remove Mullvad VPN systemd service
   file:
@@ -86,7 +79,7 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Exclude SSH from VPN
+- name: Enable Split Tunneling for Mullvad VPN
   command: mullvad-exclude /usr/sbin/sshd
   become: true
 
@@ -168,4 +161,58 @@
     path: /etc/resolv.conf
     line: "nameserver 8.8.4.4"
     state: present
-  become: true
+
+- name: Start Tor
+  become_user: root
+  systemd:
+    name: tor@default
+    enabled: yes
+    state: restarted
+
+- name: Ensure Tor hidden service directory exists
+  file:
+    path: /var/lib/tor/misskey
+    state: directory
+    owner: debian-tor
+    group: debian-tor
+    mode: '0700'
+
+- name: Configure Tor hidden service
+  blockinfile:
+    path: /etc/tor/torrc
+    block: |
+      HiddenServiceDir /var/lib/tor/misskey/
+      HiddenServicePort 80 unix:/var/run/tor-misskey.sock
+      HiddenServiceVersion 3
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service'
+    insertafter: EOF
+  notify: Reload Tor
+
+- name: Read and display Tor URL for Misskey
+  command: cat /var/lib/tor/misskey/hostname
+  register: tor_hostname
+  changed_when: false
+
+- name: Display Tor URL for Misskey
+  debug:
+    msg: 'Misskey Tor URL: http://{{ tor_hostname.stdout }}'
+
+- name: Save Tor URL in a text file
+  copy:
+    content: 'http://{{ tor_hostname.stdout }}'
+    dest: '{{ misskey_dir }}/tor.txt'
+
+- name: Configure Privoxy to route traffic through Tor
+  blockinfile:
+    path: /etc/privoxy/config
+    block: |
+      forward-socks5 / 127.0.0.1:9050 .
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
+    insertafter: EOF
+  notify: Restart Privoxy
+
+- name: Ensure Privoxy is enabled and running
+  systemd:
+    name: privoxy
+    enabled: yes
+    state: started
