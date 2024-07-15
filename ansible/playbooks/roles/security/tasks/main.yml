@@ -43,6 +43,66 @@
     name: nginx
     state: reloaded
 
+- name: Ensure jq is installed
+  apt:
+    name: jq
+    state: present
+  become: true
+
+- name: Retrieve Mullvad VPN token
+  command: mullvad account get
+  register: mullvad_account_info
+  changed_when: false
+
+- name: Set Mullvad VPN token
+  set_fact:
+    mullvad_token: "{{ mullvad_account_info.stdout_lines[1].split()[2] }}"
+
+- name: Debug Mullvad VPN token
+  debug:
+    msg: "Mullvad VPN token: {{ mullvad_token }}"
+
+- name: Ensure Mullvad VPN configuration directory exists
+  file:
+    path: /etc/mullvad-vpn
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Create Mullvad VPN login token file
+  copy:
+    content: |
+      {
+        "token": "{{ mullvad_token }}"
+      }
+    dest: /etc/mullvad-vpn/account.conf
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+
+- name: Set Mullvad VPN account token
+  command: mullvad account login {{ mullvad_token }}
+  become: true
+
+- name: Ensure Mullvad VPN service is enabled and running
+  systemd:
+    name: mullvad-vpn
+    state: started
+    enabled: true
+  become: true
+
+- name: Check Mullvad VPN status
+  command: mullvad status
+  register: vpn_status
+  changed_when: false
+
+- name: Display Mullvad VPN status
+  debug:
+    msg: "Mullvad VPN status: {{ vpn_status.stdout }}"
+
 - name: Backup original jail.conf
   copy:
     src: /etc/fail2ban/jail.conf
