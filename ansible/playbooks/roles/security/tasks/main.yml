@@ -86,31 +86,6 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Ensure Mullvad VPN configuration directory exists
-  file:
-    path: /etc/mullvad-vpn
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-  become: true
-
-- name: Create Mullvad VPN login token file
-  copy:
-    content: |
-      {
-        "token": "{{ mullvad_token }}"
-      }
-    dest: /etc/mullvad-vpn/account.conf
-    owner: root
-    group: root
-    mode: '0600'
-  become: true
-
-- name: Set Mullvad VPN account token
-  command: mullvad account login {{ mullvad_token }}
-  become: true
-
 - name: Enable Split Tunneling for Mullvad VPN
   command: mullvad split-tunnel set on
   become: true
