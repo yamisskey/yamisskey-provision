@@ -47,6 +47,7 @@ clone:
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass

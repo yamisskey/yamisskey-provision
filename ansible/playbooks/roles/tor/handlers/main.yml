@@ -1,0 +1,17 @@
+- name: Reload Nginx
+  systemd:
+    name: nginx
+    state: reloaded
+  become: true
+
+- name: Reload Tor
+  systemd:
+    name: tor@default
+    state: reloaded
+  become: true
+
+- name: Restart Privoxy
+  systemd:
+    name: privoxy
+    state: restarted
+  become: true

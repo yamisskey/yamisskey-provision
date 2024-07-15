@@ -1,4 +1,4 @@
-- name: Configure Tor and Privoxy for secure connection
+- name: Configure CLoudflared and other secure services
   hosts: all
   become: true
   become_method: sudo
