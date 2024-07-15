@@ -103,19 +103,6 @@
     done
   ignore_errors: true
 
-- name: Kill process using port 8118
-  shell: |
-    if [ -n "{{ port_8118_check.stdout }}" ]; then
-      lsof -t -i :8118 | xargs -r kill -9
-    fi
-  when: port_8118_check.stdout != ""
-  ignore_errors: true
-
-- name: Restart Privoxy
-  systemd:
-    name: privoxy
-    state: restarted
-
 - name: Exclude Nginx from VPN
   command: mullvad-exclude /usr/sbin/nginx
 
