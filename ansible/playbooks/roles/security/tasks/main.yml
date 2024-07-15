@@ -76,7 +76,21 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
-- name: Enable Split Tunneling for Mullvad VPN
+- name: Configure Shadowsocks
+  template:
+    src: templates/shadowsocks-config.json.j2
+    dest: '{{ shadowsocks_config }}'
+    owner: root
+    mode: '0600'
+
+- name: Restart Shadowsocks service
+  systemd:
+    name: shadowsocks-libev
+    state: restarted
+    enabled: true
+  become: true
+
+- name: Exclude SSH from VPN
   command: mullvad-exclude /usr/sbin/sshd
   become: true
 

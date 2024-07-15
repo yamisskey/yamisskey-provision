@@ -13,6 +13,7 @@ packages:
   - python3-certbot-dns-cloudflare
   - tor
   - privoxy
+  - shadowsocks-libev
   - mecab
   - libmecab-dev
   - mecab-ipadic-utf8
