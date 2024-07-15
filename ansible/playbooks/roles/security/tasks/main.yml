@@ -80,7 +80,7 @@
 
 - name: Set Mullvad VPN token
   set_fact:
-    mullvad_token: "{{ mullvad_account_info.stdout_lines[1].split()[2] }}"
+    mullvad_token: "{{ mullvad_account_info.stdout_lines[0].split()[2] }}"
 
 - name: Debug Mullvad VPN token
   debug:
