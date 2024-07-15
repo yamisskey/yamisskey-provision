@@ -5,3 +5,5 @@ misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 shadowsocks_config: '/etc/shadowsocks-libev/config.json'
 ai_dir: '/home/{{ user_name }}/ai'
+
+- include_vars: vault.yml
