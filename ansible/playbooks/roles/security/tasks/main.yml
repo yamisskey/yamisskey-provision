@@ -37,11 +37,8 @@
     name: cloudflared
     state: restarted
     enabled: true
-
-- name: Reload Nginx
-  systemd:
-    name: nginx
-    state: reloaded
+  notify:
+    - Reload Nginx
 
 - name: Remove existing Mullvad VPN configuration
   file:
