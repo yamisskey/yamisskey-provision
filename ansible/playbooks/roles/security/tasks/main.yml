@@ -33,44 +33,6 @@
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
 
-- name: Remove existing Mullvad VPN configuration
-  file:
-    path: /etc/mullvad-vpn
-    state: absent
-
-- name: Remove Mullvad VPN systemd service
-  file:
-    path: /etc/systemd/system/mullvad-daemon.service
-    state: absent
-
-- name: Remove Mullvad VPN early boot blocking service
-  file:
-    path: /etc/systemd/system/mullvad-daemon.service.wants/mullvad-early-boot-blocking.service
-    state: absent
-
-- name: Install Mullvad VPN
-  apt:
-    name: mullvad-vpn
-    state: present
-
-- name: Retrieve Mullvad VPN token
-  command: mullvad account get
-  register: mullvad_account_info
-  changed_when: false
-
-- name: Set Mullvad VPN token
-  set_fact:
-    mullvad_token: '{{ mullvad_account_info.stdout_lines[0].split()[2] }}'
-
-- name: Debug Mullvad VPN token
-  debug:
-    msg: 'Mullvad VPN token: {{ mullvad_token }}'
-
-- name: Ensure Privoxy is installed
-  apt:
-    name: privoxy
-    state: present
-
 - name: Configure Privoxy
   blockinfile:
     path: /etc/privoxy/config
@@ -79,9 +41,6 @@
       forward-socks5 / 127.0.0.1:1080 .
     marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
   notify: Restart Privoxy
-
-- name: Exclude SSH from VPN
-  command: mullvad-exclude /usr/sbin/sshd
 
 - name: Stop conflicting services
   systemd:
@@ -102,21 +61,6 @@
       kill -9 $pid || true
     done
   ignore_errors: true
-
-- name: Exclude Nginx from VPN
-  command: mullvad-exclude /usr/sbin/nginx
-
-- name: Add routing rule to exclude SSH traffic from VPN
-  command: ip rule add from {{ ansible_default_ipv4.address }} table main
-
-- name: Check Mullvad VPN status
-  command: mullvad status
-  register: vpn_status
-  changed_when: false
-
-- name: Display Mullvad VPN status
-  debug:
-    msg: 'Mullvad VPN status: {{ vpn_status.stdout }}'
 
 - name: Configure DNS
   lineinfile:
