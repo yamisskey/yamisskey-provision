@@ -22,7 +22,7 @@
     owner: 'root'
     mode: '0600'
   vars:
-    tunnel_uuid: '{{ tunnel_uuid.stdout }}'
+    tunnel_uuid: '{{ tunnel_uuid }}'
 
 - name: Install cloudflared as a system service
   command: cloudflared service install
@@ -86,9 +86,14 @@
   debug:
     msg: "Mullvad VPN token: {{ mullvad_token }}"
 
+- name: Set Mullvad VPN account token
+  command: mullvad account login {{ mullvad_token }}
+  become: true
+
 - name: Enable Split Tunneling for Mullvad VPN
   command: mullvad split-tunnel set on
   become: true
+  ignore_errors: yes
 
 - name: Add routing rule to exclude SSH traffic from VPN
   command: ip rule add from {{ ansible_default_ipv4.address }} table main
