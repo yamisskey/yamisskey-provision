@@ -85,7 +85,7 @@
 - name: Copy generated secret keys to tor hidden service directory
   copy:
     src: "{{ onion_dir }}/hs_ed25519_secret_key"
-    dest: "/var/lib/tor/misskey/"
+    dest: "/var/lib/tor/misskey/hs_ed25519_secret_key"
     owner: debian-tor
     group: debian-tor
     mode: '0400'
@@ -95,7 +95,7 @@
 - name: Copy generated public keys to tor hidden service directory
   copy:
     src: "{{ onion_dir }}/hs_ed25519_public_key"
-    dest: "/var/lib/tor/misskey/"
+    dest: "/var/lib/tor/misskey/hs_ed25519_public_key"
     owner: debian-tor
     group: debian-tor
     mode: '0400'
