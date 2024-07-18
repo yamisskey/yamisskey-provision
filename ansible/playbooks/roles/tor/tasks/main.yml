@@ -18,10 +18,14 @@
     path: "{{ mkp224o_output_dir }}"
     state: directory
 
-- name: Generate onion domain
+- name: Generate onion domain if not already present
   shell: |
-    DOMAIN_PREFIX="{{ domain_prefix }}"
-    docker run --rm -d -v {{ mkp224o_output_dir }}:/keys --name mkp224o ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
+    if ls {{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key 1> /dev/null 2>&1; then
+      echo "Onion domain already generated."
+    else
+      DOMAIN_PREFIX="{{ domain_prefix }}"
+      docker run --rm -d -v {{ mkp224o_output_dir }}:/keys --name mkp224o ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
+    fi
   args:
     chdir: "{{ mkp224o_output_dir }}"
   async: 600  # 10分
