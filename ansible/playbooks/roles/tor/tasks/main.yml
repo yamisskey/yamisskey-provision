@@ -28,12 +28,14 @@
   ignore_errors: true
   become: yes
   become_method: sudo
+  when: existing_domain_count.stdout | int < 10
 
 - name: Remove existing mkp224o container if present
   shell: docker rm mkp224o || true
   ignore_errors: true
   become: yes
   become_method: sudo
+  when: existing_domain_count.stdout | int < 10
 
 - name: Generate onion domain if not enough exist
   shell: |
@@ -62,10 +64,10 @@
     path: "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
   register: onion_key_stat
 
-- name: Fail if the onion domain was not generated
-  fail:
-    msg: "Failed to generate the onion domain."
-  when: not onion_key_stat.stat.exists
+- name: Skip if enough onion domains exist
+  debug:
+    msg: "Enough onion domains already exist. Skipping key generation."
+  when: existing_domain_count.stdout | int >= 10
 
 - name: Copy generated keys to tor hidden service directory
   copy:
@@ -77,6 +79,7 @@
   loop:
     - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
     - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_public_key"
+  when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
 
 - name: Set correct permissions on tor hidden service directory
   file:
