@@ -69,29 +69,38 @@
     msg: "Enough onion domains already exist. Skipping key generation."
   when: existing_domain_count.stdout | int >= 10
 
+- name: Find generated onion domain directories
+  find:
+    paths: "{{ mkp224o_output_dir }}"
+    patterns: "*.onion"
+    use_regex: true
+  register: onion_dirs
+  when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
+
+- name: Set fact for onion directory
+  set_fact:
+    onion_dir: "{{ onion_dirs.files[0].path }}"
+  when: onion_dirs.matched > 0
+
 - name: Copy generated secret keys to tor hidden service directory
   copy:
-    src: "{{ item }}"
+    src: "{{ onion_dir }}/hs_ed25519_secret_key"
     dest: "/var/lib/tor/misskey/"
     owner: debian-tor
     group: debian-tor
     mode: '0400'
     remote_src: yes
-  with_fileglob:
-    - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
-  when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
+  when: onion_dirs.matched > 0
 
 - name: Copy generated public keys to tor hidden service directory
   copy:
-    src: "{{ item }}"
+    src: "{{ onion_dir }}/hs_ed25519_public_key"
     dest: "/var/lib/tor/misskey/"
     owner: debian-tor
     group: debian-tor
     mode: '0400'
     remote_src: yes
-  with_fileglob:
-    - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_public_key"
-  when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
+  when: onion_dirs.matched > 0
 
 - name: Set correct permissions on tor hidden service directory
   file:
