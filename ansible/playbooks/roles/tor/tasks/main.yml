@@ -76,6 +76,7 @@
     owner: debian-tor
     group: debian-tor
     mode: '0400'
+    remote_src: yes
   loop:
     - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
     - "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_public_key"
