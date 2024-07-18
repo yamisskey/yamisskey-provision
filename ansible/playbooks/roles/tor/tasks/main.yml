@@ -23,6 +23,10 @@
     ls {{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key | wc -l
   register: existing_domain_count
 
+- name: Debug existing_domain_count
+  debug:
+    msg: "Existing domain count: {{ existing_domain_count.stdout }}"
+
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
   ignore_errors: true
@@ -64,6 +68,10 @@
     path: "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
   register: onion_key_stat
 
+- name: Debug onion_key_stat
+  debug:
+    msg: "Onion key stat: {{ onion_key_stat }}"
+
 - name: Skip if enough onion domains exist
   debug:
     msg: "Enough onion domains already exist. Skipping key generation."
@@ -77,10 +85,18 @@
   register: onion_dirs
   when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
 
+- name: Debug onion_dirs
+  debug:
+    msg: "Found onion directories: {{ onion_dirs }}"
+
 - name: Set fact for onion directory
   set_fact:
     onion_dir: "{{ onion_dirs.files[0].path }}"
   when: onion_dirs.matched > 0
+
+- name: Debug onion_dir
+  debug:
+    msg: "Onion directory set to: {{ onion_dir }}"
 
 - name: Copy generated secret keys to tor hidden service directory
   copy:
