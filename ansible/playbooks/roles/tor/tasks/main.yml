@@ -32,10 +32,6 @@
   register: list_onion_domains
   changed_when: false
 
-- name: Debug list_onion_domains
-  debug:
-    msg: "Onion domains list: {{ list_onion_domains.stdout_lines }}"
-
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
   ignore_errors: true
