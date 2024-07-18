@@ -29,7 +29,7 @@
 
 - name: List existing onion domains
   shell: |
-    ls -d {{ mkp224o_output_dir }}/*.onion
+    find {{ mkp224o_output_dir }} -maxdepth 1 -name "*.onion"
   register: list_onion_domains
   changed_when: false
 
