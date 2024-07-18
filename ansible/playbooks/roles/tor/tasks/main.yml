@@ -13,6 +13,32 @@
     group: debian-tor
     mode: '0700'
 
+- name: Generate onion domain
+  shell: sh {{ onion_script_dir }}/onion.sh {{ domain_prefix }}
+  async: 3600
+  poll: 0
+  register: async_result
+  become: yes
+  become_method: sudo
+
+- name: Wait for onion domain generation to complete
+  async_status:
+    jid: "{{ async_result.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 360
+  delay: 10
+
+- name: Check if the onion domain was generated
+  stat:
+    path: /var/lib/tor/misskey/hs_ed25519_secret_key
+  register: onion_key_stat
+
+- name: Fail if the onion domain was not generated
+  fail:
+    msg: "Failed to generate the onion domain."
+  when: not onion_key_stat.stat.exists
+
 - name: Read and display Tor URL for Misskey
   command: cat /var/lib/tor/misskey/hostname
   register: tor_hostname
