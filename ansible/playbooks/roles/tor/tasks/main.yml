@@ -23,6 +23,18 @@
     ls {{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key | wc -l
   register: existing_domain_count
 
+- name: Stop existing mkp224o container if running
+  shell: docker stop mkp224o || true
+  ignore_errors: true
+  become: yes
+  become_method: sudo
+
+- name: Remove existing mkp224o container if present
+  shell: docker rm mkp224o || true
+  ignore_errors: true
+  become: yes
+  become_method: sudo
+
 - name: Generate onion domain if not enough exist
   shell: |
     DOMAIN_PREFIX="{{ domain_prefix }}"
@@ -35,12 +47,6 @@
   become: yes
   become_method: sudo
   when: existing_domain_count.stdout | int < 10
-
-- name: Stop docker container if enough domains are generated
-  shell: docker stop mkp224o || true
-  when: existing_domain_count.stdout | int >= 10
-  become: yes
-  become_method: sudo
 
 - name: Wait for onion domain generation to complete
   async_status:
