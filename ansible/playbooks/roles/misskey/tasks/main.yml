@@ -98,7 +98,7 @@
 - name: Fail if build failed
   fail:
     msg: "Build of Misskey failed with error: {{ build_output.stderr | default('Unknown error') }}"
-  when: build_output is defined and (build_output.rc is not defined or build_output.rc != 0)
+  when: build_output is defined and not build_output.skipped and (build_output.rc is not defined or build_output.rc != 0)
 
 - name: Initialize Misskey database if not already running
   become: yes
