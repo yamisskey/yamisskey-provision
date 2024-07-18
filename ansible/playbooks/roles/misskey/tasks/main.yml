@@ -88,13 +88,13 @@
     executable: /bin/bash
   when: updates_needed
   register: build_output
-  failed_when: build_output.rc != 0
+  failed_when: build_output is defined and build_output.rc != 0
   ignore_errors: yes
 
 - name: Fail if build failed
   fail:
     msg: "Build of Misskey failed with error: {{ build_output.stderr }}"
-  when: build_output is defined and build_output.rc != 0 and updates_needed
+  when: build_output is defined and build_output.rc != 0
 
 - name: Initialize Misskey database if not already running
   become: yes
@@ -111,7 +111,7 @@
 - name: Fail if database initialization failed
   fail:
     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr }}"
-  when: init_output is defined and init_output is not skipped and init_output.rc != 0
+  when: init_output is defined and init_output.rc != 0
 
 - name: Start Misskey
   become: yes
