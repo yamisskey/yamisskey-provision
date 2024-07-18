@@ -31,16 +31,19 @@
   shell: git checkout master
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_checkout_output
 
 - name: Pull latest changes
   shell: git pull
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_pull_output
 
 - name: Update submodules
   shell: git submodule update --init
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_submodule_update_output
 
 - name: Apply stashed changes
   shell: git stash pop
@@ -64,16 +67,26 @@
     chdir: '{{ misskey_dir }}'
   when: misskey_running.stdout != ""
 
-- name: Build Misskey image
+- name: Check if Docker image exists
+  shell: docker images -q misskey_web:latest
+  register: docker_image
+  failed_when: false
+
+- name: Determine if updates are needed
+  set_fact:
+    updates_needed: "{{ git_pull_output.stdout != 'Already up to date.' or git_submodule_update_output.stdout != '' or docker_image.stdout == '' }}"
+
+- name: Build Misskey image if updates are needed
   become: yes
   become_method: sudo
   shell: |
     IMAGE_TAG="misskey_web:{{ ansible_date_time.iso8601_basic }}"
-    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --build-arg TAG=$IMAGE_TAG
+    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$IMAGE_TAG
     docker tag misskey_web:latest $IMAGE_TAG
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
+  when: updates_needed
   register: build_output
   failed_when: build_output.rc != 0
   ignore_errors: yes
@@ -81,7 +94,7 @@
 - name: Fail if build failed
   fail:
     msg: "Build of Misskey failed with error: {{ build_output.stderr }}"
-  when: build_output.rc != 0
+  when: build_output.rc != 0 and updates_needed
 
 - name: Initialize Misskey database if not already running
   become: yes
