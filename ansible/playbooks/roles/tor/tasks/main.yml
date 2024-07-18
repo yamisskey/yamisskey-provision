@@ -91,12 +91,13 @@
 
 - name: Set fact for onion directory
   set_fact:
-    onion_dir: "{{ onion_dirs.files[0].path }}"
+    onion_dir: "{{ (onion_dirs.files | map(attribute='path') | list)[0] }}"
   when: onion_dirs.matched > 0
 
 - name: Debug onion_dir
   debug:
     msg: "Onion directory set to: {{ onion_dir }}"
+  when: onion_dirs.matched > 0
 
 - name: Copy generated secret keys to tor hidden service directory
   copy:
