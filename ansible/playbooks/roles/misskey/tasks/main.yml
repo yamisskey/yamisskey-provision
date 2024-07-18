@@ -102,7 +102,7 @@
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
-  when: misskey_running.stdout == ""
+  when: misskey_running.stdout == "" and updates_needed
   register: init_output
   failed_when: init_output.rc != 0
   ignore_errors: yes
@@ -111,6 +111,11 @@
   fail:
     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr | default('Unknown error') }}"
   when: misskey_running.stdout == "" and init_output.rc != 0
+
+- name: Stop Misskey services
+  shell: docker-compose stop
+  args:
+    chdir: '{{ misskey_dir }}'
 
 - name: Start Misskey
   shell: docker-compose up -d
