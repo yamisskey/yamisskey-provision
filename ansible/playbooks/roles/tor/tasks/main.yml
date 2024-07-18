@@ -27,6 +27,16 @@
   debug:
     msg: "Existing domain count: {{ existing_domain_count.stdout }}"
 
+- name: List existing onion domains
+  shell: |
+    ls -lR {{ mkp224o_output_dir }}
+  register: list_onion_domains
+  changed_when: false
+
+- name: Debug list_onion_domains
+  debug:
+    msg: "Onion domains list: {{ list_onion_domains.stdout }}"
+
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
   ignore_errors: true
@@ -81,7 +91,7 @@
   find:
     paths: "{{ mkp224o_output_dir }}"
     patterns: "*.onion"
-    use_regex: true
+    recurse: yes
   register: onion_dirs
   when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
 
