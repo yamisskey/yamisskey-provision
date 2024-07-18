@@ -59,12 +59,6 @@
   register: misskey_running
   failed_when: false
 
-- name: Stop Misskey services if running
-  shell: docker-compose stop
-  args:
-    chdir: '{{ misskey_dir }}'
-  when: misskey_running.stdout != ""
-
 - name: Check if Docker image exists
   shell: docker images -q misskey_web:latest
   register: docker_image
