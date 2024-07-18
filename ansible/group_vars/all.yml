@@ -1,6 +1,7 @@
 user_name: taka
 set_dir: '/home/{{ user_name }}/yamisskey-provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
+mkp224o_output_dir: '/home/{{ user_name }}/mkp224o-output'
 domain_prefix: yami
 misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'

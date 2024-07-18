@@ -43,7 +43,6 @@ clone:
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
-	mkdir -p $(ONION_SCRIPT_DIR)
 
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
