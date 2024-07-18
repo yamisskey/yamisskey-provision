@@ -8,6 +8,7 @@ MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
+ONION_SCRIPT_DIR=$(HOME)/createOnionSh
 
 all: install clone provision backup onion
 
@@ -42,6 +43,10 @@ clone:
 	mkdir -p $(BACKUP_SCRIPT_DIR)
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
+	fi
+	mkdir -p $(ONION_SCRIPT_DIR)
+	if [ ! -d "$(ONION_SCRIPT_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-createOnionSh.git $(ONION_SCRIPT_DIR); \
 	fi
 
 provision:

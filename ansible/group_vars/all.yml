@@ -1,6 +1,7 @@
 user_name: taka
 set_dir: '/home/{{ user_name }}/yamisskey-provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
+onion_script_dir: '/home/{{ user_name }}/createOnionSh'
 misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 shadowsocks_config: '/etc/shadowsocks-libev/config.json'
