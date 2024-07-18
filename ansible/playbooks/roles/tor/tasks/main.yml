@@ -33,10 +33,6 @@
   register: list_onion_domains
   changed_when: false
 
-- name: Debug list_onion_domains
-  debug:
-    msg: "Onion domains list: {{ list_onion_domains.stdout_lines }}"
-
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
   ignore_errors: true
@@ -111,6 +107,15 @@
     owner: debian-tor
     group: debian-tor
     mode: '0400'
+    remote_src: yes
+
+- name: Copy hostname file to tor hidden service directory
+  copy:
+    src: "{{ onion_dir }}/hostname"
+    dest: "/var/lib/tor/misskey/hostname"
+    owner: debian-tor
+    group: debian-tor
+    mode: '0644'
     remote_src: yes
 
 - name: Set correct permissions on tor hidden service directory
