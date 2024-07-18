@@ -1,4 +1,4 @@
-.PHONY: all install clone provision backup encrypt decrypt help
+.PHONY: all install clone provision backup onion encrypt decrypt help
 
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
@@ -9,7 +9,7 @@ CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.en
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 
-all: install clone provision encrypt
+all: install clone provision backup onion
 
 install:
 	sudo apt-get update
@@ -47,10 +47,12 @@ clone:
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
+
+onion:
+	ansible-playbook -i ansible/inventory ansible/playbooks/tor.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
@@ -80,5 +82,6 @@ help:
 	@echo "  clone     - Clone the misskey repository if it doesn't exist"
 	@echo "  provision - Provision the server using Ansible"
 	@echo "  backup    - Run the backup playbook"
+	@echo "  onion     - Run the tor playbook"
 	@echo "  encrypt   - Encrypt configuration files"
 	@echo "  decrypt   - Decrypt configuration files"

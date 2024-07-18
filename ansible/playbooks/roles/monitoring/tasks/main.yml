@@ -51,7 +51,7 @@
 
 - name: Copy grafana.conf to /etc/nginx/conf.d/
   copy:
-    src: ~/provision/nginx/grafana.conf
+    src: ~/yamisskey-provision/nginx/grafana.conf
     dest: /etc/nginx/conf.d/grafana.conf
     owner: root
     group: root

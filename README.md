@@ -34,7 +34,7 @@ chmod 700 ~/.ssh
 chmod 600 ~/.ssh/*
 ```
 
-1. Clone the provision repository from GitLab to your local machine:
+1. Clone the yamisskey-provision repository from GitLab to your local machine:
 
 `~/.ssh/config`
 
@@ -50,8 +50,8 @@ Host vps.com
 
 ```consol
 ssh vps.com
-git clone https://github.com/yamisskey/provision.git
-cd provision
+git clone https://github.com/yamisskey/yamisskey-provision.git
+cd yamisskey-provision
 ```
 
 2. Use the Makefile to install the necessary packages and clone the misskey repository:
@@ -146,27 +146,10 @@ sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudfl
 }
 ```
 
-10. You need to manually prepare the configuration file `/etc/shadowsocks-libev/config.json`  and return to the provision directory and use the Makefile to provision the server:
-
-```config
-{
-    "server": "0.0.0.0",
-    "server_port": 8388,
-    "local_address": "127.0.0.1",
-    "local_port": 1080,
-    "password": "your_secure_password",
-    "timeout": 300,
-    "method": "aes-256-gcm",
-    "fast_open": false,
-    "reuse_port": true,
-    "no_delay": true,
-    "mode": "tcp_and_udp"
-}
-```
+10. Return to the yamisskey-provision directory and use the Makefile to provision the server:
 
 ```consol
-cd ~/provision
-mullvad account login your_mullvad_token
+cd ~/yamisskey-provision
 make provision
 ```
 

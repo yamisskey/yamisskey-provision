@@ -1,5 +1,5 @@
 user_name: taka
-set_dir: '/home/{{ user_name }}/provision'
+set_dir: '/home/{{ user_name }}/yamisskey-provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
 misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'

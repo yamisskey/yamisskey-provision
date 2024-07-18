@@ -88,7 +88,7 @@
 
 - name: Copy misskey.conf to /etc/nginx/conf.d/
   copy:
-    src: ~/provision/nginx/misskey.conf
+    src: ~/yamisskey-provision/nginx/misskey.conf
     dest: /etc/nginx/conf.d/misskey.conf
     owner: root
     group: root
@@ -98,7 +98,7 @@
 
 - name: Copy misskey-onion.conf to /etc/nginx/conf.d/
   copy:
-    src: ~/provision/nginx/misskey-onion.conf
+    src: ~/yamisskey-provision/nginx/misskey-onion.conf
     dest: /etc/nginx/conf.d/misskey-onion.conf
     owner: root
     group: root
