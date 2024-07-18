@@ -31,19 +31,16 @@
   shell: git checkout master
   args:
     chdir: '{{ misskey_dir }}'
-  register: git_checkout_output
 
 - name: Pull latest changes
   shell: git pull
   args:
     chdir: '{{ misskey_dir }}'
-  register: git_pull_output
 
 - name: Update submodules
   shell: git submodule update --init
   args:
     chdir: '{{ misskey_dir }}'
-  register: git_submodule_update_output
 
 - name: Apply stashed changes
   shell: git stash pop
@@ -60,8 +57,6 @@
   failed_when: false
 
 - name: Stop Misskey services if running
-  become: yes
-  become_method: sudo
   shell: docker-compose stop
   args:
     chdir: '{{ misskey_dir }}'
@@ -77,8 +72,6 @@
     updates_needed: "{{ git_pull_output.stdout != 'Already up to date.' or git_submodule_update_output.stdout != '' or docker_image.stdout == '' }}"
 
 - name: Build Misskey image if updates are needed
-  become: yes
-  become_method: sudo
   shell: |
     IMAGE_TAG="misskey_web:{{ ansible_date_time.iso8601_basic }}"
     COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$IMAGE_TAG
@@ -88,21 +81,20 @@
     executable: /bin/bash
   when: updates_needed
   register: build_output
-  failed_when: build_output is defined and build_output.rc != 0
+  failed_when: build_output.rc != 0
   ignore_errors: yes
 
 - name: Debug build output
   debug:
     var: build_output
+  when: updates_needed
 
 - name: Fail if build failed
   fail:
     msg: "Build of Misskey failed with error: {{ build_output.stderr | default('Unknown error') }}"
-  when: build_output is defined and not build_output.skipped and (build_output.rc is not defined or build_output.rc != 0)
+  when: updates_needed and build_output.rc != 0
 
 - name: Initialize Misskey database if not already running
-  become: yes
-  become_method: sudo
   shell: echo y | docker-compose run --rm web pnpm run init
   args:
     chdir: '{{ misskey_dir }}'
@@ -115,11 +107,9 @@
 - name: Fail if database initialization failed
   fail:
     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr | default('Unknown error') }}"
-  when: init_output is defined and (init_output.rc is not defined or init_output.rc != 0)
+  when: misskey_running.stdout == "" and init_output.rc != 0
 
 - name: Start Misskey
-  become: yes
-  become_method: sudo
   shell: docker-compose up -d
   args:
     chdir: '{{ misskey_dir }}'
@@ -128,8 +118,6 @@
   failed_when: start_output.rc != 0
 
 - name: Change permissions of files directory to upload files
-  become: yes
-  become_method: sudo
   file:
     path: '{{ misskey_dir }}/files'
     mode: '0777'
@@ -185,8 +173,6 @@
   when: not cloudflare_conf.stat.exists
 
 - name: Reload Nginx if configuration files exist
-  become: yes
-  become_user: root
   systemd:
     name: nginx
     state: reloaded
