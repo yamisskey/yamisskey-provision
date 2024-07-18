@@ -93,7 +93,7 @@
     patterns: "*.onion"
     recurse: yes
   register: onion_dirs
-  when: existing_domain_count.stdout | int < 10 or onion_key_stat.stat.exists
+  when: existing_domain_count.stdout | int >= 10 or onion_key_stat.stat.exists
 
 - name: Debug onion_dirs
   debug:
