@@ -13,8 +13,15 @@
     group: debian-tor
     mode: '0700'
 
+- name: Create output directory for onion keys
+  file:
+    path: "{{ onion_script_dir }}/output"
+    state: directory
+
 - name: Generate onion domain
-  shell: sh {{ onion_script_dir }}/onion.sh {{ domain_prefix }}
+  shell: |
+    DOMAIN_PREFIX="{{ domain_prefix }}"
+    docker run --rm -it -v {{ onion_script_dir }}/output:/keys ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
   args:
     chdir: "{{ onion_script_dir }}"
   async: 3600
@@ -33,13 +40,31 @@
 
 - name: Check if the onion domain was generated
   stat:
-    path: /var/lib/tor/misskey/hs_ed25519_secret_key
+    path: "{{ onion_script_dir }}/output/*.onion/hs_ed25519_secret_key"
   register: onion_key_stat
 
 - name: Fail if the onion domain was not generated
   fail:
     msg: "Failed to generate the onion domain."
   when: not onion_key_stat.stat.exists
+
+- name: Copy generated keys to tor hidden service directory
+  copy:
+    src: "{{ item }}"
+    dest: "/var/lib/tor/misskey/"
+    owner: debian-tor
+    group: debian-tor
+    mode: '0400'
+  loop:
+    - "{{ onion_script_dir }}/output/*.onion/hs_ed25519_secret_key"
+    - "{{ onion_script_dir }}/output/*.onion/hs_ed25519_public_key"
+
+- name: Set correct permissions on tor hidden service directory
+  file:
+    path: /var/lib/tor/misskey
+    owner: debian-tor
+    group: debian-tor
+    recurse: yes
 
 - name: Read and display Tor URL for Misskey
   command: cat /var/lib/tor/misskey/hostname
