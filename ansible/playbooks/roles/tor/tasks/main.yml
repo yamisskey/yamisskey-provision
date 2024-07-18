@@ -18,12 +18,12 @@
     path: "{{ mkp224o_output_dir }}"
     state: directory
 
-- name: Check if onion domain already exists
-  stat:
-    path: "{{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key"
-  register: existing_domain_check
+- name: Check if sufficient onion domains already exist
+  shell: |
+    ls {{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key | wc -l
+  register: existing_domain_count
 
-- name: Generate onion domain if not already present
+- name: Generate onion domain if not enough exist
   shell: |
     DOMAIN_PREFIX="{{ domain_prefix }}"
     docker run --rm -d -v {{ mkp224o_output_dir }}:/keys --name mkp224o ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
@@ -34,23 +34,13 @@
   register: async_result
   become: yes
   become_method: sudo
-  when: not existing_domain_check.stat.exists
+  when: existing_domain_count.stdout | int < 10
 
-- name: Monitor onion domain generation and stop on success
-  shell: |
-    while true; do
-      if ls {{ mkp224o_output_dir }}/*.onion/hs_ed25519_secret_key 1> /dev/null 2>&1; then
-        docker stop mkp224o
-        exit 0
-      fi
-      sleep 5
-    done
-  async: 600  # 10分
-  poll: 5
-  register: monitor_result
+- name: Stop docker container if enough domains are generated
+  shell: docker stop mkp224o || true
+  when: existing_domain_count.stdout | int >= 10
   become: yes
   become_method: sudo
-  when: not existing_domain_check.stat.exists
 
 - name: Wait for onion domain generation to complete
   async_status:
@@ -59,7 +49,7 @@
   until: job_result.finished
   retries: 60
   delay: 10
-  when: not existing_domain_check.stat.exists
+  when: existing_domain_count.stdout | int < 10
 
 - name: Check if the onion domain was generated
   stat:
