@@ -31,16 +31,19 @@
   shell: git checkout master
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_checkout_output
 
 - name: Pull latest changes
   shell: git pull
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_pull_output
 
 - name: Update submodules
   shell: git submodule update --init
   args:
     chdir: '{{ misskey_dir }}'
+  register: git_submodule_update_output
 
 - name: Apply stashed changes
   shell: git stash pop
