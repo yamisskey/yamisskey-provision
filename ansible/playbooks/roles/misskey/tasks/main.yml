@@ -94,7 +94,7 @@
 - name: Fail if build failed
   fail:
     msg: "Build of Misskey failed with error: {{ build_output.stderr }}"
-  when: build_output.rc != 0 and updates_needed
+  when: build_output is defined and build_output.rc != 0 and updates_needed
 
 - name: Initialize Misskey database if not already running
   become: yes
