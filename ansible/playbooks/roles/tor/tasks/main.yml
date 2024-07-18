@@ -28,14 +28,13 @@
     msg: "Existing domain count: {{ existing_domain_count.stdout }}"
 
 - name: List existing onion domains
-  shell: |
-    ls -lR {{ mkp224o_output_dir }}
+  shell: ls {{ mkp224o_output_dir }}
   register: list_onion_domains
   changed_when: false
 
 - name: Debug list_onion_domains
   debug:
-    msg: "Onion domains list: {{ list_onion_domains.stdout }}"
+    msg: "Onion domains list: {{ list_onion_domains.stdout_lines }}"
 
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
@@ -87,27 +86,13 @@
     msg: "Enough onion domains already exist. Skipping key generation."
   when: existing_domain_count.stdout | int >= 10
 
-- name: Find generated onion domain directories
-  find:
-    paths: "{{ mkp224o_output_dir }}"
-    patterns: "*.onion"
-    recurse: yes
-  register: onion_dirs
-  when: existing_domain_count.stdout | int >= 10 or onion_key_stat.stat.exists
-
-- name: Debug onion_dirs
-  debug:
-    msg: "Found onion directories: {{ onion_dirs }}"
-
-- name: Set fact for onion directory
+- name: Set fact for first onion directory
   set_fact:
-    onion_dir: "{{ (onion_dirs.files | map(attribute='path') | list)[0] }}"
-  when: onion_dirs.matched > 0
+    onion_dir: "{{ (list_onion_domains.stdout_lines)[0] }}"
 
 - name: Debug onion_dir
   debug:
     msg: "Onion directory set to: {{ onion_dir }}"
-  when: onion_dirs.matched > 0
 
 - name: Copy generated secret keys to tor hidden service directory
   copy:
@@ -117,7 +102,6 @@
     group: debian-tor
     mode: '0400'
     remote_src: yes
-  when: onion_dirs.matched > 0
 
 - name: Copy generated public keys to tor hidden service directory
   copy:
@@ -127,7 +111,6 @@
     group: debian-tor
     mode: '0400'
     remote_src: yes
-  when: onion_dirs.matched > 0
 
 - name: Set correct permissions on tor hidden service directory
   file:
