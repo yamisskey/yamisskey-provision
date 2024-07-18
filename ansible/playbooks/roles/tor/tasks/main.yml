@@ -21,7 +21,7 @@
 - name: Generate onion domain
   shell: |
     DOMAIN_PREFIX="{{ domain_prefix }}"
-    docker run --rm -it -v {{ onion_script_dir }}/output:/keys ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
+    docker run --rm -v {{ onion_script_dir }}/output:/keys ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
   args:
     chdir: "{{ onion_script_dir }}"
   async: 3600
