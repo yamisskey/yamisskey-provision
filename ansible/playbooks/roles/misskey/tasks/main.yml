@@ -98,7 +98,7 @@
 - name: Fail if database initialization failed
   fail:
     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr }}"
-  when: init_output is defined and init_output.rc != 0
+  when: init_output is defined and init_output is not skipped and init_output.rc != 0
 
 - name: Start Misskey
   become: yes
