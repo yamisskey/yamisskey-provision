@@ -24,7 +24,7 @@
     docker run --rm -v {{ onion_script_dir }}/output:/keys ghcr.io/cathugger/mkp224o:master -d /keys "$DOMAIN_PREFIX"
   args:
     chdir: "{{ onion_script_dir }}"
-  async: 3600
+  async: 43200  # 12 hours
   poll: 0
   register: async_result
   become: yes
@@ -35,7 +35,7 @@
     jid: "{{ async_result.ansible_job_id }}"
   register: job_result
   until: job_result.finished
-  retries: 360
+  retries: 4320  # 12 hours with 10 seconds delay
   delay: 10
 
 - name: Check if the onion domain was generated
