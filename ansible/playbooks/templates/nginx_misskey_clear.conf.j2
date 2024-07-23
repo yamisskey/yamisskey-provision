@@ -7,15 +7,6 @@ proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g in
 
 server_tokens off;
 
-# Default server block to deny all unhandled requests
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    listen 443 ssl default_server;
-    listen [::]:443 ssl default_server;
-    return 444;
-}
-
 # Redirect www.yami.ski to yami.ski for HTTP
 server {
     listen 80;
