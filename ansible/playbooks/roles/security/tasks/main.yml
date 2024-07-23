@@ -208,8 +208,8 @@
     name: tailscale
     state: present
 
-- name: Start Tailscale
-  command: tailscale up --ssh
+- name: Start Tailscale with SSH enabled
+  command: tailscale up --ssh --accept-dns=false
   register: tailscale_up
 
 - name: Retrieve Tailscale status
