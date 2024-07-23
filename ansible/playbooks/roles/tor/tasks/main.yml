@@ -1,5 +1,4 @@
 - name: Start Tor
-  become_user: root
   systemd:
     name: tor@default
     enabled: yes
@@ -164,3 +163,24 @@
     name: privoxy
     enabled: yes
     state: started
+
+- name: Deploy Nginx configuration for onion
+  template:
+    src: templates/nginx_misskey_onion.conf.j2
+    dest: /etc/nginx/conf.d/misskey-onion.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    onion_hostname: '{{ tor_hostname.stdout }}'
+  notify: Reload Nginx
+
+- name: Check if Nginx onion configuration exists
+  stat:
+    path: '/etc/nginx/conf.d/misskey-onion.conf'
+  register: nginx_onion_conf
+
+- name: Notify user if Nginx onion configuration does not exist
+  fail:
+    msg: 'Nginx onion configuration file /etc/nginx/conf.d/misskey-onion.conf does not exist.'
+  when: not nginx_onion_conf.stat.exists

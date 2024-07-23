@@ -133,15 +133,6 @@
     mode: '0644'
   notify: Reload Nginx
 
-- name: Deploy Nginx configuration for onion
-  template:
-    src: templates/nginx_misskey_onion.conf.j2
-    dest: /etc/nginx/conf.d/misskey-onion.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify: Reload Nginx
-
 - name: Check if Nginx configuration exists
   stat:
     path: '/etc/nginx/conf.d/misskey.conf'
@@ -151,16 +142,6 @@
   fail:
     msg: 'Nginx configuration file /etc/nginx/conf.d/misskey.conf does not exist.'
   when: not nginx_conf.stat.exists
-
-- name: Check if Nginx onion configuration exists
-  stat:
-    path: '/etc/nginx/conf.d/misskey-onion.conf'
-  register: nginx_onion_conf
-
-- name: Notify user if Nginx onion configuration does not exist
-  fail:
-    msg: 'Nginx onion configuration file /etc/nginx/conf.d/misskey-onion.conf does not exist.'
-  when: not nginx_onion_conf.stat.exists
 
 - name: Verify Cloudflare configuration exists
   stat:
