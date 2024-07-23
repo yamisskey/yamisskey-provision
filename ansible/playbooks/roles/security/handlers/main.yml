@@ -1,3 +1,9 @@
+- name: Restart rsyslog
+  systemd:
+    name: rsyslog
+    state: restarted
+  become: true
+
 - name: Restart fail2ban
   systemd:
     name: fail2ban
