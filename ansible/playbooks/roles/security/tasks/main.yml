@@ -43,17 +43,32 @@
   command: ufw logging off
   ignore_errors: yes
 
-- name: Disable iptables logging
+- name: Check if INPUT logging rule exists
+  command: iptables -C INPUT -j LOG
+  register: input_log_rule_exists
+  ignore_errors: true
+
+- name: Disable INPUT logging if rule exists
   command: iptables -D INPUT -j LOG
-  ignore_errors: yes
+  when: input_log_rule_exists.rc == 0
 
-- name: Ensure iptables logging is off
+- name: Check if FORWARD logging rule exists
+  command: iptables -C FORWARD -j LOG
+  register: forward_log_rule_exists
+  ignore_errors: true
+
+- name: Disable FORWARD logging if rule exists
   command: iptables -D FORWARD -j LOG
-  ignore_errors: yes
+  when: forward_log_rule_exists.rc == 0
 
-- name: Ensure iptables output logging is off
+- name: Check if OUTPUT logging rule exists
+  command: iptables -C OUTPUT -j LOG
+  register: output_log_rule_exists
+  ignore_errors: true
+
+- name: Disable OUTPUT logging if rule exists
   command: iptables -D OUTPUT -j LOG
-  ignore_errors: yes
+  when: output_log_rule_exists.rc == 0
 
 - name: Find cloudflared UUID file
   find:
