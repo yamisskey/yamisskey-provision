@@ -62,12 +62,6 @@
     port: 443
     proto: tcp
 
-- name: Allow custom application traffic on port 3000
-  ufw:
-    rule: allow
-    port: 3000
-    proto: tcp
-
 - name: Enable UFW
   ufw:
     state: enabled
@@ -118,7 +112,7 @@
 - name: Set cloudflared config.yml content
   template:
     src: templates/cloudflared.config.yml.j2
-    dest: '/etc/cloudflared/config.yml'
+    dest: /etc/cloudflared/config.yml'
     owner: 'root'
     mode: '0600'
   vars:
@@ -220,3 +214,15 @@
 - name: Debug parsed Tailscale IP addresses
   debug:
     var: tailscale_ips
+
+- name: Allow SSH traffic on port 22 only from Tailscale IPs
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+    from_ip: '{{ item }}'
+  loop: '{{ tailscale_ips }}'
+
+- name: Reload UFW to apply changes
+  command: ufw reload
+  become: true
