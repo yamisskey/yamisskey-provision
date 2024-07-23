@@ -7,11 +7,12 @@ server {
     listen unix:/var/run/tor-misskey.sock;
     server_name {{ onion_hostname }};
 
-    # Add security headers
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+    # Add adjusted security headers
     add_header X-Frame-Options SAMEORIGIN;
     add_header X-Content-Type-Options nosniff;
-    add_header Referrer-Policy no-referrer-when-downgrade;
+    add_header Referrer-Policy no-referrer;
+
+    # Content Security Policy with relaxed settings
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';";
 
     # Change to your upload limit
