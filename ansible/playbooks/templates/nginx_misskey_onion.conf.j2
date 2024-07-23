@@ -23,4 +23,8 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
     }
+
+    # Disable access log
+    access_log off;
+    error_log /dev/null crit;
 }

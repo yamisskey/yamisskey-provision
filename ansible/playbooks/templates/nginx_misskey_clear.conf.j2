@@ -19,6 +19,9 @@ server {
 
     # Redirect www.yami.ski to yami.ski
     return 301 https://yami.ski$request_uri;
+
+    # Disable access log
+    access_log off;
 }
 
 # Redirect www.yami.ski to yami.ski for HTTPS
@@ -38,6 +41,9 @@ server {
 
     # Redirect www.yami.ski to yami.ski
     return 301 https://yami.ski$request_uri;
+
+    # Disable access log
+    access_log off;
 }
 
 # Main server block for yami.ski
@@ -93,4 +99,8 @@ server {
         proxy_force_ranges on;
         add_header X-Cache $upstream_cache_status;
     }
+
+    # Disable access log
+    access_log off;
+    error_log /dev/null crit;
 }

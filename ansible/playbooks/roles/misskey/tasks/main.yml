@@ -124,25 +124,23 @@
     path: '{{ misskey_dir }}/files'
     mode: '0777'
 
-- name: Copy misskey.conf to /etc/nginx/conf.d/
-  copy:
-    src: ~/yamisskey-provision/nginx/misskey.conf
+- name: Deploy Nginx configuration for clear net
+  template:
+    src: templates/nginx_misskey_clear.conf.j2
     dest: /etc/nginx/conf.d/misskey.conf
     owner: root
     group: root
     mode: '0644'
-  notify:
-    - Reload Nginx
+  notify: Reload Nginx
 
-- name: Copy misskey-onion.conf to /etc/nginx/conf.d/
-  copy:
-    src: ~/yamisskey-provision/nginx/misskey-onion.conf
+- name: Deploy Nginx configuration for onion
+  template:
+    src: templates/nginx_misskey_onion.conf.j2
     dest: /etc/nginx/conf.d/misskey-onion.conf
     owner: root
     group: root
     mode: '0644'
-  notify:
-    - Reload Nginx
+  notify: Reload Nginx
 
 - name: Check if Nginx configuration exists
   stat:
