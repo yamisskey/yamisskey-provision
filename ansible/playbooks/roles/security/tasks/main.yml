@@ -203,6 +203,15 @@
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
 
+- name: Ensure Tailscale is installed
+  apt:
+    name: tailscale
+    state: present
+
+- name: Start Tailscale
+  command: tailscale up --ssh
+  register: tailscale_up
+
 - name: Retrieve Tailscale status
   command: tailscale status --json
   register: tailscale_status
@@ -215,6 +224,11 @@
   debug:
     var: tailscale_ips
 
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+
 - name: Allow SSH traffic on port 22 only from Tailscale IPs
   ufw:
     rule: allow
@@ -225,4 +239,19 @@
 
 - name: Reload UFW to apply changes
   command: ufw reload
-  become: true
+
+- name: Configure SSH settings
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    create: yes
+    line: '{{ item }}'
+  loop:
+    - 'PermitRootLogin no'
+    - 'PasswordAuthentication no'
+    - 'PubkeyAuthentication yes'
+
+- name: Restart SSH service
+  systemd:
+    name: ssh
+    state: restarted
