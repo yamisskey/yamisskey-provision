@@ -251,7 +251,7 @@
 
       [Service]
       Type=simple
-      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbport 5901 -shared -localhost -usepw -pam
+      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbport 5901 -shared -localhost -rfbauth /etc/x11vnc.pass -pam
       ExecStop=/usr/bin/killall x11vnc
       Restart=on-failure
       User=root
