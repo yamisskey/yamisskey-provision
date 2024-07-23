@@ -3,7 +3,7 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 
-proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:32m max_size=2g inactive=1440m use_temp_path=off;
+proxy_cache_path /tmp/nginx_cache_onion levels=1:2 keys_zone=cache1:32m max_size=2g inactive=1440m use_temp_path=off;
 
 server {
     listen unix:/var/run/tor-misskey.sock;
