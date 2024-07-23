@@ -1,3 +1,47 @@
+- name: Ensure rsyslog is installed
+  apt:
+    name: rsyslog
+    state: present
+  become: true
+
+- name: Backup original rsyslog.conf
+  copy:
+    src: /etc/rsyslog.conf
+    dest: /etc/rsyslog.conf.bak
+    remote_src: yes
+  become: true
+
+- name: Deploy custom rsyslog configuration
+  template:
+    src: templates/rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart rsyslog
+  become: true
+
+- name: Ensure logrotate is installed
+  apt:
+    name: logrotate
+    state: present
+  become: true
+
+- name: Deploy custom logrotate configuration for rsyslog
+  template:
+    src: templates/logrotate_rsyslog.j2
+    dest: /etc/logrotate.d/rsyslog
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Restart rsyslog
+  systemd:
+    name: rsyslog
+    state: restarted
+  become: true
+
 - name: Find cloudflared UUID file
   find:
     paths: '/home/{{ user_name }}/.cloudflared'

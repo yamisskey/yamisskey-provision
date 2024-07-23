@@ -1,0 +1,40 @@
+# /etc/rsyslog.conf configuration file
+
+# Module load and global directives
+
+module(load="imuxsock")  # provides support for local system logging
+module(load="imklog")    # provides kernel logging support
+module(load="imudp")     # provides UDP syslog reception
+input(type="imudp" port="514")
+module(load="imtcp")     # provides TCP syslog reception
+input(type="imtcp" port="514")
+
+# Default rules
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+authpriv.*                                              /var/log/secure
+mail.*                                                  -/var/log/maillog
+cron.*                                                  /var/log/cron
+
+# IPアドレスを含むログのフィルタリング
+if $msg contains 'Accepted publickey for' then stop
+if $msg contains 'Failed password for' then stop
+
+# Include all config files in /etc/rsyslog.d/
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+# Log rotation settings
+$ActionFileDefaultTemplate RSYSLOG_FileFormat
+$RepeatedMsgReduction on
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+# Custom logging rules
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+authpriv.*                                              /var/log/secure
+mail.*                                                  -/var/log/maillog
+cron.*                                                  /var/log/cron
