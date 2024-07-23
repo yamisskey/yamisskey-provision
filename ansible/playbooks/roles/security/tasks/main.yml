@@ -39,9 +39,55 @@
     group: root
     mode: '0644'
 
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+
+- name: Allow SSH on port 2222
+  ufw:
+    rule: limit
+    port: 2222
+    proto: tcp
+
+- name: Allow HTTP traffic on port 80
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+
+- name: Allow HTTPS traffic on port 443
+  ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+
+- name: Allow custom application traffic on port 3000
+  ufw:
+    rule: allow
+    port: 3000
+    proto: tcp
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+
+- name: Set default deny policy for incoming traffic
+  command: ufw default deny incoming
+  become: true
+
+- name: Set default allow policy for outgoing traffic
+  command: ufw default allow outgoing
+  become: true
+
 - name: Ensure UFW logging is off
   command: ufw logging off
   ignore_errors: yes
+
+- name: Enable UFW service
+  systemd:
+    name: ufw
+    enabled: yes
 
 - name: Check UFW status
   command: ufw status verbose
