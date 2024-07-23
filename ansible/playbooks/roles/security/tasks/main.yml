@@ -43,6 +43,15 @@
   command: ufw logging off
   ignore_errors: yes
 
+- name: Check UFW status
+  command: ufw status verbose
+  register: ufw_status
+  become: true
+
+- name: Display UFW status
+  debug:
+    msg: '{{ ufw_status.stdout }}'
+
 - name: Find cloudflared UUID file
   find:
     paths: '/home/{{ user_name }}/.cloudflared'
