@@ -18,8 +18,6 @@ server {
     add_header Referrer-Policy no-referrer-when-downgrade;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';";
 
-    add_header Onion-Location "http://yamiwandml6aplcby4qkxi2dqzegwdfjappdaaeimq4goocsst3w2uyd.onion/";
-
     # Redirect www.yami.ski to yami.ski
     return 301 https://yami.ski$request_uri;
 
@@ -42,8 +40,6 @@ server {
     add_header X-Content-Type-Options nosniff;
     add_header Referrer-Policy no-referrer-when-downgrade;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';";
-
-    add_header Onion-Location "http://yamiwandml6aplcby4qkxi2dqzegwdfjappdaaeimq4goocsst3w2uyd.onion/";
 
     # Redirect www.yami.ski to yami.ski
     return 301 https://yami.ski$request_uri;
@@ -79,8 +75,6 @@ server {
     add_header X-Content-Type-Options nosniff;
     add_header Referrer-Policy no-referrer-when-downgrade;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'self';";
-
-    add_header Onion-Location "http://yamiwandml6aplcby4qkxi2dqzegwdfjappdaaeimq4goocsst3w2uyd.onion/";
 
     # Change to your upload limit
     client_max_body_size 80m;
