@@ -234,8 +234,13 @@
     name: x11vnc
     state: present
 
+- name: Prompt for VNC password
+  pause:
+    prompt: 'Enter VNC password (will not be echoed):'
+  register: vnc_password
+
 - name: Set VNC password
-  command: x11vnc -storepasswd /etc/x11vnc.pass
+  shell: echo -e "{{ vnc_password.user_input }}\n{{ vnc_password.user_input }}" | x11vnc -storepasswd /etc/x11vnc.pass
   args:
     creates: /etc/x11vnc.pass
 
@@ -249,7 +254,7 @@
 
       [Service]
       Type=simple
-      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5901 -shared -localhost
+      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbport 5901 -shared -localhost -rfbauth /etc/x11vnc.pass
       ExecStop=/usr/bin/killall x11vnc
       Restart=on-failure
       User=root
