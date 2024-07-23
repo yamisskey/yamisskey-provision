@@ -37,7 +37,23 @@
     dest: /etc/logrotate.d/rsyslog
     owner: root
     group: root
-    mode: '0644'    
+    mode: '0644'
+
+- name: Ensure UFW logging is off
+  command: ufw logging off
+  ignore_errors: yes
+
+- name: Disable iptables logging
+  command: iptables -D INPUT -j LOG
+  ignore_errors: yes
+
+- name: Ensure iptables logging is off
+  command: iptables -D FORWARD -j LOG
+  ignore_errors: yes
+
+- name: Ensure iptables output logging is off
+  command: iptables -D OUTPUT -j LOG
+  ignore_errors: yes
 
 - name: Find cloudflared UUID file
   find:
