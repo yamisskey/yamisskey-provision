@@ -221,10 +221,10 @@
   debug:
     var: tailscale_ips
 
-- name: Allow VNC traffic on port 5900 only from Tailscale IPs
+- name: Allow VNC traffic on port 5901 only from Tailscale IPs
   ufw:
     rule: allow
-    port: '{{ vnc_port }}'
+    port: 5901
     proto: tcp
     from_ip: '{{ item }}'
   loop: '{{ tailscale_ips }}'
@@ -249,7 +249,7 @@
 
       [Service]
       Type=simple
-      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5900 -shared -localhost
+      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5901 -shared -localhost
       ExecStop=/usr/bin/killall x11vnc
       Restart=on-failure
       User=root
