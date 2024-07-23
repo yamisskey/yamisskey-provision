@@ -208,3 +208,57 @@
     hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
+
+- name: Retrieve Tailscale status
+  command: tailscale status --json
+  register: tailscale_status
+
+- name: Parse Tailscale IP addresses
+  set_fact:
+    tailscale_ips: "{{ tailscale_status.stdout | from_json | json_query('Peer.*.TailscaleIPs') | flatten | select('match', '100\\..*') | list }}"
+
+- name: Allow VNC traffic on port 5900 only from Tailscale IPs
+  ufw:
+    rule: allow
+    port: '{{ vnc_port }}'
+    proto: tcp
+    from_ip: '{{ item }}'
+  loop: '{{ tailscale_ips }}'
+
+- name: Ensure x11vnc is installed
+  apt:
+    name: x11vnc
+    state: present
+
+- name: Set VNC password
+  command: x11vnc -storepasswd /etc/x11vnc.pass
+  args:
+    creates: /etc/x11vnc.pass
+
+- name: Create x11vnc systemd service file
+  copy:
+    dest: /etc/systemd/system/x11vnc.service
+    content: |
+      [Unit]
+      Description=Start x11vnc at startup.
+      After=multi-user.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pass -rfbport 5900 -shared -localhost
+      ExecStop=/usr/bin/killall x11vnc
+      Restart=on-failure
+      User=root
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd to apply new service file
+  command: systemctl daemon-reload
+
+- name: Start and enable x11vnc service
+  systemd:
+    name: x11vnc
+    state: started
+    enabled: true
+
