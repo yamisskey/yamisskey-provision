@@ -217,6 +217,10 @@
   set_fact:
     tailscale_ips: "{{ tailscale_status.stdout | from_json | json_query('Peer.*.TailscaleIPs') | flatten | select('match', '100\\..*') | list }}"
 
+- name: Debug parsed Tailscale IP addresses
+  debug:
+    var: tailscale_ips
+
 - name: Allow VNC traffic on port 5900 only from Tailscale IPs
   ufw:
     rule: allow
