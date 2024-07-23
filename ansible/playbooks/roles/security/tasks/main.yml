@@ -2,7 +2,12 @@
   apt:
     name: rsyslog
     state: present
-  become: true
+
+- name: Ensure syslog user exists
+  user:
+    name: syslog
+    state: present
+    system: yes
 
 - name: Backup original rsyslog.conf
   copy:
@@ -18,8 +23,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: Restart rsyslog
-  become: true
+  notify: Validate rsyslog configuration
 
 - name: Ensure logrotate is installed
   apt:
@@ -33,13 +37,7 @@
     dest: /etc/logrotate.d/rsyslog
     owner: root
     group: root
-    mode: '0644'
-  become: true
-
-- name: Validate rsyslog configuration
-  command: rsyslogd -N1
-  register: rsyslog_validation
-  failed_when: 'rsyslog_validation.rc != 0'
+    mode: '0644'    
 
 - name: Find cloudflared UUID file
   find:
@@ -151,4 +149,3 @@
     hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
-

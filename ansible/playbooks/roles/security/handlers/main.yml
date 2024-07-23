@@ -1,3 +1,9 @@
+- name: Validate rsyslog configuration
+  command: rsyslogd -N1
+  register: rsyslog_validation
+  failed_when: 'rsyslog_validation.rc != 0'
+  notify: Restart rsyslog
+
 - name: Restart rsyslog
   systemd:
     name: rsyslog
@@ -21,3 +27,4 @@
     name: nginx
     state: reloaded
   become: true
+
