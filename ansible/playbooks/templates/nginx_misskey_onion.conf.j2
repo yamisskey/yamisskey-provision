@@ -29,9 +29,6 @@ server {
         # For WebSocket
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
-
-        # Reduce buffering for WebSocket
-        proxy_buffering off;
     }
 
     # Disable access log to reduce I/O load
