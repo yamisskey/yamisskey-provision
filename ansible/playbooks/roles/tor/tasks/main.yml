@@ -39,7 +39,7 @@
 - name: Skip if enough onion domains exist
   debug:
     msg: 'Enough onion domains already exist. Skipping key generation.'
-  when: existing_domain_count | int >= 1
+  when: existing_domain_count >= 1
 
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
