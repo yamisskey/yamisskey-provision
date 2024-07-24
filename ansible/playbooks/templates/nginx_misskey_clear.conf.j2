@@ -118,6 +118,11 @@ server {
         
         # Header to indicate cache status
         add_header X-Cache $upstream_cache_status;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
     # Disable access log to reduce I/O load
