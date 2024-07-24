@@ -19,6 +19,16 @@ server {
 
     # Main location block for Misskey
     location / {
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_http_version 1.1;
@@ -52,6 +62,16 @@ server {
 
     # Location block for proxying images in /proxy/ path
     location /proxy/ {
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
         proxy_pass https://drive.yami.ski;
         proxy_set_header Host drive.yami.ski;
         proxy_set_header X-Real-IP $remote_addr;
@@ -66,8 +86,42 @@ server {
 
     # Location block for proxying images in /files/ path
     location /files/ {
-        proxy_pass https://3a8dfd8ada470fc62291f1c60d308e1e.r2.cloudflarestorage.com;
-        proxy_set_header Host 3a8dfd8ada470fc62291f1c60d308e1e.r2.cloudflarestorage.com;
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
+    # Additional configuration for proxying other image URLs
+    location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
