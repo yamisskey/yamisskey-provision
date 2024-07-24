@@ -30,7 +30,7 @@
 
 - name: Check if enough onion domains exist
   set_fact:
-    existing_domain_count: "{{ list_onion_domains.stdout_lines | length }}"
+    existing_domain_count: "{{ list_onion_domains.stdout_lines | length | int }}"
 
 - name: Skip if enough onion domains exist
   debug:
