@@ -59,6 +59,26 @@ server {
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
+    location /assets/ {
+        alias /var/www/misskey/assets/;
+        autoindex on;
+        try_files $uri $uri/ =404;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
+    location /twemoji/ {
+        alias /var/www/misskey/fluent-emojis/dist/;
+        autoindex on;
+        try_files $uri $uri/ =404;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
     location /proxy/ {
         proxy_pass https://drive.yami.ski;
         proxy_set_header Host drive.yami.ski;
