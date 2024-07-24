@@ -48,6 +48,24 @@ server {
         
         # Header to indicate cache status
         add_header X-Cache $upstream_cache_status;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
+    }
+
+    location /drive/ {
+        proxy_pass https://drive.yami.ski/;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
     }
 
     # Disable access log to reduce I/O load
