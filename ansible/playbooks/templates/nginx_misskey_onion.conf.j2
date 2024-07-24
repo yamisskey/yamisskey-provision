@@ -19,6 +19,7 @@ server {
     gzip_vary on;
     gzip_min_length 256;
 
+    # Main location block for Misskey
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
@@ -55,8 +56,9 @@ server {
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
     }
 
+    # Location block for image files
     location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
-        proxy_pass https://drive.yami.ski/;
+        proxy_pass https://drive.yami.ski;
         proxy_set_header Host drive.yami.ski;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
