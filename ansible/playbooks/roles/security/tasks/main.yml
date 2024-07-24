@@ -142,7 +142,7 @@
 
 - name: Find cloudflared UUID file
   find:
-    paths: '/home/{{ user_name }}/.cloudflared'
+    paths: '/home/{{ ansible_user }}/.cloudflared'
     patterns: '*.json'
   register: uuid_files
 
@@ -165,6 +165,7 @@
     mode: '0600'
   vars:
     tunnel_uuid: '{{ tunnel_uuid }}'
+    origincert_path: '/home/{{ ansible_user }}/.cloudflared/cert.pem'
   notify: Restart Cloudflared
 
 - name: Install cloudflared as a system service
@@ -174,6 +175,12 @@
 
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
+
+- name: Restart Cloudflared
+  systemd:
+    name: cloudflared
+    state: restarted
+  become: true
 
 - name: Reload Nginx
   systemd:

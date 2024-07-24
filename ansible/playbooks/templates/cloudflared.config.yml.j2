@@ -1,5 +1,6 @@
 tunnel: "{{ tunnel_uuid }}"
-credentials-file: "/home/{{ user_name }}/.cloudflared/{{ tunnel_uuid }}.json"
+credentials-file: "/home/{{ ansible_user }}/.cloudflared/{{ tunnel_uuid }}.json"
+origincert: "{{ origincert_path }}"
 
 ingress:
   - hostname: yami.ski
