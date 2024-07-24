@@ -28,7 +28,7 @@
   register: list_onion_domains
   changed_when: false
 
-- name: Set fact if enough onion domains exist
+- name: Check if enough onion domains exist
   set_fact:
     enough_onion_domains_exist: "{{ (list_onion_domains.stdout_lines | length | int) >= 1 }}"
 
@@ -36,10 +36,9 @@
   debug:
     msg: 'Enough onion domains exist: {{ enough_onion_domains_exist }}'
 
-- name: Skip if enough onion domains exist
+- name: Check if domain prefix is correct
   debug:
-    msg: 'Enough onion domains already exist. Skipping key generation.'
-  when: enough_onion_domains_exist
+    msg: "Current domain prefix is {{ domain_prefix }}"
 
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
