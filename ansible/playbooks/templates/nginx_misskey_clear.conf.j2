@@ -34,11 +34,6 @@ server {
     ssl_certificate /etc/letsencrypt/live/yami.ski/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/yami.ski/privkey.pem;
 
-    # SSL protocol settings
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers on;
-
     # Add security headers
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
     add_header X-Frame-Options SAMEORIGIN;
@@ -69,8 +64,8 @@ server {
 
     # SSL protocol settings
     ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
     ssl_stapling on;
     ssl_stapling_verify on;
 
@@ -123,8 +118,39 @@ server {
         
         # Header to indicate cache status
         add_header X-Cache $upstream_cache_status;
+    }
 
-        # Add headers for CORS
+    location /proxy/ {
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
+    location /files/ {
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
