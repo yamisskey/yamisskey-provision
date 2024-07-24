@@ -22,4 +22,3 @@ packages:
   - unattended-upgrades
   - clamav
   - clamav-daemon
-  - x11vnc
