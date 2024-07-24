@@ -28,32 +28,32 @@
   register: list_onion_domains
   changed_when: false
 
-- name: Check if enough onion domains exist
+- name: Set fact if enough onion domains exist
   set_fact:
-    existing_domain_count: "{{ list_onion_domains.stdout_lines | length | int }}"
+    enough_onion_domains_exist: "{{ (list_onion_domains.stdout_lines | length | int) >= 1 }}"
 
-- name: Debug existing_domain_count
+- name: Debug enough_onion_domains_exist
   debug:
-    msg: 'Existing domain count: {{ existing_domain_count }}'
+    msg: 'Enough onion domains exist: {{ enough_onion_domains_exist }}'
 
 - name: Skip if enough onion domains exist
   debug:
     msg: 'Enough onion domains already exist. Skipping key generation.'
-  when: existing_domain_count >= 1
+  when: enough_onion_domains_exist
 
 - name: Stop existing mkp224o container if running
   shell: docker stop mkp224o || true
   ignore_errors: true
   become: yes
   become_method: sudo
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Remove existing mkp224o container if present
   shell: docker rm mkp224o || true
   ignore_errors: true
   become: yes
   become_method: sudo
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Generate onion domain if not enough exist
   shell: |
@@ -63,7 +63,7 @@
   register: async_result
   become: yes
   become_method: sudo
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Wait for onion domain generation to complete
   async_status:
@@ -72,18 +72,18 @@
   until: job_result.finished
   retries: 60
   delay: 10
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Check if the onion domain was generated
   stat:
     path: '{{ mkp224o_output_dir }}/{{ domain_prefix }}/*.onion/hs_ed25519_secret_key'
   register: onion_key_stat
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Debug onion_key_stat
   debug:
     msg: 'Onion key stat: {{ onion_key_stat }}'
-  when: existing_domain_count < 1
+  when: not enough_onion_domains_exist
 
 - name: Set fact for first onion directory
   set_fact:
