@@ -87,11 +87,13 @@
 
 - name: Set fact for first onion directory
   set_fact:
-    onion_dir: '{{ (list_onion_domains.stdout_lines)[0] }}'
+    onion_dir: "{{ list_onion_domains.stdout_lines[0] }}"
+  when: list_onion_domains.stdout_lines | length > 0
 
 - name: Debug onion_dir
   debug:
     msg: 'Onion directory set to: {{ onion_dir }}'
+  when: onion_dir is defined
 
 - name: Copy generated secret keys to tor hidden service directory
   copy:
@@ -101,6 +103,7 @@
     group: debian-tor
     mode: '0400'
     remote_src: yes
+  when: onion_dir is defined
 
 - name: Copy generated public keys to tor hidden service directory
   copy:
@@ -110,6 +113,7 @@
     group: debian-tor
     mode: '0400'
     remote_src: yes
+  when: onion_dir is defined
 
 - name: Copy hostname file to tor hidden service directory
   copy:
@@ -119,6 +123,7 @@
     group: debian-tor
     mode: '0644'
     remote_src: yes
+  when: onion_dir is defined
 
 - name: Set correct permissions on tor hidden service directory
   file:
