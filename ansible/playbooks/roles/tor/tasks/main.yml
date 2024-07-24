@@ -33,13 +33,17 @@
   register: mkp224o_container_running
   changed_when: false
 
+- name: Stop mkp224o container if onion domain is found
+  shell: docker stop mkp224o
+  when: list_onion_domains.stdout_lines | length > 0 and mkp224o_container_running.stdout != ""
+
 - name: Start mkp224o container if not running and no onion domain is found
   shell: docker run -d --name mkp224o -v {{ mkp224o_output_dir }}/{{ domain_prefix }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ domain_prefix }}"
   when: list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == ""
 
 - name: Debug message for mkp224o container state
   debug:
-    msg: "mkp224o container {{ 'started' if list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == '' else 'already running' }}"
+    msg: "mkp224o container {{ 'started' if list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == '' else 'stopped' if list_onion_domains.stdout_lines | length > 0 and mkp224o_container_running.stdout != '' else 'already running' }}"
 
 - name: Set fact for first onion directory if found
   set_fact:
