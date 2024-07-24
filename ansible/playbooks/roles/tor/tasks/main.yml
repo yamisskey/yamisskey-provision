@@ -41,7 +41,7 @@
     msg: "Current domain prefix is {{ domain_prefix }}"
 
 - name: Check if mkp224o container is running
-  shell: docker ps --filter "name=mkp224o" --filter "status=running" --format "{{.ID}}"
+  shell: docker ps --filter "name=mkp224o" --filter "status=running" --format "{{'{{.ID}}'}}"
   register: mkp224o_container_running
   changed_when: false
 
