@@ -45,7 +45,7 @@ server {
 
         # Reduce buffering for WebSocket
         proxy_buffering off;
-        
+
         # Header to indicate cache status
         add_header X-Cache $upstream_cache_status;
 
@@ -55,7 +55,7 @@ server {
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
     }
 
-    location /drive/ {
+    location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
         proxy_pass https://drive.yami.ski/;
         proxy_set_header Host drive.yami.ski;
         proxy_set_header X-Real-IP $remote_addr;
