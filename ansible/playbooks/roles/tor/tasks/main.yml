@@ -28,47 +28,20 @@
   register: list_onion_domains
   changed_when: false
 
-- name: Set fact if enough onion domains exist
-  set_fact:
-    enough_onion_domains_exist: "{{ (list_onion_domains.stdout_lines | length | int) >= 1 }}"
-
-- name: Debug enough_onion_domains_exist
-  debug:
-    msg: 'Enough onion domains exist: {{ enough_onion_domains_exist }}'
-
-- name: Check if domain prefix is correct
-  debug:
-    msg: "Current domain prefix is {{ domain_prefix }}"
-
 - name: Check if mkp224o container is running
   shell: docker ps --filter "name=mkp224o" --filter "status=running" --format "{{'{{.ID}}'}}"
   register: mkp224o_container_running
   changed_when: false
 
-- name: Stop mkp224o container if onion domain is found
-  shell: docker stop mkp224o
-  when: enough_onion_domains_exist and mkp224o_container_running.stdout != ""
-
-- name: Start mkp224o container if not running and onion domain is not found
+- name: Start mkp224o container if not running and no onion domain is found
   shell: docker run -d --name mkp224o -v {{ mkp224o_output_dir }}/{{ domain_prefix }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ domain_prefix }}"
-  when: not enough_onion_domains_exist and mkp224o_container_running.stdout == ""
+  when: list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == ""
 
 - name: Debug message for mkp224o container state
   debug:
-    msg: "mkp224o container {{ 'started' if not enough_onion_domains_exist and mkp224o_container_running.stdout == '' else 'stopped' if enough_onion_domains_exist and mkp224o_container_running.stdout != '' else 'already running' }}"
+    msg: "mkp224o container {{ 'started' if list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == '' else 'already running' }}"
 
-- name: Check if the onion domain was generated
-  stat:
-    path: '{{ mkp224o_output_dir }}/{{ domain_prefix }}/*.onion/hs_ed25519_secret_key'
-  register: onion_key_stat
-  when: not enough_onion_domains_exist
-
-- name: Debug onion_key_stat
-  debug:
-    msg: 'Onion key stat: {{ onion_key_stat }}'
-  when: not enough_onion_domains_exist
-
-- name: Set fact for first onion directory
+- name: Set fact for first onion directory if found
   set_fact:
     onion_dir: "{{ list_onion_domains.stdout_lines[0] }}"
   when: list_onion_domains.stdout_lines | length > 0
