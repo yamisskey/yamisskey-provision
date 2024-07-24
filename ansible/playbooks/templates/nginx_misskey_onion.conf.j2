@@ -9,10 +9,8 @@ server {
     listen unix:/var/run/tor-misskey.sock;
     server_name {{ onion_hostname }};
 
-    # Increase client upload limit
     client_max_body_size 100m;
 
-    # Enable Gzip compression for faster content delivery
     gzip on;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
     gzip_proxied any;
@@ -28,11 +26,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
 
-        # For WebSocket
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
 
-        # Cache settings
         proxy_cache cache2;
         proxy_cache_revalidate on;
         proxy_cache_min_uses 2;
@@ -43,14 +39,44 @@ server {
         proxy_cache_valid 404 1m;
         proxy_cache_key "$host$request_uri$scheme";
 
-        # Reduce buffering for WebSocket
         proxy_buffering off;
-        
-        # Header to indicate cache status
+
         add_header X-Cache $upstream_cache_status;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
-    # Disable access log to reduce I/O load
+    # Location block for proxying images in /files/ path
+    location /files/ {
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
+    # Additional configuration for proxying other image URLs
+    location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
+        proxy_pass https://drive.yami.ski;
+        proxy_set_header Host drive.yami.ski;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Add headers for CORS
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
+    }
+
     access_log off;
     error_log /dev/null crit;
 }
