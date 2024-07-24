@@ -45,9 +45,9 @@ server {
         add_header X-Cache $upstream_cache_status;
 
         # Add headers for CORS
-        add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
-        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
     # Location block for proxying images in /proxy/ path
@@ -59,9 +59,9 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
 
         # Add headers for CORS
-        add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
-        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
     # Location block for proxying images in /files/ path
@@ -73,9 +73,9 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
 
         # Add headers for CORS
-        add_header Access-Control-Allow-Origin *;
-        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
-        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept';
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
     access_log off;
