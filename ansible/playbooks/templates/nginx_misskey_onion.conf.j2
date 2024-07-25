@@ -59,9 +59,9 @@ server {
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
-    location /twemoji/ {
+    location ~* ^/twemoji/.*\.svg$ {
         alias /var/www/misskey/fluent-emojis/dist/;
-        try_files $uri.svg $uri.png =404;
+        try_files $uri $uri.png =404;
 
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
@@ -69,8 +69,8 @@ server {
     }
 
     location /proxy/ {
-        proxy_pass https://drive.yami.ski;
-        proxy_set_header Host drive.yami.ski;
+        proxy_pass https://pub-6192043e9544463ab947596ccd373fd9.r2.dev;
+        proxy_set_header Host pub-6192043e9544463ab947596ccd373fd9.r2.dev;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -82,8 +82,8 @@ server {
     }
 
     location /files/ {
-        proxy_pass https://drive.yami.ski;
-        proxy_set_header Host drive.yami.ski;
+        proxy_pass https://pub-6192043e9544463ab947596ccd373fd9.r2.dev;
+        proxy_set_header Host pub-6192043e9544463ab947596ccd373fd9.r2.dev;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -95,8 +95,8 @@ server {
     }
 
     location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
-        proxy_pass https://drive.yami.ski;
-        proxy_set_header Host drive.yami.ski;
+        proxy_pass https://pub-6192043e9544463ab947596ccd373fd9.r2.dev;
+        proxy_set_header Host pub-6192043e9544463ab947596ccd373fd9.r2.dev;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
