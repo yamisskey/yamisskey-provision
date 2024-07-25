@@ -126,14 +126,7 @@ server {
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
-
-        # Specific timeouts for images
-        proxy_connect_timeout 180s;
-        proxy_send_timeout 180s;
-        proxy_read_timeout 180s;
-        send_timeout 180s;
     }
-
 
     access_log off;
     error_log /dev/null crit;
