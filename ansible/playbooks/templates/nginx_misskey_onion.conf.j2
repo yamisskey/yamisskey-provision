@@ -61,7 +61,7 @@ server {
 
     location /twemoji/ {
         alias /var/www/misskey/fluent-emojis/dist/;
-        try_files $uri $uri.png =404;
+        try_files $uri.svg $uri.png =404;
 
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
