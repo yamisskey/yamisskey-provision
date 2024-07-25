@@ -6,7 +6,7 @@ map $http_upgrade $connection_upgrade {
 proxy_cache_path /tmp/nginx_cache_onion levels=1:2 keys_zone=cache2:32m max_size=2g inactive=1440m use_temp_path=off;
 
 # Set a very high rate and burst limit to effectively disable rate limiting
-limit_req_zone $binary_remote_addr zone=mylimit:10m rate=1000r/s;
+limit_req_zone $binary_remote_addr zone=mylimit2:10m rate=1000r/s;
 
 server {
     listen unix:/var/run/tor-misskey.sock;
@@ -22,7 +22,7 @@ server {
 
     location / {
         # Apply a very high burst value and no delay to effectively disable rate limiting
-        limit_req zone=mylimit burst=1000 nodelay;
+        limit_req zone=mylimit2 burst=1000 nodelay;
 
         if ($request_method = 'OPTIONS') {
             add_header 'Access-Control-Allow-Origin' '*';
