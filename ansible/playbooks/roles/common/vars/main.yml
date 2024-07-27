@@ -20,6 +20,8 @@ packages:
   - rclone
   - fail2ban
   - unattended-upgrades
+  - debsums
+  - apt-show-versions
   - clamav
   - clamav-daemon
   - lynis

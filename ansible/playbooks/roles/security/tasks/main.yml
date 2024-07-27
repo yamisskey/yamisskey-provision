@@ -134,6 +134,15 @@
     - 'PermitRootLogin no'
     - 'PasswordAuthentication no'
     - 'PubkeyAuthentication yes'
+    - 'AllowTcpForwarding no'
+    - 'ClientAliveCountMax 2'
+    - 'Compression no'
+    - 'LogLevel VERBOSE'
+    - 'MaxAuthTries 3'
+    - 'MaxSessions 2'
+    - 'TCPKeepAlive no'
+    - 'X11Forwarding no'
+    - 'AllowAgentForwarding no'
 
 - name: Restart SSH service
   systemd:
@@ -271,3 +280,94 @@
 - name: Display Lynis security audit report
   debug:
     msg: '{{ lynis_audit.stdout }}'
+
+- name: Ensure password hashing rounds in /etc/login.defs
+  lineinfile:
+    path: /etc/login.defs
+    state: present
+    regexp: '^PASS_MAX_DAYS'
+    line: 'PASS_MAX_DAYS   90'
+    create: yes
+  become: true
+
+- name: Ensure password hashing rounds in /etc/login.defs
+  lineinfile:
+    path: /etc/login.defs
+    state: present
+    regexp: '^PASS_MIN_DAYS'
+    line: 'PASS_MIN_DAYS   7'
+    create: yes
+  become: true
+
+- name: Disable USB storage driver
+  lineinfile:
+    path: /etc/modprobe.d/blacklist.conf
+    state: present
+    line: 'blacklist usb-storage'
+    create: yes
+  become: true
+
+- name: Configure sysctl settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: 'dev.tty.ldisc_autoload', value: '0' }
+    - { name: 'fs.protected_fifos', value: '2' }
+    - { name: 'kernel.core_uses_pid', value: '1' }
+    - { name: 'kernel.kptr_restrict', value: '2' }
+    - { name: 'kernel.modules_disabled', value: '1' }
+    - { name: 'kernel.sysrq', value: '0' }
+    - { name: 'kernel.unprivileged_bpf_disabled', value: '1' }
+    - { name: 'kernel.yama.ptrace_scope', value: '1' }
+    - { name: 'net.core.bpf_jit_harden', value: '2' }
+    - { name: 'net.ipv4.conf.all.forwarding', value: '0' }
+    - { name: 'net.ipv4.conf.all.log_martians', value: '1' }
+    - { name: 'net.ipv4.conf.all.rp_filter', value: '1' }
+    - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
+    - { name: 'net.ipv4.conf.default.accept_source_route', value: '0' }
+    - { name: 'net.ipv4.conf.default.log_martians', value: '1' }
+  become: true
+  notify: Reload sysctl
+
+- name: Reload sysctl
+  command: sysctl -p
+  become: true
+
+- name: Ensure AppArmor is installed and enabled
+  apt:
+    name: apparmor
+    state: present
+
+- name: Ensure AppArmor service is enabled
+  systemd:
+    name: apparmor
+    enabled: true
+    state: started
+  become: true
+
+- name: Ensure auditd is installed
+  apt:
+    name: auditd
+    state: present
+
+- name: Ensure auditd service is enabled
+  systemd:
+    name: auditd
+    enabled: true
+    state: started
+  become: true
+
+- name: Ensure sysstat is installed
+  apt:
+    name: sysstat
+    state: present
+
+- name: Ensure sysstat service is enabled
+  systemd:
+    name: sysstat
+    enabled: true
+    state: started
+  become: true
