@@ -28,3 +28,7 @@
     state: reloaded
   become: true
 
+- name: Reload sysctl
+  command: sysctl -p
+  become: yes
+
