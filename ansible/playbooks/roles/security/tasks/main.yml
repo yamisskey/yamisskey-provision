@@ -131,6 +131,7 @@
     create: yes
     line: '{{ item }}'
   loop:
+    - 'Port 2222'
     - 'PermitRootLogin no'
     - 'PasswordAuthentication no'
     - 'AuthorizedKeysFile .ssh/authorized_keys'
