@@ -22,3 +22,4 @@ packages:
   - unattended-upgrades
   - clamav
   - clamav-daemon
+  - lynis

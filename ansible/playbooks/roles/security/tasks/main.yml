@@ -257,3 +257,17 @@
     hour: '2'
     job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
   become: true
+
+- name: Ensure Lynis is installed
+  apt:
+    name: lynis
+    state: present
+
+- name: Run Lynis security audit
+  command: lynis audit system --quiet --logfile /var/log/lynis.log --report-file /var/log/lynis-report.dat
+  register: lynis_audit
+  become: true
+
+- name: Display Lynis security audit report
+  debug:
+    msg: '{{ lynis_audit.stdout }}'
