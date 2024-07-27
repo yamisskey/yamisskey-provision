@@ -137,16 +137,15 @@
     - 'AuthorizedKeysFile .ssh/authorized_keys'
     - 'RSAAuthentication yes'
     - 'PubkeyAuthentication yes'
-    - 'AllowTcpForwarding no'
-    - 'ClientAliveCountMax 2'
+    - 'AllowTcpForwarding yes'
+    - 'ClientAliveCountMax 3'
     - 'Compression no'
-    - 'LogLevel VERBOSE'
-    - 'MaxAuthTries 3'
-    - 'MaxSessions 2'
-    - 'TCPKeepAlive no'
+    - 'LogLevel INFO'
+    - 'MaxAuthTries 10'
+    - 'MaxSessions 10'
+    - 'TCPKeepAlive yes'
     - 'X11Forwarding no'
-    - 'AllowAgentForwarding no'
-
+    - 'AllowAgentForwarding yes'
 - name: Restart SSH service
   systemd:
     name: ssh
