@@ -337,11 +337,6 @@
   command: sysctl -p
   become: true
 
-- name: Ensure AppArmor is installed and enabled
-  apt:
-    name: apparmor
-    state: present
-
 - name: Ensure AppArmor service is enabled
   systemd:
     name: apparmor
@@ -349,22 +344,12 @@
     state: started
   become: true
 
-- name: Ensure auditd is installed
-  apt:
-    name: auditd
-    state: present
-
 - name: Ensure auditd service is enabled
   systemd:
     name: auditd
     enabled: true
     state: started
   become: true
-
-- name: Ensure sysstat is installed
-  apt:
-    name: sysstat
-    state: present
 
 - name: Ensure sysstat service is enabled
   systemd:

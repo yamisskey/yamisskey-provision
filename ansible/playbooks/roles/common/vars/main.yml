@@ -1,7 +1,6 @@
 packages:
   - htop
   - net-tools
-  - sysstat
   - nmap
   - rsync
   - zip
@@ -25,3 +24,6 @@ packages:
   - clamav
   - clamav-daemon
   - lynis
+  - apparmor
+  - auditd
+  - sysstat
