@@ -133,6 +133,8 @@
   loop:
     - 'PermitRootLogin no'
     - 'PasswordAuthentication no'
+    - 'AuthorizedKeysFile .ssh/authorized_keys'
+    - 'RSAAuthentication yes'
     - 'PubkeyAuthentication yes'
     - 'AllowTcpForwarding no'
     - 'ClientAliveCountMax 2'
