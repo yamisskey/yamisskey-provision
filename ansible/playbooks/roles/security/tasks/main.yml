@@ -164,6 +164,11 @@
   when: uuid_files.matched > 0
   changed_when: false
 
+- name: Fail if no UUID file is found
+  fail:
+    msg: "No cloudflared UUID file found in /home/{{ ansible_user }}/.cloudflared"
+  when: uuid_files.matched == 0
+
 - name: Debug tunnel_uuid
   debug:
     msg: 'Tunnel UUID: {{ tunnel_uuid }}'
