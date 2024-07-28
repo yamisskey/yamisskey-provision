@@ -1,10 +1,10 @@
 tunnel: "{{ tunnel_uuid }}"
 credentials-file: "/home/{{ ansible_user }}/.cloudflared/{{ tunnel_uuid }}.json"
-origincert: "{{ origincert_path }}"
+origincert: "/home/{{ ansible_user }}/.cloudflared/cert.pem"
 
 ingress:
   - hostname: yami.ski
-    service: http://localhost:3001
+    service: https://localhost:443
   - hostname: grafana.yami.ski
     service: http://localhost:3000
   - service: http_status:404
