@@ -1,5 +1,5 @@
 - name: Enable Cloudflare WARP
-  command: warp-cli connect
+  command: warp-cli connect --accept-tos
   register: warp_status
 
 - name: Check Cloudflare WARP status
