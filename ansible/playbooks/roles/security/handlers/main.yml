@@ -17,17 +17,6 @@
     enabled: true
   become: true
 
-- name: Restart Docker
-  systemd:
-    name: docker
-    state: restarted
-  become: true
-
-- name: Restart Cloudflared
-  systemd:
-    name: cloudflared
-    state: restarted
-
 - name: Reload Nginx
   systemd:
     name: nginx
