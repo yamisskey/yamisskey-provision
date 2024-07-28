@@ -2,6 +2,7 @@
   command: warp-cli status
   register: warp_status
   changed_when: false
+  failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
 
 - name: Enable Cloudflare WARP if not connected
   command: warp-cli connect
@@ -13,6 +14,7 @@
   until: warp_check.stdout.find("Connected") != -1
   retries: 5
   delay: 5
+  failed_when: warp_check.rc != 0 and "Please accept the WARP Terms of Service" not in warp_check.stderr
 
 - name: Configure system to use Cloudflare WARP DNS
   lineinfile:
@@ -283,4 +285,3 @@
     msg:
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
-
