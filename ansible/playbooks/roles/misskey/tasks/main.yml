@@ -1,8 +1,13 @@
-- name: Enable Cloudflare WARP
-  command: warp-cli connect --accept-tos
+- name: Check Cloudflare WARP connection status
+  command: warp-cli status
   register: warp_status
+  changed_when: false
 
-- name: Check Cloudflare WARP status
+- name: Enable Cloudflare WARP if not connected
+  command: warp-cli connect
+  when: "'Connected' not in warp_status.stdout"
+
+- name: Verify Cloudflare WARP connection
   command: warp-cli status
   register: warp_check
   until: warp_check.stdout.find("Connected") != -1
@@ -52,7 +57,7 @@
 
 - name: Fail if no UUID file is found
   fail:
-    msg: "No cloudflared UUID file found in /home/{{ ansible_user }}/.cloudflared"
+    msg: 'No cloudflared UUID file found in /home/{{ ansible_user }}/.cloudflared'
   when: uuid_files.matched == 0
 
 - name: Debug tunnel_uuid
@@ -278,3 +283,4 @@
     msg:
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
+
