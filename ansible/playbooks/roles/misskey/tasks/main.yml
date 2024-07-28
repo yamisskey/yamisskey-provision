@@ -1,4 +1,15 @@
-- name: Configure system to use Cloudflare DNS
+- name: Enable Cloudflare WARP
+  command: warp-cli connect
+  register: warp_status
+
+- name: Check Cloudflare WARP status
+  command: warp-cli status
+  register: warp_check
+  until: warp_check.stdout.find("Connected") != -1
+  retries: 5
+  delay: 5
+
+- name: Configure system to use Cloudflare WARP DNS
   lineinfile:
     path: /etc/resolv.conf
     state: present
@@ -9,7 +20,7 @@
     create: yes
   become: true
 
-- name: Configure Docker to use Cloudflare DNS
+- name: Configure Docker to use Cloudflare WARP DNS
   copy:
     content: |
       {
@@ -66,6 +77,14 @@
 
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
+
+- name: Start and enable cloudflared service
+  systemd:
+    name: cloudflared
+    state: started
+    enabled: true
+  become: true
+  notify: Reload Nginx
 
 - name: Ensure Misskey directory exists
   file:
@@ -259,10 +278,3 @@
     msg:
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
-
-- name: Start and enable cloudflared service
-  systemd:
-    name: cloudflared
-    state: started
-    enabled: true
-  become: true
