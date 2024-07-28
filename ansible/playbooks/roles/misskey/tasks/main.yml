@@ -79,7 +79,7 @@
 - name: Set cloudflared config.yml content
   template:
     src: templates/cloudflared.config.yml.j2
-    dest: /etc/cloudflared/config.yml
+    dest: '/etc/cloudflared/config.yml'
     owner: 'root'
     mode: '0600'
   vars:
@@ -250,6 +250,12 @@
     executable: /bin/bash
   register: start_output
   failed_when: start_output.rc != 0
+
+- name: Restart Docker after starting Misskey
+  systemd:
+    name: docker
+    state: restarted
+  become: true
 
 - name: Change permissions of files directory to upload files
   file:
