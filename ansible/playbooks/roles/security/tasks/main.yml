@@ -172,13 +172,6 @@
   notify: Restart Docker
   become: true
 
-- name: Restart Docker
-  systemd:
-    name: docker
-    state: restarted
-  become: true
-  when: docker_restart_needed
-
 - name: Stop cloudflared service if running
   systemd:
     name: cloudflared
