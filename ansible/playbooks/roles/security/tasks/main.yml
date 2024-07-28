@@ -151,6 +151,13 @@
     name: ssh
     state: restarted
 
+- name: Stop cloudflared service if running
+  systemd:
+    name: cloudflared
+    state: stopped
+    enabled: false
+  ignore_errors: yes
+
 - name: Find cloudflared UUID file
   find:
     paths: '/home/{{ ansible_user }}/.cloudflared'
@@ -192,14 +199,11 @@
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
 
-- name: Restart Cloudflared
+- name: Start and enable cloudflared service
   systemd:
     name: cloudflared
-    state: restarted
-  become: true
-
-- name: Run Cloudflared tunnel
-  command: sudo cloudflared tunnel run
+    state: started
+    enabled: true
   become: true
 
 - name: Reload Nginx
