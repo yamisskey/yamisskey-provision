@@ -151,6 +151,34 @@
     name: ssh
     state: restarted
 
+- name: Configure system to use Cloudflare DNS
+  lineinfile:
+    path: /etc/resolv.conf
+    state: present
+    regexp: '^nameserver'
+    line: |
+      nameserver 1.1.1.1
+      nameserver 1.0.0.1
+    create: yes
+  become: true
+
+- name: Configure Docker to use Cloudflare DNS
+  copy:
+    content: |
+      {
+        "dns": ["1.1.1.1", "1.0.0.1"]
+      }
+    dest: /etc/docker/daemon.json
+  notify: Restart Docker
+  become: true
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+  become: true
+  when: docker_restart_needed
+
 - name: Stop cloudflared service if running
   systemd:
     name: cloudflared
