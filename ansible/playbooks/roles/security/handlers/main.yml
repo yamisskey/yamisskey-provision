@@ -17,11 +17,11 @@
     enabled: true
   become: true
 
- - name: Restart Docker
-    systemd:
-      name: docker
-      state: restarted
-    become: true
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+  become: true
 
 - name: Restart Cloudflared
   systemd:
