@@ -79,7 +79,7 @@
 - name: Set cloudflared config.yml content
   template:
     src: templates/cloudflared.config.yml.j2
-    dest: '/etc/cloudflared/config.yml'
+    dest: /etc/cloudflared/config.yml
     owner: 'root'
     mode: '0600'
   vars:
@@ -102,6 +102,33 @@
     enabled: true
   become: true
   notify: Reload Nginx
+
+- name: Verify DNS resolution with dig
+  command: dig google.com
+  register: dig_result
+  changed_when: false
+
+- name: Display dig result
+  debug:
+    var: dig_result.stdout
+
+- name: Verify DNS resolution with nslookup
+  command: nslookup google.com
+  register: nslookup_result
+  changed_when: false
+
+- name: Display nslookup result
+  debug:
+    var: nslookup_result.stdout
+
+- name: Test DNS resolution with ping
+  command: ping -c 3 google.com
+  register: ping_result
+  changed_when: false
+
+- name: Display ping result
+  debug:
+    var: ping_result.stdout
 
 - name: Ensure Misskey directory exists
   file:
