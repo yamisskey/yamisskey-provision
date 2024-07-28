@@ -1,5 +1,3 @@
-
-
 - name: Configure system to use Cloudflare DNS
   lineinfile:
     path: /etc/resolv.conf
@@ -68,14 +66,6 @@
 
 - name: Reload systemd to apply new service file
   command: systemctl daemon-reload
-
-- name: Start and enable cloudflared service
-  systemd:
-    name: cloudflared
-    state: started
-    enabled: true
-  become: true
-  notify: Reload Nginx
 
 - name: Ensure Misskey directory exists
   file:
@@ -269,3 +259,10 @@
     msg:
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
+
+- name: Start and enable cloudflared service
+  systemd:
+    name: cloudflared
+    state: started
+    enabled: true
+  become: true
