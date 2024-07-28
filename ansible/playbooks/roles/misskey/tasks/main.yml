@@ -4,16 +4,19 @@
   changed_when: false
   failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
 
-- name: Register and accept Cloudflare WARP Terms of Service if not already accepted
-  command: warp-cli register --accept-tos
-  when: "'Please accept the WARP Terms of Service' in warp_status.stderr"
-  register: warp_register
-  changed_when: warp_register.rc == 0
-  failed_when: warp_register.rc != 0
-
 - name: Enable Cloudflare WARP if not connected
   command: warp-cli connect
   when: "'Connected' not in warp_status.stdout"
+  register: warp_connect
+  failed_when: warp_connect.rc != 0 and "Please accept the WARP Terms of Service" not in warp_connect.stderr
+
+- name: Retry Cloudflare WARP connection if needed
+  command: warp-cli connect
+  when: warp_connect is failed and "Please accept the WARP Terms of Service" not in warp_connect.stderr
+  register: warp_connect_retry
+  retries: 3
+  delay: 5
+  until: warp_connect_retry is success
 
 - name: Verify Cloudflare WARP connection
   command: warp-cli status
