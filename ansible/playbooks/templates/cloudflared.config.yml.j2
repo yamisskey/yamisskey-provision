@@ -4,7 +4,7 @@ origincert: "/home/{{ ansible_user }}/.cloudflared/cert.pem"
 
 ingress:
   - hostname: yami.ski
-    service: https://localhost:443
+    service: http://localhost:3001
   - hostname: grafana.yami.ski
     service: http://localhost:3000
   - service: http_status:404

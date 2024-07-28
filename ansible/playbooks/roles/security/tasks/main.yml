@@ -198,6 +198,10 @@
     state: restarted
   become: true
 
+- name: Run Cloudflared tunnel
+  command: sudo cloudflared tunnel run
+  become: true
+
 - name: Reload Nginx
   systemd:
     name: nginx
