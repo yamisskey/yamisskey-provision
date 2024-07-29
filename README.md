@@ -121,6 +121,16 @@ Obtain SSL certificate using Cloudflare DNS:
 sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory -d yami.ski -d *.yami.ski -m yamisskey@proton.me
 ```
 
+### init
+
+Need to manually log in to tailscale, cloudflared and warp
+
+```consol
+tailscale login
+cloudflared tunnel login
+warp-cli connect
+```
+
 ### ai
 
 You need to manually prepare the configuration file `config.json` in ai repository to run:
