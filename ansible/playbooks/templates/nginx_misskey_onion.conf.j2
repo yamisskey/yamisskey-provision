@@ -66,8 +66,17 @@ server {
     }
 
     location /twemoji/ {
-        proxy_pass http://{{ onion_hostname }}/twemoji/;
-        proxy_set_header Host {{ onion_hostname }};
+        resolver 127.0.0.1 valid=30s;
+        set $onion_host {{ onion_hostname }};
+        proxy_pass http://$onion_host/twemoji/;
+        proxy_set_header Host $onion_host;
+    
+        # Use Tor's Socks5 proxy
+        proxy_socket_keepalive on;
+        proxy_set_header Proxy-Connection "";
+        proxy_pass_request_headers on;
+        proxy_pass_request_body on;
+
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
