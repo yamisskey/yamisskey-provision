@@ -67,19 +67,25 @@ server {
 
     location /twemoji/ {
         resolver 127.0.0.1 valid=30s;
-        set $onion_host {{ onion_hostname }};
-        proxy_pass http://$onion_host/twemoji/;
-        proxy_set_header Host $onion_host;
-    
-        # Use Tor's Socks5 proxy
-        proxy_socket_keepalive on;
-        proxy_set_header Proxy-Connection "";
-        proxy_pass_request_headers on;
-        proxy_pass_request_body on;
+        proxy_pass http://127.0.0.1:8080/twemoji/;
+        proxy_set_header Host $host;
 
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
+
+        # Cache settings for twemoji
+        proxy_cache cache2;
+        proxy_cache_revalidate on;
+        proxy_cache_min_uses 2;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_background_update on;
+        proxy_cache_lock on;
+        proxy_cache_valid 200 302 10m;
+        proxy_cache_valid 404 1m;
+        proxy_cache_key "$host$request_uri$scheme";
+
+        proxy_buffering off;
 
         # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
