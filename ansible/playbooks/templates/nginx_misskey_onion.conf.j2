@@ -21,7 +21,6 @@ server {
     gzip_min_length 256;
 
     location / {
-        # Apply a very high burst value and no delay to effectively disable rate limiting
         limit_req zone=mylimit2 burst=1000 nodelay;
 
         if ($request_method = 'OPTIONS') {
@@ -59,16 +58,14 @@ server {
 
         add_header X-Cache $upstream_cache_status;
 
-        # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
     location /twemoji/ {
-        resolver 127.0.0.1 valid=30s;
-        proxy_pass http://127.0.0.1:8080/twemoji/;
-        proxy_set_header Host $host;
+        proxy_pass https://yami.ski/twemoji/;
+        proxy_set_header Host yami.ski;
 
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -87,7 +84,6 @@ server {
 
         proxy_buffering off;
 
-        # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
@@ -100,7 +96,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
@@ -113,7 +108,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
@@ -129,7 +123,6 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
 
-        # Cache settings for images
         proxy_cache cache2;
         proxy_cache_revalidate on;
         proxy_cache_min_uses 2;
@@ -140,10 +133,8 @@ server {
         proxy_cache_valid 404 1m;
         proxy_cache_key "$host$request_uri$scheme";
 
-        # Buffering off for images
         proxy_buffering off;
 
-        # Add headers for CORS
         add_header Access-Control-Allow-Origin * always;
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
