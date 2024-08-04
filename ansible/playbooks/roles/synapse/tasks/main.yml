@@ -37,3 +37,13 @@
 - name: Obtain SSL certificate with certbot and Cloudflare
   command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ matrix_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
   when: matrix_use_ssl
+
+- name: Configure cloudflared tunnel
+  template:
+    src: cloudflared.config.yml.j2
+    dest: /etc/cloudflared/config.yml
+
+- name: Restart cloudflared service
+  systemd:
+    name: cloudflared
+    state: restarted
