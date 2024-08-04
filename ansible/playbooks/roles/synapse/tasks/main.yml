@@ -22,7 +22,7 @@
   docker_compose:
     project_src: /var/www/synapse
     state: present
-    restarted: yes
+  when: synapse_container.stdout == ""
 
 - name: Copy nginx configuration for synapse
   template:
