@@ -34,6 +34,6 @@
     name: nginx
     state: restarted
 
-- name: Obtain SSL certificate with certbot
-  command: certbot --nginx -d {{ matrix_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
+- name: Obtain SSL certificate with certbot and Cloudflare
+  command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ matrix_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
   when: matrix_use_ssl
