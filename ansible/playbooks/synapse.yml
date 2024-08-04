@@ -1,0 +1,6 @@
+- name: Configure Matrix server
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - synapse

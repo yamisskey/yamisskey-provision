@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: synapse
+    restart: always
+    volumes:
+      - ./data:/data
+    environment:
+      - SYNAPSE_SERVER_NAME={{ matrix_server_name }}
+      - SYNAPSE_REPORT_STATS=yes
+    ports:
+      - 8008:8008

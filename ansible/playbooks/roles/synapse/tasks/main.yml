@@ -1,0 +1,35 @@
+- name: Create synapse directory
+  file:
+    path: /var/www/synapse
+    state: directory
+
+- name: Copy docker-compose.yml for synapse
+  template:
+    src: synapse_docker-compose.yml.j2
+    dest: /var/www/synapse/docker-compose.yml
+
+- name: Generate synapse configuration
+  command: docker-compose run --rm synapse generate
+  args:
+    chdir: /var/www/synapse
+  when: not docker_container.running.name == "synapse"
+
+- name: Start synapse
+  docker_compose:
+    project_src: /var/www/synapse
+    state: present
+    restarted: yes
+
+- name: Copy nginx configuration for synapse
+  template:
+    src: nginx_synapse.conf.j2
+    dest: /etc/nginx/conf.d/synapse.conf
+
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Obtain SSL certificate with certbot
+  command: certbot --nginx -d {{ matrix_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
+  when: matrix_use_ssl
