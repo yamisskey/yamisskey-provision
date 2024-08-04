@@ -8,11 +8,15 @@
     src: synapse_docker-compose.yml.j2
     dest: /var/www/synapse/docker-compose.yml
 
+- name: Check if synapse container is running
+  command: docker ps --filter "name=synapse" --format "{{.Names}}"
+  register: synapse_container
+
 - name: Generate synapse configuration
   command: docker-compose run --rm synapse generate
   args:
     chdir: /var/www/synapse
-  when: not docker_container.running.name == "synapse"
+  when: synapse_container.stdout == ""
 
 - name: Start synapse
   docker_compose:
