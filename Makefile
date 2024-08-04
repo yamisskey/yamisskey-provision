@@ -47,10 +47,6 @@ clone:
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
-	mkdir -p $(MATRIX_DIR)
-	if [ ! -d "$MATRIX_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/matrix.yami.ski.git $(MATRIX_DIR); \
-	fi
 
 provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/common.yml --ask-become-pass
@@ -59,7 +55,7 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory ansible/playbooks/matrix.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/synapse.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
