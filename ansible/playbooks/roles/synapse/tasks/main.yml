@@ -31,6 +31,17 @@
     state: present
   when: synapse_container.stdout == ""
 
+- name: Create .well-known directory
+  file:
+    path: /var/www/synapse/.well-known/matrix
+    state: directory
+    recurse: yes
+
+- name: Copy .well-known/matrix/client file
+  template:
+    src: .well-known.matrix.client.json.j2
+    dest: /var/www/synapse/.well-known/matrix/client
+
 - name: Copy nginx configuration for synapse
   template:
     src: nginx_synapse.conf.j2
