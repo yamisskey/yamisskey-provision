@@ -17,7 +17,7 @@ listeners:
     tls: false
     type: http
     x_forwarded: true
-    bind_addresses: ['127.0.0.1']
+    bind_addresses: ['0.0.0.0']
     resources:
       - names: [client, federation]
         compress: false
@@ -36,7 +36,7 @@ trusted_key_servers:
   - server_name: "matrix.org"
 suppress_key_server_warning: true
 
-web_client_location: "{{ element_server_name  }}"
+web_client_location: "https://{{ element_server_name  }}"
 public_baseurl: "https://{{ synapse_server_name }}"
 allow_public_rooms_over_federation: true
 enable_registration: true
