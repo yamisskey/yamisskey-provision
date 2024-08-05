@@ -34,6 +34,7 @@ server {
 
     location /config.element.yami.ski.json {
         alias /var/www/element/element-config/config.element.yami.ski.json;
+        add_header 'Access-Control-Allow-Origin' '*' always;
         default_type application/json;
     }
 
