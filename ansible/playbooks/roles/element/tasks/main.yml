@@ -8,8 +8,8 @@
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
-- name: Copy element configuration file
-  copy:
+- name: Copy element config.json
+  template:
     src: config.element.yami.ski.json.j2
     dest: /var/www/element/config.element.yami.ski.json
 
@@ -17,6 +17,7 @@
   docker_compose:
     project_src: /var/www/element
     state: present
+    restarted: yes
 
 - name: Obtain SSL certificate for element with certbot and Cloudflare
   command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ element_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
@@ -63,7 +64,7 @@
 
 - name: Set cloudflared config.yml content
   template:
-    src: templates/cloudflared.config.yml.j2
+    src: cloudflared.config.yml.j2
     dest: /etc/cloudflared/config.yml
     owner: 'root'
     mode: '0600'
