@@ -24,20 +24,11 @@ server {
         # For WebSocket
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
-
-        # CORS headers
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
-        add_header 'Access-Control-Allow-Credentials' 'true' always;
     }
 
-    location /config.json {
-        alias /var/www/element/element-config/config.json;
+    location /config.element.yami.ski.json {
+        alias /var/www/element/element-config/config.element.yami.ski.json;
         default_type application/json;
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
     }
 
     access_log /var/log/nginx/element_access.log;

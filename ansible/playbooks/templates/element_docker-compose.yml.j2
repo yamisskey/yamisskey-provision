@@ -6,6 +6,6 @@ services:
     container_name: element
     restart: always
     volumes:
-      - ./config.json:/app/config.json
+      - ./element-config/config.element.yami.ski.json:/app/config.element.yami.ski.json
     ports:
       - "8081:80"
