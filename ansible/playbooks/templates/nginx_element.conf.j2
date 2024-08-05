@@ -2,11 +2,6 @@ server {
     listen 80;
     server_name {{ element_server_name }};
 
-    location /.well-known/matrix/server {
-        default_type application/json;
-        return 200 '{"m.server": "synapse.yami.ski:443"}';
-    }
-
     location /config.{{ element_server_name }}.json {
         alias /var/www/element/element-config/config.{{ element_server_name }}.json;
         default_type application/json;
