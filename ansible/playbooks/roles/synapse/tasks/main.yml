@@ -30,7 +30,7 @@
 
 - name: Set registration_shared_secret fact
   set_fact:
-    registration_shared_secret: "{{ registration_shared_secret_output.stdout if not synapse_secrets_file_stat.stat.exists else lookup('file', synapse_secrets_file) | from_yaml | default({}).registration_shared_secret }}"
+    registration_shared_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).registration_shared_secret if synapse_secrets_file_stat.stat.exists else registration_shared_secret_output.stdout }}"
 
 - name: Generate macaroon_secret_key if not exists
   shell: 'cat /dev/urandom | base64 -w 0 | fold -w 100 | head -n 1'
@@ -39,16 +39,16 @@
 
 - name: Set macaroon_secret_key fact
   set_fact:
-    macaroon_secret_key: "{{ macaroon_secret_key_output.stdout if not synapse_secrets_file_stat.stat.exists else lookup('file', synapse_secrets_file) | from_yaml | default({}).macaroon_secret_key }}"
+    macaroon_secret_key: "{{ (lookup('file', synapse_secrets_file) | from_yaml).macaroon_secret_key if synapse_secrets_file_stat.stat.exists else macaroon_secret_key_output.stdout }}"
 
 - name: Generate form_secret if not exists
   shell: 'cat /dev/urandom | base64 -w 0 | fold -w 100 | head -n 1'
   register: form_secret_output
-  when: not secrets_file_stat.stat.exists
+  when: not synapse_secrets_file_stat.stat.exists
 
 - name: Set form_secret fact
   set_fact:
-    form_secret: "{{ form_secret_output.stdout if not synapse_secrets_file_stat.stat.exists else lookup('file', synapse_secrets_file) | from_yaml | default({}).form_secret }}"
+    form_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).form_secret if synapse_secrets_file_stat.stat.exists else form_secret_output.stdout }}"
 
 - name: Save secrets to file
   copy:
