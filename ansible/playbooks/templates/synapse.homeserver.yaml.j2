@@ -19,7 +19,7 @@ listeners:
     x_forwarded: true
     bind_addresses: ['::1', '127.0.0.1']
     resources:
-      - names: [client, federation, webclient]
+      - names: [client, federation]
         compress: false
 database:
   name: sqlite3
@@ -28,7 +28,7 @@ database:
 
 log_config: "/data/{{ synapse_server_name }}.log.config"
 media_store_path: /data/media_store
-report_stats: true 
+report_stats: true
 registration_shared_secret: "{{ registration_shared_secret }}"
 macaroon_secret_key: "{{ macaroon_secret_key }}"
 form_secret: "{{ form_secret }}"
