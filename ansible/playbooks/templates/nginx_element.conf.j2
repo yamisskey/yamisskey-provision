@@ -33,9 +33,8 @@ server {
     }
 
     location /config.element.yami.ski.json {
-        root /var/www/element;
+        alias /var/www/element/element-config/config.element.yami.ski.json;
         default_type application/json;
-        try_files $uri /config.element.yami.ski.json =404;
     }
 
     access_log /var/log/nginx/element_access.log;
