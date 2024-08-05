@@ -35,8 +35,8 @@
     state: restarted
 
 - name: Obtain SSL certificate with certbot and Cloudflare
-  command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ matrix_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
-  when: matrix_use_ssl
+  command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ synapse_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
+  when: synapse_use_ssl
 
 - name: Stop cloudflared service if running
   systemd:
