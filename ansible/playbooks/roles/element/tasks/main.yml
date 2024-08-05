@@ -15,8 +15,8 @@
 
 - name: Copy element config.json
   template:
-    src: config.element.yami.ski.json.j2
-    dest: /var/www/element/element-config/config.element.yami.ski.json
+    src: element.config.json.j2
+    dest: /var/www/element/element-config/config.json
 
 - name: Start element
   docker_compose:
