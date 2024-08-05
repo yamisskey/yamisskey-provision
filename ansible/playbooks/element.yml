@@ -1,6 +1,6 @@
-- name: Configure Synapse server
+- name: Configure Element server
   hosts: all
   become: true
   become_method: sudo
   roles:
-    - synapse
+    - element
