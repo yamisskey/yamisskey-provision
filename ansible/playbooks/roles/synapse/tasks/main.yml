@@ -9,7 +9,7 @@
     dest: /var/www/synapse/docker-compose.yml
 
 - name: Check if synapse container is running
-  shell: docker ps --filter "name=synapse" --format "{{.Names}}"
+  shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
   register: synapse_container
 
 - name: Generate synapse configuration
