@@ -31,9 +31,9 @@ install:
 	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	sudo apt-get update
 	sudo apt-get install -y cloudflare-warp
-	echo "deb [trusted=yes] https://mpr.makedeb.org prebuilt main" | sudo tee /etc/apt/sources.list.d/prebuilt-mpr.list
-	sudo apt update
-	sudo apt install -y just
+	mkdir -p $(HOME)/bin
+	curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to $(HOME)/bin
+	echo 'export PATH="$$PATH:$$HOME/bin"' >> $(HOME)/.bashrc
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
