@@ -23,7 +23,7 @@
     path: /var/www/synapse/data/homeserver.yaml
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
-      public_baseurl: "https://synapse.yami.ski/"
+      public_baseurl: "https://synapse.yami.ski"
   become: true
 
 - name: Start or restart synapse container
