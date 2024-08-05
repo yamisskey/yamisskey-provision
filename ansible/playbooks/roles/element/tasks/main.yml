@@ -3,37 +3,20 @@
     path: /var/www/element
     state: directory
 
-- name: Create element-config directory
-  file:
-    path: /var/www/element/element-config
-    state: directory
-
 - name: Copy docker-compose.yml for element
   template:
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
-- name: Copy element config.json
-  template:
-    src: element.config.json.j2
-    dest: /var/www/element/element-config/config.json
+- name: Copy element configuration file
+  copy:
+    src: config.element.yami.ski.json.j2
+    dest: /var/www/element/config.element.yami.ski.json
 
-- name: Check if element container is running
-  shell: docker ps --filter "name=element" --format "{{ '{{.Names}}' }}"
-  register: element_container
-
-- name: Start element if not running
+- name: Start element
   docker_compose:
     project_src: /var/www/element
     state: present
-  when: element_container.stdout == ""
-
-- name: Restart element if running
-  docker_compose:
-    project_src: /var/www/element
-    state: present
-    restarted: yes
-  when: element_container.stdout != ""
 
 - name: Obtain SSL certificate for element with certbot and Cloudflare
   command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ element_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
