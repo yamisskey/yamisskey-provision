@@ -7,4 +7,4 @@ misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 ai_dir: '/home/{{ user_name }}/ai'
 synapse_server_name: synapse.yami.ski
-synapse_use_ssl: true
+matrix_use_ssl: true
