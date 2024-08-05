@@ -3,20 +3,15 @@
     path: /var/www/element
     state: directory
 
-- name: Create element-config directory
-  file:
-    path: /var/www/element/element-config
-    state: directory
-
 - name: Copy docker-compose.yml for element
   template:
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
-- name: Copy element config.json
+- name: Copy element configuration file
   template:
     src: element.config.json.j2
-    dest: /var/www/element/element-config/config.json
+    dest: /var/www/element/config.json
 
 - name: Start element
   docker_compose:
