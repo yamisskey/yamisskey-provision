@@ -32,6 +32,12 @@ server {
         add_header 'Access-Control-Allow-Credentials' 'true' always;
     }
 
+    location /config.element.yami.ski.json {
+        root /var/www/element;
+        default_type application/json;
+        try_files $uri /config.element.yami.ski.json =404;
+    }
+
     access_log /var/log/nginx/element_access.log;
     error_log /var/log/nginx/element_error.log;
 }
