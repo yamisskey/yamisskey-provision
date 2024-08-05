@@ -27,3 +27,4 @@ packages:
   - apparmor
   - auditd
   - sysstat
+  - python3-passlib
