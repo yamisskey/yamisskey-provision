@@ -18,6 +18,14 @@
     chdir: /var/www/synapse
   when: synapse_container.stdout == ""
 
+- name: Add required configurations to Synapse configuration file
+  blockinfile:
+    path: /var/www/synapse/data/homeserver.yaml
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      public_baseurl: "https://synapse.yami.ski/"
+  become: true
+
 - name: Start or restart synapse container
   docker_compose:
     project_src: /var/www/synapse
