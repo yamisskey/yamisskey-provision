@@ -1,0 +1,48 @@
+# Configuration file for Synapse.
+#
+# This is a YAML file: see [1] for a quick introduction. Note in particular
+# that *indentation is important*: all the elements of a list or dictionary
+# should have the same indentation.
+#
+# [1] https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+#
+# For more information on how to configure Synapse, including a complete accounting of
+# each option, go to docs/usage/configuration/config_documentation.md or
+# https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html
+
+server_name: "{{ synapse_server_name }}"
+pid_file: /data/homeserver.pid
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ['::1', '127.0.0.1']
+    resources:
+      - names: [client, federation, webclient]
+        compress: false
+database:
+  name: sqlite3
+  args:
+    database: /data/homeserver.db
+
+log_config: "/data/{{ synapse_server_name }}.log.config"
+media_store_path: /data/media_store
+registration_shared_secret: "{{ registration_shared_secret }}"
+macaroon_secret_key: "{{ macaroon_secret_key }}"
+form_secret: "{{ form_secret }}"
+signing_key_path: "/data/{{ synapse_server_name }}.signing.key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+web_client_location: "http://localhost:8081"
+public_baseurl: "https://{{ synapse_server_name }}"
+allow_public_rooms_over_federation: true
+enable_registration: true
+auto_join_rooms:
+  - "#welcome:{{ synapse_server_name }}"
+  - "#information:{{ synapse_server_name }}"
+push:
+  include_content: true
+
+# vim:ft=yaml
