@@ -35,7 +35,7 @@ trusted_key_servers:
   - server_name: "matrix.org"
 suppress_key_server_warning: true
 
-web_client_location: "http://localhost:8081"
+web_client_location: "{{ element_server_name  }}"
 public_baseurl: "https://{{ synapse_server_name }}"
 allow_public_rooms_over_federation: true
 enable_registration: true
