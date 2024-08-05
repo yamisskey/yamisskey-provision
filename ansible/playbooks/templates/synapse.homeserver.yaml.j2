@@ -28,22 +28,24 @@ database:
 
 log_config: "/data/{{ synapse_server_name }}.log.config"
 media_store_path: /data/media_store
-report_stats: true
 registration_shared_secret: "{{ registration_shared_secret }}"
 macaroon_secret_key: "{{ macaroon_secret_key }}"
 form_secret: "{{ form_secret }}"
 signing_key_path: "/data/{{ synapse_server_name }}.signing.key"
 trusted_key_servers:
   - server_name: "matrix.org"
+suppress_key_server_warning: true
 
 web_client_location: "http://localhost:8081"
 public_baseurl: "https://{{ synapse_server_name }}"
 allow_public_rooms_over_federation: true
 enable_registration: true
+enable_registration_without_verification: true
 auto_join_rooms:
   - "#welcome:{{ synapse_server_name }}"
   - "#information:{{ synapse_server_name }}"
 push:
   include_content: true
+report_stats: true
 
 # vim:ft=yaml
