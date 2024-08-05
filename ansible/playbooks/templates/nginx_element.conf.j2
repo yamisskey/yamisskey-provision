@@ -2,6 +2,22 @@ server {
     listen 80;
     server_name {{ element_server_name }};
 
+    location /.well-known/matrix/client {
+        default_type application/json;
+        return 200 '{
+            "m.homeserver": {
+                "base_url": "https://{{ synapse_server_name }}"
+            },
+            "m.identity_server": {
+                "base_url": "https://vector.im"
+            }
+        }';
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+    }
+
     location /config.{{ element_server_name }}.json {
         alias /var/www/element/element-config/config.{{ element_server_name }}.json;
         default_type application/json;

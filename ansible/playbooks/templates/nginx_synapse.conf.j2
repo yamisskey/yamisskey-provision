@@ -14,15 +14,6 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
-    location /.well-known/matrix/client {
-        default_type application/json;
-        alias /var/www/synapse/.well-known/matrix/client;
-        add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
-        add_header 'Access-Control-Allow-Credentials' 'true' always;
-    }
-
     location / {
         proxy_pass http://localhost:8008;
         proxy_set_header Host $host;
