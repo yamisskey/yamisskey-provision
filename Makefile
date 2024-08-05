@@ -47,7 +47,7 @@ clone:
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
-	mkdir -p $(MATRIX_DIR_DIR)
+	mkdir -p $(MATRIX_DIR)
 	if [ ! -d "$(MATRIX_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/matrix.yami.ski.git $(MATRIX_DIR); \
 	fi
