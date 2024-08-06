@@ -1,3 +1,54 @@
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+
+- name: Open necessary ports for Cloudflare WARP
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+  loop:
+    - 2408
+    - 500
+    - 1701
+    - 4500
+  become: true
+
+- name: Allow specific IP ranges for Cloudflare WARP
+  ufw:
+    rule: allow
+    from_ip: "{{ item }}"
+  loop:
+    - "162.159.137.105"
+    - "162.159.138.105"
+    - "2606:4700:7::a29f:8969"
+    - "2606:4700:7::a29f:8a69"
+    - "162.159.36.1"
+    - "162.159.46.1"
+    - "2606:4700:4700::1111"
+    - "2606:4700:4700::1001"
+    - "162.159.193.0/24"
+    - "2606:4700:100::/48"
+  become: true
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+
+- name: Enable UFW service
+  systemd:
+    name: ufw
+    enabled: yes
+
+- name: Reload UFW to apply changes
+  command: ufw reload
+
+- name: Check UFW status
+  command: ufw status verbose
+  register: ufw_status
+  become: true
+
 - name: Check if mdm.xml exists
   stat:
     path: /var/lib/cloudflare-warp/mdm.xml
