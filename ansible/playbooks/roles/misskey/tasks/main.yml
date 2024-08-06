@@ -1,32 +1,32 @@
-#- name: Check Cloudflare WARP connection status
-#  command: warp-cli status
-#  register: warp_status
-#  changed_when: false
-#  failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
-#
-#- name: Enable Cloudflare WARP if not connected
-#  command: warp-cli connect
-#  when: "'Connected' not in warp_status.stdout"
-#  register: warp_connect
-#  failed_when: warp_connect.rc != 0 and "Please accept the WARP Terms of Service" not in warp_connect.stderr
-#
-#- name: Retry Cloudflare WARP connection if needed
-#  command: warp-cli connect
-#  when: warp_connect is failed and "Please accept the WARP Terms of Service" not in warp_connect.stderr
-#  register: warp_connect_retry
-#  retries: 3
-#  delay: 5
-#  until: warp_connect_retry is success
-#
-#- name: Verify Cloudflare WARP connection
-#  command: warp-cli status
-#  register: warp_check
-#  until: warp_check.stdout.find("Connected") != -1
-#  retries: 5
-#  delay: 5
-#  failed_when: warp_check.rc != 0 and "Please accept the WARP Terms of Service" not in warp_check.stderr
-#
-- name: Configure system to use Cloudflare WARP DNS
+- name: Check Cloudflare WARP connection status
+  command: warp-cli status
+  register: warp_status
+  changed_when: false
+  failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
+
+- name: Enable Cloudflare WARP if not connected
+  command: warp-cli connect
+  when: "'Connected' not in warp_status.stdout"
+  register: warp_connect
+  failed_when: warp_connect.rc != 0 and "Please accept the WARP Terms of Service" not in warp_connect.stderr
+
+- name: Retry Cloudflare WARP connection if needed
+  command: warp-cli connect
+  when: warp_connect is failed and "Please accept the WARP Terms of Service" not in warp_connect.stderr
+  register: warp_connect_retry
+  retries: 3
+  delay: 5
+  until: warp_connect_retry is success
+
+- name: Verify Cloudflare WARP connection
+  command: warp-cli status
+  register: warp_check
+  until: warp_check.stdout.find("Connected") != -1
+  retries: 5
+  delay: 5
+  failed_when: warp_check.rc != 0 and "Please accept the WARP Terms of Service" not in warp_check.stderr
+
+ name: Configure system to use Cloudflare WARP DNS
   lineinfile:
     path: /etc/resolv.conf
     state: present
