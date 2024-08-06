@@ -127,7 +127,19 @@ Need to manually log in to tailscale, cloudflared and warp
 
 ```consol
 tailscale login
+```
+
+```consol
 cloudflared tunnel login
+```
+
+create cloudflare tunnel named yamisskey-cloudflared by Zero Trust in https://one.dash.cloudflare.com/
+```consol
+sudo cloudflared service install eyJhIjoiM2...
+```
+
+create cloudflare tunnel named yamisskey-warp by Zero Trust in https://one.dash.cloudflare.com/
+```consol
 warp-cli connect
 ```
 

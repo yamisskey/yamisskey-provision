@@ -49,50 +49,6 @@
   register: ufw_status
   become: true
 
-- name: Check if mdm.xml exists
-  stat:
-    path: /var/lib/cloudflare-warp/mdm.xml
-  register: mdm_xml
-
-- name: Fail if mdm.xml does not exist
-  fail:
-    msg: 'The mdm.xml file does not exist in /var/lib/cloudflare-warp'
-  when: not mdm_xml.stat.exists
-
-- name: Ensure Cloudflare WARP service is enabled
-  systemd:
-    name: warp-svc.service
-    enabled: true
-    state: started
-
-- name: Check Cloudflare WARP connection status
-  command: warp-cli status
-  register: warp_status
-  changed_when: false
-  failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
-
-- name: Enable Cloudflare WARP if not connected
-  command: warp-cli connect
-  when: "'Connected' not in warp_status.stdout"
-  register: warp_connect
-  failed_when: warp_connect.rc != 0 and "Please accept the WARP Terms of Service" not in warp_connect.stderr
-
-- name: Retry Cloudflare WARP connection if needed
-  command: warp-cli connect
-  when: warp_connect is failed and "Please accept the WARP Terms of Service" not in warp_connect.stderr
-  register: warp_connect_retry
-  retries: 3
-  delay: 5
-  until: warp_connect_retry is success
-
-- name: Verify Cloudflare WARP connection
-  command: warp-cli status
-  register: warp_check
-  until: warp_check.stdout.find("Connected") != -1
-  retries: 5
-  delay: 5
-  failed_when: warp_check.rc != 0 and "Please accept the WARP Terms of Service" not in warp_check.stderr
-
 - name: Configure system to use Cloudflare WARP DNS
   lineinfile:
     path: /etc/resolv.conf
@@ -113,62 +69,6 @@
     dest: /etc/docker/daemon.json
   notify: Restart Docker
   become: true
-
-- name: Stop cloudflared service if running
-  systemd:
-    name: cloudflared
-    state: stopped
-    enabled: false
-  ignore_errors: yes
-
-- name: Find cloudflared UUID file
-  find:
-    paths: '/home/{{ ansible_user }}/.cloudflared'
-    patterns: '*.json'
-  register: uuid_files
-
-- name: Set tunnel UUID
-  set_fact:
-    tunnel_uuid: "{{ item.path | regex_replace('^.*/(.*)\\.json$', '\\1') }}"
-  loop: '{{ uuid_files.files }}'
-  when: uuid_files.matched > 0
-  changed_when: false
-
-- name: Fail if no UUID file is found
-  fail:
-    msg: 'No cloudflared UUID file found in /home/{{ ansible_user }}/.cloudflared'
-  when: uuid_files.matched == 0
-
-- name: Debug tunnel_uuid
-  debug:
-    msg: 'Tunnel UUID: {{ tunnel_uuid }}'
-
-- name: Set cloudflared config.yml content
-  template:
-    src: templates/cloudflared.config.yml.j2
-    dest: '/etc/cloudflared/config.yml'
-    owner: 'root'
-    mode: '0600'
-  vars:
-    tunnel_uuid: '{{ tunnel_uuid }}'
-    origincert_path: '/home/{{ ansible_user }}/.cloudflared/cert.pem'
-  notify: Restart Cloudflared
-
-- name: Install cloudflared as a system service
-  command: cloudflared service install
-  args:
-    creates: /etc/systemd/system/cloudflared.service
-
-- name: Reload systemd to apply new service file
-  command: systemctl daemon-reload
-
-- name: Start and enable cloudflared service
-  systemd:
-    name: cloudflared
-    state: started
-    enabled: true
-  become: true
-  notify: Reload Nginx
 
 - name: Verify DNS resolution with dig
   command: dig google.com
