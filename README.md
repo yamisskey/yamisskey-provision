@@ -135,12 +135,27 @@ cloudflared tunnel login
 
 create cloudflare tunnel named yamisskey-cloudflared by Zero Trust in https://one.dash.cloudflare.com/
 ```consol
-sudo cloudflared service install eyJhIjoiM2...
+sudo cloudflared service install your_connector_token_value
 ```
 
 create cloudflare tunnel named yamisskey-warp by Zero Trust in https://one.dash.cloudflare.com/
+
+copy mdm.xml to /var/lib/cloudflare-warp/mdm.xml
+```xml
+<dict>
+  <key>organization</key>
+  <string>yamisskey</string>
+  <key>auth_client_id</key>
+  <string>your_client_id_access_value</string>
+  <key>auth_client_secret</key>
+  <string>your_client_secret_value</string>
+  <key>warp_connector_token</key>
+  <string>your_connector_token_value</string>
+</dict>
+```
+
 ```consol
-warp-cli connect
+sudo systemctl restart warp-svc.service
 ```
 
 ### ai
