@@ -1,15 +1,24 @@
+- name: Check if mdm.xml exists
+  stat:
+    path: /var/lib/cloudflare-warp/mdm.xml
+  register: mdm_xml
+
+- name: Fail if mdm.xml does not exist
+  fail:
+    msg: 'The mdm.xml file does not exist in /var/lib/cloudflare-warp'
+  when: not mdm_xml.stat.exists
+
+- name: Ensure Cloudflare WARP service is enabled
+  systemd:
+    name: warp-svc.service
+    enabled: true
+    state: started
+
 - name: Check Cloudflare WARP connection status
   command: warp-cli status
   register: warp_status
   changed_when: false
   failed_when: warp_status.rc != 0 and "Please accept the WARP Terms of Service" not in warp_status.stderr
-
-- name: Enable Cloudflare WARP service
-  systemd:
-    name: warp-svc.service
-    enabled: true
-    state: started
-  become: true
 
 - name: Enable Cloudflare WARP if not connected
   command: warp-cli connect
@@ -33,7 +42,7 @@
   delay: 5
   failed_when: warp_check.rc != 0 and "Please accept the WARP Terms of Service" not in warp_check.stderr
 
- name: Configure system to use Cloudflare WARP DNS
+- name: Configure system to use Cloudflare WARP DNS
   lineinfile:
     path: /etc/resolv.conf
     state: present
