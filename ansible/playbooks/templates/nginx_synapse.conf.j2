@@ -23,10 +23,10 @@ server {
 
         # For WebSocket
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $http_connection;
+        proxy_set_header Connection "upgrade";
 
         # CORS headers
-        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Origin' 'https://element.yami.ski' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
         add_header 'Access-Control-Allow-Credentials' 'true' always;
