@@ -13,7 +13,12 @@
   register: synapse_container
 
 - name: Generate synapse configuration
-  command: docker-compose run --rm synapse generate
+  shell: |
+    docker run -it --rm \
+      --mount type=bind,src=/var/www/synapse/data,dst=/data \
+      -e SYNAPSE_SERVER_NAME={{ synapse_server_name }} \
+      -e SYNAPSE_REPORT_STATS=yes \
+      matrixdotorg/synapse:latest generate
   args:
     chdir: /var/www/synapse
   when: synapse_container.stdout == ""
@@ -108,3 +113,4 @@
     state: started
     enabled: true
   become: true
+
