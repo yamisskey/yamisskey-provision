@@ -76,13 +76,6 @@
     restarted: yes
   when: synapse_container.stdout != ""
 
-- name: Start or restart synapse container
-  docker_compose:
-    project_src: /var/www/synapse
-    state: present
-  when: synapse_container.stdout == ""
-  restarted: yes
-
 - name: Copy nginx configuration for synapse
   template:
     src: nginx_synapse.conf.j2
