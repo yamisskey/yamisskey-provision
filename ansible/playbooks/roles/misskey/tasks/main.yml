@@ -2,8 +2,9 @@
   apt:
     name: ufw
     state: present
+  become: true
 
-- name: Open necessary ports for Cloudflare WARP
+- name: Open necessary ports for Cloudflare WARP and WireGuard
   ufw:
     rule: allow
     port: "{{ item }}"
@@ -13,6 +14,7 @@
     - 500
     - 1701
     - 4500
+    - 51820  # WireGuard default port
   become: true
 
 - name: Allow specific IP ranges for Cloudflare WARP
@@ -35,14 +37,17 @@
 - name: Enable UFW
   ufw:
     state: enabled
+  become: true
 
 - name: Enable UFW service
   systemd:
     name: ufw
     enabled: yes
+  become: true
 
 - name: Reload UFW to apply changes
   command: ufw reload
+  become: true
 
 - name: Check UFW status
   command: ufw status verbose
@@ -96,6 +101,13 @@
 - name: Display ping result
   debug:
     var: ping_result.stdout
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+  become: true
+  when: dig_result.changed or nslookup_result.changed or ping_result.changed
 
 - name: Ensure Misskey directory exists
   file:
