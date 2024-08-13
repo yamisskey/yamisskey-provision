@@ -91,7 +91,7 @@
   template:
     src: .well-known.matrix.client.json.j2
     dest: /var/www/synapse/.well-known/matrix/client
-    force: yes
+    mode: '0644'
 
 - name: Copy nginx configuration for synapse
   template:
