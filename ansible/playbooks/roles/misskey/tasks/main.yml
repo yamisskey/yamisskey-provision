@@ -54,27 +54,6 @@
   register: ufw_status
   become: true
 
-- name: Configure system to use Cloudflare WARP DNS
-  lineinfile:
-    path: /etc/resolv.conf
-    state: present
-    regexp: '^nameserver'
-    line: |
-      nameserver 1.1.1.1
-      nameserver 1.0.0.1
-    create: yes
-  become: true
-
-- name: Configure Docker to use Cloudflare WARP DNS
-  copy:
-    content: |
-      {
-        "dns": ["1.1.1.1", "1.0.0.1"]
-      }
-    dest: /etc/docker/daemon.json
-  notify: Restart Docker
-  become: true
-
 - name: Verify DNS resolution with dig
   command: dig google.com
   register: dig_result
