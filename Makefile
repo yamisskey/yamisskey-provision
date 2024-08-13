@@ -8,7 +8,6 @@ MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
-MATRIX_DIR=$(HOME)/matrix
 
 all: install clone provision backup
 
@@ -62,8 +61,6 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/security.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory ansible/playbooks/synapse.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory ansible/playbooks/element.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
