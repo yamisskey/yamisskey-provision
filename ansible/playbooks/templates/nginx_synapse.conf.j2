@@ -2,16 +2,6 @@ server {
     listen 80;
     server_name {{ synapse_server_name }};
 
-    location /.well-known/matrix/client {
-        default_type application/json;
-        alias /var/www/synapse/.well-known/matrix/client;
-
-        add_header 'Access-Control-Allow-Origin' 'https://synapse.yami.ski' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
-        add_header 'Access-Control-Allow-Credentials' 'true' always;
-    }
-
     return 301 https://$server_name$request_uri;
 }
 
