@@ -6,6 +6,7 @@ services:
     container_name: synapse
     restart: always
     volumes:
+      - ./.well-known/matrix/client:/app/.well-known/matrix/client
       - ./data:/data
     environment:
       - SYNAPSE_SERVER_NAME={{ synapse_server_name }}

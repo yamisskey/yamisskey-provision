@@ -13,18 +13,6 @@
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
-- name: Create .well-known/matrix directory
-  file:
-    path: /var/www/element/element-config/.well-known/matrix
-    state: directory
-    recurse: yes
-
-- name: Create .well-known/matrix/client file
-  template:
-    src: .well-known.matrix.client.json.j2
-    dest: /var/www/element/element-config/.well-known/matrix/client
-    mode: '0644'
-
 - name: Copy element custom configuration file
   template:
     src: config.element.yami.ski.json.j2
