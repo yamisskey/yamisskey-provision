@@ -45,44 +45,6 @@
     enabled: false
   ignore_errors: yes
 
-- name: Find cloudflared UUID file
-  find:
-    paths: '/home/{{ ansible_user }}/.cloudflared'
-    patterns: '*.json'
-  register: uuid_files
-
-- name: Set tunnel UUID
-  set_fact:
-    tunnel_uuid: "{{ item.path | regex_replace('^.*/(.*)\\.json$', '\\1') }}"
-  loop: '{{ uuid_files.files }}'
-  when: uuid_files.matched > 0
-  changed_when: false
-
-- name: Fail if no UUID file is found
-  fail:
-    msg: 'No cloudflared UUID file found in /home/{{ ansible_user }}/.cloudflared'
-  when: uuid_files.matched == 0
-
-- name: Debug tunnel_uuid
-  debug:
-    msg: 'Tunnel UUID: {{ tunnel_uuid }}'
-
-- name: Set cloudflared config.yml content
-  template:
-    src: cloudflared.config.yml.j2
-    dest: /etc/cloudflared/config.yml
-    owner: 'root'
-    mode: '0600'
-  notify: Restart Cloudflared
-
-- name: Install cloudflared as a system service
-  command: cloudflared service install
-  args:
-    creates: /etc/systemd/system/cloudflared.service
-
-- name: Reload systemd to apply new service file
-  command: systemctl daemon-reload
-
 - name: Start and enable cloudflared service
   systemd:
     name: cloudflared
