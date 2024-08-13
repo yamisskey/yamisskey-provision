@@ -12,13 +12,9 @@
   shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
   register: synapse_container
 
-- name: Generate synapse configuration
+- name: Generate synapse configuration using docker-compose
   shell: |
-    docker run -it --rm \
-      --mount type=bind,src=/var/www/synapse/data,dst=/data \
-      -e SYNAPSE_SERVER_NAME={{ synapse_server_name }} \
-      -e SYNAPSE_REPORT_STATS=yes \
-      matrixdotorg/synapse:latest generate
+    docker-compose run --rm synapse generate
   args:
     chdir: /var/www/synapse
   when: synapse_container.stdout == ""
@@ -80,11 +76,12 @@
     restarted: yes
   when: synapse_container.stdout != ""
 
-- name: Start synapse container
+- name: Start or restart synapse container
   docker_compose:
     project_src: /var/www/synapse
     state: present
   when: synapse_container.stdout == ""
+  restarted: yes
 
 - name: Copy nginx configuration for synapse
   template:
