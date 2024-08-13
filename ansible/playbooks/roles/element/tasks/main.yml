@@ -8,6 +8,18 @@
     path: /var/www/element/element-config
     state: directory
 
+- name: Create .well-known/matrix directory
+  file:
+    path: /var/www/element/.well-known/matrix
+    state: directory
+    recurse: yes
+
+- name: Create .well-known/matrix/client file
+  template:
+    src: .well-known.matrix.client.json.j2
+    dest: /var/www/element/.well-known/matrix/client
+    mode: '0644'
+
 - name: Copy docker-compose.yml for element
   template:
     src: element_docker-compose.yml.j2

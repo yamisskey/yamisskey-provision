@@ -4,14 +4,7 @@ server {
 
     location /.well-known/matrix/client {
         default_type application/json;
-        return 200 '{
-            "m.homeserver": {
-                "base_url": "https://{{ synapse_server_name }}"
-            },
-            "m.identity_server": {
-                "base_url": "https://vector.im"
-            }
-        }';
+        alias /var/www/element/.well-known/matrix/client;
         add_header 'Access-Control-Allow-Origin' '*' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'Authorization, Origin, X-Requested-With, Content-Type, Accept' always;
