@@ -6,6 +6,7 @@ services:
     container_name: element
     restart: always
     volumes:
+      - ./element-config/.well-known/matrix/client:/app/.well-known/matrix/client
       - ./element-config/config.{{ element_server_name }}.json:/app/config.{{ element_server_name }}.json
     ports:
       - "8081:80"
