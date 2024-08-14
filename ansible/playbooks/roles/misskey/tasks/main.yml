@@ -181,15 +181,16 @@
     msg: "Build of Misskey failed with error: {{ build_output.stderr | default('Unknown error') }}"
   when: updates_needed and build_output.rc != 0
 
-- name: Initialize Misskey database if not already running
-  shell: echo y | docker-compose run --rm web pnpm run init
-  args:
-    chdir: '{{ misskey_dir }}'
-    executable: /bin/bash
-  when: misskey_running.stdout == "" and updates_needed
-  register: init_output
-  failed_when: init_output.rc != 0
-  ignore_errors: yes
+# This task is removed to avoid unintentional database initialization
+# - name: Initialize Misskey database if not already running
+#   shell: echo y | docker-compose run --rm web pnpm run init
+#   args:
+#     chdir: '{{ misskey_dir }}'
+#     executable: /bin/bash
+#   when: misskey_running.stdout == "" and updates_needed
+#   register: init_output
+#   failed_when: init_output.rc != 0
+#   ignore_errors: yes
 
 - name: Fail if database initialization failed
   fail:
