@@ -31,7 +31,9 @@ install:
 	sudo apt-get update
 	sudo apt-get install -y cloudflare-warp
 	mkdir -p $(HOME)/bin
-	curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to $(HOME)/bin
+	if [ ! -x "$(HOME)/bin/just" ]; then \
+  		curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to $(HOME)/bin; \
+	fi
 	echo 'export PATH="$$PATH:$$HOME/bin"' >> $(HOME)/.bashrc
 
 clone:
