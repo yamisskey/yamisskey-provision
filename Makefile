@@ -9,6 +9,7 @@ CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.en
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 MATRIX_DIR=$(HOME)/matrix
+CTFD_DIR=$(HOME)/ctfd
 
 all: install clone provision backup
 
@@ -55,6 +56,10 @@ clone:
 	mkdir -p $(MATRIX_DIR)
 	if [ ! -d "$(MATRIX_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/matrix.yami.ski.git $(MATRIX_DIR); \
+	fi
+	mkdir -p $(CTFD_DIR)
+	if [ ! -d "$(CTFD_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/ctf.yami.ski.git $(CTFD_DIR); \
 	fi
 
 provision:
