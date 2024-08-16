@@ -1,6 +1,6 @@
 ---
 - name: Check if CTFd Docker container is running
-  shell: docker ps --filter "name=ctfd_ctfd_1" --format "{{.Names}}"
+  shell: docker ps --filter "name=ctfd_ctfd_1" --format "{% raw %}{{.Names}}{% endraw %}"
   register: ctfd_container_status
   ignore_errors: yes
 
@@ -10,14 +10,14 @@
       docker_compose:
         project_src: "/home/taka/ctfd/"
         restarted: true
-      when: ctfd_container_status.stdout != ""
+      when: ctfd_container_status.stdout is defined and ctfd_container_status.stdout != ""
     
     - name: Start new CTFd Docker container
       docker_compose:
         project_src: "/home/taka/ctfd/"
         state: present
         restarted: true
-      when: ctfd_container_status.stdout == ""
+      when: ctfd_container_status.stdout is not defined or ctfd_container_status.stdout == ""
 
 - name: Copy CTFd Nginx configuration to /etc/nginx/conf.d/
   copy:
