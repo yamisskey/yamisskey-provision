@@ -1,0 +1,6 @@
+- name: Configure CTFd
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - ctfd
