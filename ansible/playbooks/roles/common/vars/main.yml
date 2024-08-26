@@ -8,7 +8,6 @@ packages:
   - certbot
   - python3-certbot-dns-cloudflare
   - tor
-  - privoxy
   - mecab
   - libmecab-dev
   - mecab-ipadic-utf8

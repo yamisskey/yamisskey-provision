@@ -106,31 +106,19 @@
     content: 'http://{{ tor_hostname.stdout }}'
     dest: '{{ misskey_dir }}/tor.txt'
 
-- name: Configure Tor hidden service
+- name: Configure Tor hidden service and TransPort
   blockinfile:
     path: /etc/tor/torrc
     block: |
       HiddenServiceDir /var/lib/tor/misskey/
       HiddenServicePort 80 unix:/var/run/tor-misskey.sock
       HiddenServiceVersion 3
-    marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service'
+
+      TransPort 0.0.0.0:9040
+      DNSPort 0.0.0.0:5353
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service with TransPort'
     insertafter: EOF
   notify: Reload Tor
-
-- name: Configure Privoxy to route traffic through Tor
-  blockinfile:
-    path: /etc/privoxy/config
-    block: |
-      forward-socks5 / 127.0.0.1:9050 .
-    marker: '# {mark} ANSIBLE MANAGED BLOCK - Privoxy Configuration'
-    insertafter: EOF
-  notify: Restart Privoxy
-
-- name: Ensure Privoxy is enabled and running
-  systemd:
-    name: privoxy
-    enabled: yes
-    state: started
 
 - name: Deploy Nginx configuration for onion
   template:
