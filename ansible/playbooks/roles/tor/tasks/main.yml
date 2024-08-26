@@ -113,9 +113,6 @@
       HiddenServiceDir /var/lib/tor/misskey/
       HiddenServicePort 80 unix:/var/run/tor-misskey.sock
       HiddenServiceVersion 3
-
-      TransPort 0.0.0.0:9040
-      DNSPort 0.0.0.0:5353
     marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service with TransPort'
     insertafter: EOF
   notify: Reload Tor
