@@ -60,6 +60,7 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/monitoring.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/ctfd.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/matrix.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
