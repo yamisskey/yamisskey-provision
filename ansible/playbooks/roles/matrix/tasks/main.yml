@@ -93,10 +93,6 @@
     name: nginx
     state: restarted
 
-- name: Obtain SSL certificate with certbot and Cloudflare
-  command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ synapse_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
-  when: matrix_use_ssl
-
 - name: Stop cloudflared service if running
   systemd:
     name: cloudflared
@@ -136,10 +132,6 @@
     project_src: /var/www/element
     state: present
     restarted: yes
-
-- name: Obtain SSL certificate for element with certbot and Cloudflare
-  command: certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini -d {{ element_server_name }} --non-interactive --agree-tos -m yamisskey@proton.me
-  when: matrix_use_ssl
 
 - name: Copy nginx configuration for element
   template:
