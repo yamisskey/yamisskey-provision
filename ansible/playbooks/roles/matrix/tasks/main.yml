@@ -111,7 +111,7 @@
     enabled: true
   become: true
 
-  - name: Create element directory
+- name: Create element directory
   file:
     path: /var/www/element
     state: directory
