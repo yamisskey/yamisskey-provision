@@ -8,7 +8,6 @@ MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
-MATRIX_DIR=$(HOME)/matrix
 CTFD_DIR=$(HOME)/ctfd
 
 all: install clone provision backup
@@ -32,11 +31,6 @@ install:
 	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	sudo apt-get update
 	sudo apt-get install -y cloudflare-warp
-	mkdir -p $(HOME)/bin
-	if [ ! -x "$(HOME)/bin/just" ]; then \
-  		curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to $(HOME)/bin; \
-	fi
-	echo 'export PATH="$$PATH:$$HOME/bin"' >> $(HOME)/.bashrc
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
@@ -52,10 +46,6 @@ clone:
 	mkdir -p $(BACKUP_SCRIPT_DIR)
 	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
-	fi
-	mkdir -p $(MATRIX_DIR)
-	if [ ! -d "$(MATRIX_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/matrix.yami.ski.git $(MATRIX_DIR); \
 	fi
 	mkdir -p $(CTFD_DIR)
 	if [ ! -d "$(CTFD_DIR)/.git" ]; then \
