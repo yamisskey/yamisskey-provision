@@ -46,7 +46,7 @@
 
 - name: Allow SSH on port 2222
   ufw:
-    rule: limit
+    rule: allow
     port: 2222
     proto: tcp
 
@@ -144,8 +144,6 @@
     line: '{{ item }}'
   loop:
     - 'Port 2222'
-    - 'PermitRootLogin no'
-    - 'PasswordAuthentication no'
     - 'AuthorizedKeysFile .ssh/authorized_keys'
     - 'RSAAuthentication yes'
     - 'PubkeyAuthentication yes'
