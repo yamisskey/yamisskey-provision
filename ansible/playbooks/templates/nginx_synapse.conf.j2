@@ -36,11 +36,6 @@ server {
         proxy_buffering off;
     }
 
-    location /.well-known/matrix/client {
-        default_type application/json;
-        return 200 '{"m.homeserver": {"base_url": "https://{{ synapse_server_name }}"}}';
-    }
-
     access_log /var/log/nginx/synapse_access.log;
     error_log /var/log/nginx/synapse_error.log;
 }
