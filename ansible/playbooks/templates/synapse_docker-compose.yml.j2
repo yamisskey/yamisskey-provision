@@ -13,13 +13,16 @@ services:
       - SYNAPSE_SERVER_NAME={{ synapse_server_name }}
       - SYNAPSE_REPORT_STATS=yes
     ports:
-      - '8008:8008
+      - '8008:8008/tcp'
   
   db:
     image: postgres:latest
     container_name: postgres
     restart: unless-stopped
-    env_file:
-      - /var/www/synapse/.env
+    environment:
+      POSTGRES_USER: "{{ postgresql_user }}"
+      POSTGRES_PASSWORD: "{{ postgresql_password }}"
+      POSTGRES_DB: "{{ postgresql_database }}"
+      POSTGRES_INITDB_ARGS: --encoding='UTF8' --lc-collate='C' --lc-ctype='C'
     volumes:
       - ./postgres-data:/var/lib/postgresql/data

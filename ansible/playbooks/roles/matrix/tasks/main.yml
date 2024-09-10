@@ -13,25 +13,24 @@
     path: /var/www/element/element-config
     state: directory
 
-# PostgreSQLの環境変数を含む.envファイルをコピー
-- name: Copy .env file for PostgreSQL
-  copy:
-    src: ./env
-    dest: /var/www/synapse/.env
-    mode: '0600'
+- name: Load PostgreSQL secrets from secrets.yml
+  set_fact:
+    postgresql_secrets: "{{ lookup('file', synapse_secrets_file) | from_yaml }}"
 
-# Docker Composeファイルをテンプレートからコピー
-- name: Copy docker-compose.yml for synapse
+- name: Add required configurations to Docker Compose file
   template:
     src: synapse_docker-compose.yml.j2
     dest: /var/www/synapse/docker-compose.yml
+  vars:
+    postgresql_user: '{{ postgresql_secrets.postgresql.user }}'
+    postgresql_password: '{{ postgresql_secrets.postgresql.password }}'
+    postgresql_database: '{{ postgresql_secrets.postgresql.database }}'
 
 - name: Copy docker-compose.yml for element
   template:
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
-# Synapseの設定ファイル生成
 - name: Check if synapse container is running
   shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
   register: synapse_container
@@ -43,7 +42,6 @@
     chdir: /var/www/synapse
   when: synapse_container.stdout == ""
 
-# 秘密鍵が存在しない場合のキー生成
 - name: Check if secrets file exists
   stat:
     path: '{{ synapse_secrets_file }}'
@@ -84,19 +82,31 @@
       registration_shared_secret: "{{ registration_shared_secret }}"
       macaroon_secret_key: "{{ macaroon_secret_key }}"
       form_secret: "{{ form_secret }}"
+      postgresql:
+        user: "{{ postgresql_secrets.postgresql.user }}"
+        password: "{{ postgresql_secrets.postgresql.password }}"
+        database: "{{ postgresql_secrets.postgresql.database }}"
+        host: "{{ postgresql_secrets.postgresql.host }}"
   when: not synapse_secrets_file_stat.stat.exists
 
-# Synapseの設定ファイルを反映
 - name: Add required configurations to Synapse configuration file
   template:
     src: synapse.homeserver.yaml.j2
-    dest: /var/www/synapse/data/homeserver.yaml
-    owner: root
-    group: root
-    mode: '0644'
+    dest: /var/www/synapse/synapse-data/homeserver.yaml
+  owner: root
+  group: root
+  mode: '0644'
   become: true
+  vars:
+    postgresql_user: '{{ postgresql_secrets.postgresql.user }}'
+    postgresql_password: '{{ postgresql_secrets.postgresql.password }}'
+    postgresql_database: '{{ postgresql_secrets.postgresql.database }}'
+    postgresql_host: '{{ postgresql_secrets.postgresql.host }}'
+    registration_shared_secret: '{{ registration_shared_secret }}'
+    macaroon_secret_key: '{{ macaroon_secret_key }}'
+    form_secret: '{{ form_secret }}'
+    synapse_server_name: '{{ synapse_server_name }}'
 
-# Synapseコンテナの起動/再起動
 - name: Start or restart synapse container
   docker_compose:
     project_src: /var/www/synapse
@@ -111,7 +121,6 @@
     restarted: no
   when: synapse_container.stdout == ""
 
-# Nginx設定
 - name: Copy nginx configuration for synapse
   template:
     src: nginx_synapse.conf.j2
@@ -127,7 +136,6 @@
     name: nginx
     state: restarted
 
-# Cloudflaredの管理
 - name: Stop cloudflared service if running
   systemd:
     name: cloudflared
@@ -142,14 +150,12 @@
     enabled: true
   become: true
 
-# Elementコンテナの起動
 - name: Start element
   docker_compose:
     project_src: /var/www/element
     state: present
     restarted: yes
 
-# Element用カスタム設定ファイルのコピー
 - name: Copy element custom configuration file
   template:
     src: config.element.yami.ski.json.j2

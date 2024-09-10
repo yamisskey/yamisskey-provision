@@ -22,9 +22,14 @@ listeners:
       - names: [client, federation]
         compress: false
 database:
-  name: sqlite3
+  name: psycopg2
   args:
-    database: /data/homeserver.db
+    user: "{{ postgresql_user }}"
+    password: "{{ postgresql_password }}"
+    database: "{{ postgresql_database }}"
+    host: "{{ postgresql_host }}"
+    cp_min: 5
+    cp_max: 10
 
 log_config: "/data/{{ synapse_server_name }}.log.config"
 media_store_path: /data/media_store
