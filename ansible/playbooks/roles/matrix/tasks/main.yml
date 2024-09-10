@@ -93,9 +93,9 @@
   template:
     src: synapse.homeserver.yaml.j2
     dest: /var/www/synapse/synapse-data/homeserver.yaml
-  owner: root
-  group: root
-  mode: '0644'
+    owner: root
+    group: root
+    mode: '0644'
   become: true
   vars:
     postgresql_user: '{{ postgresql_secrets.postgresql.user }}'
