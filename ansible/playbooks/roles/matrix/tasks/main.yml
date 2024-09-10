@@ -97,15 +97,6 @@
     group: root
     mode: '0644'
   become: true
-  vars:
-    postgresql_user: '{{ postgresql_secrets.postgresql.user }}'
-    postgresql_password: '{{ postgresql_secrets.postgresql.password }}'
-    postgresql_database: '{{ postgresql_secrets.postgresql.database }}'
-    postgresql_host: '{{ postgresql_secrets.postgresql.host }}'
-    registration_shared_secret: '{{ registration_shared_secret }}'
-    macaroon_secret_key: '{{ macaroon_secret_key }}'
-    form_secret: '{{ form_secret }}'
-    synapse_server_name: '{{ synapse_server_name }}'
 
 - name: Start or restart synapse container
   docker_compose:
