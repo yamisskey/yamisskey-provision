@@ -3,11 +3,35 @@
     path: /var/www/synapse
     state: directory
 
+- name: Create element directory
+  file:
+    path: /var/www/element
+    state: directory
+
+- name: Create element-config directory
+  file:
+    path: /var/www/element/element-config
+    state: directory
+
+# PostgreSQLの環境変数を含む.envファイルをコピー
+- name: Copy .env file for PostgreSQL
+  copy:
+    src: ./env
+    dest: /var/www/synapse/.env
+    mode: '0600'
+
+# Docker Composeファイルをテンプレートからコピー
 - name: Copy docker-compose.yml for synapse
   template:
     src: synapse_docker-compose.yml.j2
     dest: /var/www/synapse/docker-compose.yml
 
+- name: Copy docker-compose.yml for element
+  template:
+    src: element_docker-compose.yml.j2
+    dest: /var/www/element/docker-compose.yml
+
+# Synapseの設定ファイル生成
 - name: Check if synapse container is running
   shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
   register: synapse_container
@@ -19,6 +43,7 @@
     chdir: /var/www/synapse
   when: synapse_container.stdout == ""
 
+# 秘密鍵が存在しない場合のキー生成
 - name: Check if secrets file exists
   stat:
     path: '{{ synapse_secrets_file }}'
@@ -51,6 +76,7 @@
   set_fact:
     form_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).form_secret if synapse_secrets_file_stat.stat.exists else form_secret_output.stdout }}"
 
+# 秘密情報をファイルに保存
 - name: Save secrets to file
   copy:
     dest: '{{ synapse_secrets_file }}'
@@ -60,6 +86,7 @@
       form_secret: "{{ form_secret }}"
   when: not synapse_secrets_file_stat.stat.exists
 
+# Synapseの設定ファイルを反映
 - name: Add required configurations to Synapse configuration file
   template:
     src: synapse.homeserver.yaml.j2
@@ -69,6 +96,7 @@
     mode: '0644'
   become: true
 
+# Synapseコンテナの起動/再起動
 - name: Start or restart synapse container
   docker_compose:
     project_src: /var/www/synapse
@@ -83,55 +111,11 @@
     restarted: no
   when: synapse_container.stdout == ""
 
+# Nginx設定
 - name: Copy nginx configuration for synapse
   template:
     src: nginx_synapse.conf.j2
     dest: /etc/nginx/conf.d/synapse.conf
-
-- name: Restart nginx
-  service:
-    name: nginx
-    state: restarted
-
-- name: Stop cloudflared service if running
-  systemd:
-    name: cloudflared
-    state: stopped
-    enabled: false
-  ignore_errors: yes
-
-- name: Start and enable cloudflared service
-  systemd:
-    name: cloudflared
-    state: started
-    enabled: true
-  become: true
-
-- name: Create element directory
-  file:
-    path: /var/www/element
-    state: directory
-
-- name: Create element-config directory
-  file:
-    path: /var/www/element/element-config
-    state: directory
-
-- name: Copy docker-compose.yml for element
-  template:
-    src: element_docker-compose.yml.j2
-    dest: /var/www/element/docker-compose.yml
-
-- name: Copy element custom configuration file
-  template:
-    src: config.element.yami.ski.json.j2
-    dest: /var/www/element/element-config/config.element.yami.ski.json
-
-- name: Start element
-  docker_compose:
-    project_src: /var/www/element
-    state: present
-    restarted: yes
 
 - name: Copy nginx configuration for element
   template:
@@ -143,6 +127,7 @@
     name: nginx
     state: restarted
 
+# Cloudflaredの管理
 - name: Stop cloudflared service if running
   systemd:
     name: cloudflared
@@ -156,3 +141,16 @@
     state: started
     enabled: true
   become: true
+
+# Elementコンテナの起動
+- name: Start element
+  docker_compose:
+    project_src: /var/www/element
+    state: present
+    restarted: yes
+
+# Element用カスタム設定ファイルのコピー
+- name: Copy element custom configuration file
+  template:
+    src: config.element.yami.ski.json.j2
+    dest: /var/www/element/element-config/config.element.yami.ski.json

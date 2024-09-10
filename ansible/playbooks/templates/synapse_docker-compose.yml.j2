@@ -4,11 +4,22 @@ services:
   synapse:
     image: matrixdotorg/synapse:latest
     container_name: synapse
-    restart: always
+    restart: unless-stopped
     volumes:
-      - ./data:/data
+      - ./synapse-data:/data
+    depends_on:
+      - db
     environment:
       - SYNAPSE_SERVER_NAME={{ synapse_server_name }}
       - SYNAPSE_REPORT_STATS=yes
     ports:
-      - 8008:8008
+      - '8008:8008
+  
+  db:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - /var/www/synapse/.env
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
