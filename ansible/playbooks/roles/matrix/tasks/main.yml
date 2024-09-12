@@ -120,10 +120,6 @@
     group: www-data
     mode: '0644'
 
-- name: Check if synapse container is running
-  shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
-  register: synapse_container
-
 # Synapseの設定ファイルを反映
 - name: Add required configurations to Synapse configuration file
   template:
@@ -134,20 +130,12 @@
     mode: '0644'
   become: true
 
-# コンテナが存在する場合に再起動せず設定ファイルのみを反映
-- name: Reload Synapse container without recreating
-  shell: docker-compose exec synapse /restart
-  args:
-    chdir: /var/www/synapse
-  when: synapse_container.stdout != ""
-
-# コンテナが存在しない場合は起動
-- name: Start Synapse container if not running
+# Synapseコンテナを起動
+- name: Start Synapse container
   docker_compose:
     project_src: /var/www/synapse
     state: present
     restarted: no
-  when: synapse_container.stdout == ""
 
 # Nginx設定
 - name: Copy nginx configuration for synapse
