@@ -1,6 +1,9 @@
 {
-    "m.homeserver": {                                                                                                                            │
-        "base_url": "https://{{ synapse_server_name }}",                                                                                         │
-        "server_name": "{{ synapse_server_name }}"                                                                                               │
+    "m.homeserver": {
+        "base_url": "https://{{ synapse_server_name }}",
+        "server_name": "{{ synapse_server_name }}"
+    },
+    "m.identity_server": {
+        "base_url": "https://vector.im"
     }
 }
