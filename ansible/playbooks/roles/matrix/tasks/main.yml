@@ -120,15 +120,29 @@
     group: www-data
     mode: '0644'
 
-# Synapseコンテナの起動/再起動
-- name: Start or restart synapse container
-  docker_compose:
-    project_src: /var/www/synapse
-    state: present
-    restarted: yes
+- name: Check if synapse container is running
+  shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
+  register: synapse_container
+
+# Synapseの設定ファイルを反映
+- name: Add required configurations to Synapse configuration file
+  template:
+    src: synapse.homeserver.yaml.j2
+    dest: /var/www/synapse/synapse-data/homeserver.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+# コンテナが存在する場合に再起動せず設定ファイルのみを反映
+- name: Reload Synapse container without recreating
+  shell: docker-compose exec synapse /restart
+  args:
+    chdir: /var/www/synapse
   when: synapse_container.stdout != ""
 
-- name: Start synapse container if not running
+# コンテナが存在しない場合は起動
+- name: Start Synapse container if not running
   docker_compose:
     project_src: /var/www/synapse
     state: present
