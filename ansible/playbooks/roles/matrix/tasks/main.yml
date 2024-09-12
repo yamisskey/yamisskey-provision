@@ -101,6 +101,16 @@
     mode: '0644'
   become: true
 
+  # Synapse用ディレクトリの作成
+- name: Create well-known directory for Synapse
+  file:
+    path: /var/www/synapse/.well-known/matrix
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: true
+
 # /.well-known/matrix/client にE2EE設定ファイルをコピー (Synapse側)
 - name: Configure E2EE settings for Synapse
   template:
