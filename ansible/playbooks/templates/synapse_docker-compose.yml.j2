@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./synapse-data:/data
-      - ./well-known:/var/www/synapse/.well-known
+      - ./well-known/matrix:/var/www/synapse/.well-known/matrix
     depends_on:
       - db
     environment:

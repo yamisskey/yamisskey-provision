@@ -3,11 +3,13 @@ server {
     server_name {{ synapse_server_name }};
 
     location /.well-known/matrix/client {
-        root /var/www/synapse;
+        alias /var/www/synapse/.well-known/matrix/client;
         default_type application/json;
     }
 
-    return 301 https://$server_name$request_uri;
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
 }
 
 server {
