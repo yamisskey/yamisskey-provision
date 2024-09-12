@@ -2,6 +2,11 @@ server {
     listen 80;
     server_name {{ synapse_server_name }};
 
+    location /.well-known/matrix/client {
+        root /var/www/synapse;
+        default_type application/json;
+    }
+
     return 301 https://$server_name$request_uri;
 }
 

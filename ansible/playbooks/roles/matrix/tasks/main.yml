@@ -101,6 +101,15 @@
     mode: '0644'
   become: true
 
+# /.well-known/matrix/client にE2EE設定ファイルをコピー (Synapse側)
+- name: Configure E2EE settings for Synapse
+  template:
+    src: synapse_well_known_client.json.j2
+    dest: /var/www/synapse/.well-known/matrix/client
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
 # Synapseコンテナの起動/再起動
 - name: Start or restart synapse container
   docker_compose:
