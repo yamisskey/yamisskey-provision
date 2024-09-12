@@ -1,11 +1,11 @@
 {
-    "m.homeserver": {
-        "base_url": "https://{{ synapse_server_name }}",
-        "server_name": "{{ synapse_server_name }}"
-    },
-    "io.element.e2ee": {
-        "default": true,
-        "secure_backup_required": true,
-        "secure_backup_setup_methods": ["passphrase"]
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://{{ synapse_server_name }}",
+            "server_name": "{{ synapse_server_name }}"
+        },
+        "m.identity_server": {
+            "base_url": "https://vector.im"
+        }
     }
 }
