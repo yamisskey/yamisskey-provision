@@ -10,12 +10,13 @@ services:
       - ./well-known/matrix:/var/www/synapse/.well-known/matrix
     depends_on:
       - db
+      - coturn
     environment:
       - SYNAPSE_SERVER_NAME={{ synapse_server_name }}
       - SYNAPSE_REPORT_STATS=yes
     ports:
       - '8008:8008/tcp'
-  
+
   db:
     image: postgres:latest
     container_name: postgres
@@ -27,3 +28,30 @@ services:
       POSTGRES_INITDB_ARGS: --encoding='UTF8' --lc-collate='C' --lc-ctype='C'
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+
+  coturn:
+    image: coturn/coturn
+    container_name: coturn
+    restart: unless-stopped
+    ports:
+      - '3478:3478/udp'
+      - '3478:3478/tcp'
+      - '5349:5349/udp'
+      - '5349:5349/tcp'
+      - '49160-49200:49160-49200/udp'
+    environment:
+      - TURN_USER={{ turn_user }}
+      - TURN_PASSWORD={{ turn_password }}
+      - DETECT_EXTERNAL_IP=yes
+    command: >
+      --no-stun
+      --no-loopback-peers
+      --no-multicast-peers
+      --fingerprint
+      --use-auth-secret
+      --static-auth-secret={{ turn_secret }}
+      --realm={{ synapse_server_name }}
+      --listening-port=3478
+      --tls-listening-port=5349
+      --min-port=49160
+      --max-port=49200

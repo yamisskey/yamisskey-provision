@@ -52,4 +52,13 @@ push:
   include_content: true
 report_stats: true
 
+turn_uris:
+  - "turn:{{ synapse_server_name }}:3478?transport=udp"
+  - "turn:{{ synapse_server_name }}:3478?transport=tcp"
+  - "turns:{{ synapse_server_name }}:5349?transport=tcp"
+turn_shared_secret: "{{ turn_secret }}"
+turn_user_lifetime: 86400000
+turn_allow_guests: true
+turn_restricted: false
+
 # vim:ft=yaml

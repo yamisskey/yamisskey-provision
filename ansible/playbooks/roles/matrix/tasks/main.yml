@@ -1,3 +1,4 @@
+# 必要なディレクトリを作成
 - name: Create synapse directory
   file:
     path: /var/www/synapse
@@ -21,6 +22,13 @@
     postgresql_database: "{{ (lookup('file', synapse_secrets_file) | from_yaml).postgresql.database }}"
     postgresql_host: "{{ (lookup('file', synapse_secrets_file) | from_yaml).postgresql.host }}"
 
+# TURNサーバーの秘密情報をsecrets.ymlから読み込む
+- name: Load TURN server secrets from secrets.yml
+  set_fact:
+    turn_user: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.user }}"
+    turn_password: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.password }}"
+    turn_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.secret }}"
+
 # Docker Composeファイルをテンプレートから生成
 - name: Add required configurations to Docker Compose file
   template:
@@ -32,6 +40,7 @@
     src: element_docker-compose.yml.j2
     dest: /var/www/element/docker-compose.yml
 
+# Synapseのコンテナが実行されているか確認
 - name: Check if synapse container is running
   shell: docker ps --filter "name=synapse" --format "{{ '{{.Names}}' }}"
   register: synapse_container
@@ -89,6 +98,10 @@
         password: "{{ postgresql_password }}"
         database: "{{ postgresql_database }}"
         host: "{{ postgresql_host }}"
+      coturn:
+        user: "{{ turn_user }}"
+        password: "{{ turn_password }}"
+        secret: "{{ turn_secret }}"
   when: not synapse_secrets_file_stat.stat.exists
 
 # Synapseの設定ファイルを反映
@@ -101,7 +114,7 @@
     mode: '0644'
   become: true
 
-  # Synapse用ディレクトリの作成
+# Synapse用ディレクトリの作成
 - name: Create well-known directory for Synapse
   file:
     path: /var/www/synapse/.well-known/matrix
