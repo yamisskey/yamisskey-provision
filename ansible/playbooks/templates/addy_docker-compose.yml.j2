@@ -39,10 +39,4 @@ services:
       - "./data:/data"
     env_file:
       - "./addy.env"
-    environment:
-      - "DB_HOST=db"
-      - "DB_DATABASE={{ mysql_database }}"
-      - "DB_USERNAME={{ mysql_user }}"
-      - "DB_PASSWORD={{ mysql_password }}"
-      - "REDIS_HOST=redis"
     restart: always
