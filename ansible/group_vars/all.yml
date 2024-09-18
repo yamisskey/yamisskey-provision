@@ -11,4 +11,5 @@ synapse_server_name: matrix.yami.ski
 synapse_secrets_file: '/var/www/synapse/secrets.yml'
 element_server_name: element.yami.ski
 matrix_use_ssl: true
-
+addy_server_name: mail.yami.ski
+addy_secrets_file: '/var/www/addy/secrets.yml'
