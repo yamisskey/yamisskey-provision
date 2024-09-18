@@ -7,9 +7,6 @@
 # secrets.ymlから秘密情報をセット
 - name: Load secrets from secrets.yml if exists
   set_fact:
-    mysql_user: "{{ (lookup('file', addy_secrets_file) | from_yaml).mysql.user | default('') }}"
-    mysql_password: "{{ (lookup('file', addy_secrets_file) | from_yaml).mysql.password | default('') }}"
-    mysql_database: "{{ (lookup('file', addy_secrets_file) | from_yaml).mysql.database | default('') }}"
     app_key: "{{ (lookup('file', addy_secrets_file) | from_yaml).app_key | default('') }}"
     anonaddy_secret: "{{ (lookup('file', addy_secrets_file) | from_yaml).anonaddy_secret | default('') }}"
   when: addy_secrets_file_stat.stat.exists
@@ -22,7 +19,7 @@
 
 - name: Set app_key fact if not exists
   set_fact:
-    app_key: "base64:{{ app_key_output.stdout }}"
+    app_key: "{{ app_key_output.stdout }}"
   when: app_key == ""
 
 # anonaddy_secretが未設定の場合に生成
@@ -85,10 +82,6 @@
   copy:
     dest: '{{ addy_secrets_file }}'
     content: |
-      mariadb:
-        user: "{{ mysql_user }}"
-        password: "{{ mysql_password }}"
-        database: "{{ mysql_database }}"
       app_key: "{{ app_key }}"
       anonaddy_secret: "{{ anonaddy_secret }}"
   when: app_key_output.changed or anonaddy_secret_output.changed or not addy_secrets_file_stat.stat.exists
