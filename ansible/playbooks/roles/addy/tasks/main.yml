@@ -19,7 +19,7 @@
 
 - name: Set app_key fact if not exists
   set_fact:
-    app_key: "{{ app_key_output.stdout }}"
+    app_key: "base64:{{ app_key_output.stdout }}"
   when: app_key == ""
 
 # anonaddy_secretが未設定の場合に生成
@@ -30,7 +30,7 @@
 
 - name: Set anonaddy_secret fact if not exists
   set_fact:
-    anonaddy_secret: "{{ anonaddy_secret_output.stdout }}"
+    anonaddy_secret: "base64:{{ anonaddy_secret_output.stdout }}"
   when: anonaddy_secret == ""
 
 # 必要なディレクトリを作成
