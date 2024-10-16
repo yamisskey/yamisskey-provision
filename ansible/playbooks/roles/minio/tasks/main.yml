@@ -28,8 +28,8 @@
 
 - name: Load Minio secrets from secrets.yml
   set_fact:
-    minio_access_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.access_key }}"
-    minio_secret_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.secret_key }}"
+    minio_root_user: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.root_user }}"
+    minio_root_password: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.root_password }}"
 
 - name: Deploy Docker Compose file for Minio
   template:
@@ -44,21 +44,11 @@
   args:
     chdir: /opt/minio
 
-- name: Ensure Nginx is installed
-  apt:
-    name: nginx
-    state: present
-  become: true
+- name: Download Minio Client
+  get_url:
+    url: https://dl.min.io/client/mc/release/linux-amd64/mc
+    dest: /usr/local/bin/mc
+    mode: '0755'
 
-- name: Deploy Nginx configuration for Minio
-  template:
-    src: templates/nginx_minio.conf.j2
-    dest: /etc/nginx/conf.d/minio.conf
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Restart Nginx
-  service:
-    name: nginx
-    state: restarted
+- name: Set Minio Client alias
+  command: /usr/local/bin/mc alias set myminio2 http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
