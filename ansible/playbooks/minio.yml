@@ -1,0 +1,6 @@
+- name: Setup Minio
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - minio

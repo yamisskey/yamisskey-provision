@@ -1,0 +1,64 @@
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+  become: true
+
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
+  become: true
+
+- name: Create Docker Compose directory
+  file:
+    path: /opt/minio
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create Minio data directory
+  file:
+    path: /opt/minio/minio-data
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Load Minio secrets from secrets.yml
+  set_fact:
+    minio_access_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.access_key }}"
+    minio_secret_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.secret_key }}"
+
+- name: Deploy Docker Compose file for Minio
+  template:
+    src: templates/minio_docker-compose.yml.j2
+    dest: /opt/minio/docker-compose.yml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start Minio using Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /opt/minio
+
+- name: Ensure Nginx is installed
+  apt:
+    name: nginx
+    state: present
+  become: true
+
+- name: Deploy Nginx configuration for Minio
+  template:
+    src: templates/nginx_minio.conf.j2
+    dest: /etc/nginx/conf.d/minio
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
