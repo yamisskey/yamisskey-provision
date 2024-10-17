@@ -28,8 +28,8 @@
 
 - name: Load Minio secrets from secrets.yml
   set_fact:
-    minio_root_user: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.access_key }}"
-    minio_root_password: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.secret_key }}"
+    minio_access_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.access_key }}"
+    minio_secret_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.secret_key }}"
 
 - name: Deploy Docker Compose file for Minio
   template:
