@@ -51,4 +51,4 @@
     mode: '0755'
 
 - name: Set Minio Client alias
-  command: /usr/local/bin/mc alias set myminio2 http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
+  command: /usr/local/bin/mc alias set myminio http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
