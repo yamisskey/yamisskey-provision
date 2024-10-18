@@ -19,23 +19,16 @@ server {
     }
 }
 
-worker_processes auto;
-events {
-    worker_connections 1024;
-}
+server {
+    listen 80;
+    server_name {{ r2_server_name }};
+    client_max_body_size 100M;
 
-http {
-    server {
-        listen 80;
-        server_name {{ r2_server_name }};
-        client_max_body_size 100M;
+    location /files/ {
+        return 302 https://{{ minio_server_name }}/bucket/files/$1;
+    }
 
-        location /files/ {
-            return 302 https://{{ minio_server_name }}/bucket/files/$1;
-        }
-
-        location / {
-            return 404;
-        }
+    location / {
+        return 404;
     }
 }
