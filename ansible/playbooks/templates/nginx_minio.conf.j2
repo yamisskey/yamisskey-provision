@@ -3,14 +3,6 @@ server {
     server_name {{ minio_api_server_name }};
     client_max_body_size 100M;
 
-    location /files/ {
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
-        add_header Pragma "no-cache";
-        add_header Expires "0";
-
-        rewrite ^/files/(.*)$ https://{{ minio_api_server_name }}/{{ minio_bucket_name }}/files/$1 permanent;
-    }
-
     location / {
         proxy_pass http://localhost:9000;
         proxy_set_header Host $host;
