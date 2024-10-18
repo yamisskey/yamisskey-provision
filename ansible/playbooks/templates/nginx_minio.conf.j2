@@ -25,7 +25,7 @@ server {
     client_max_body_size 100M;
 
     location /files/ {
-        return 302 https://{{ minio_server_name }}/bucket/files/$1;
+        return 302 https://{{ minio_server_name }}/{{ minio_bucket_name }}/files/$1;
     }
 
     location / {
