@@ -67,5 +67,7 @@
 - name: Enable Nginx site configuration
   command: nginx -s reload
 
-- name: Reload Nginx
-  notify: Reload Nginx
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
