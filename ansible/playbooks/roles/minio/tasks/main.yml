@@ -53,8 +53,14 @@
 - name: Set Minio Client alias
   command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_access_key }}" "{{ minio_secret_key }}"
 
+- name: Check if bucket exists
+  command: /usr/local/bin/mc ls "{{ minio_alias }}/{{ minio_bucket_name }}"
+  register: bucket_check
+  ignore_errors: yes
+
 - name: Create bucket in MinIO
   command: /usr/local/bin/mc mb "{{ minio_alias }}/{{ minio_bucket_name }}"
+  when: bucket_check.rc != 0
 
 - name: Configure Nginx for MinIO
   template:
