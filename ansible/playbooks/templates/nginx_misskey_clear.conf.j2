@@ -95,7 +95,7 @@ server {
         add_header Access-Control-Allow-Headers 'Origin, Content-Type, Accept' always;
     }
 
-    location /files/ {
+    location /{{ minio_bucket_name }}/ {
         proxy_pass https://{{ minio_api_server_name }};
         proxy_set_header Host {{ minio_api_server_name }};
         proxy_set_header X-Real-IP $remote_addr;
