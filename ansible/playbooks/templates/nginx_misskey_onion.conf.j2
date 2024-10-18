@@ -79,8 +79,8 @@ server {
     }
 
     location /proxy/ {
-        proxy_pass https://{{ r2_server_name }};
-        proxy_set_header Host {{ r2_server_name }};
+        proxy_pass https://{{ minio_api_server_name }};
+        proxy_set_header Host {{ minio_api_server_name }};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -92,8 +92,8 @@ server {
     }
 
     location /files/ {
-        proxy_pass https://{{ r2_server_name }};
-        proxy_set_header Host {{ r2_server_name }};
+        proxy_pass https://{{ minio_api_server_name }};
+        proxy_set_header Host {{ minio_api_server_name }};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
