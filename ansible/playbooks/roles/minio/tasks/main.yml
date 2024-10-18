@@ -62,17 +62,6 @@
   command: /usr/local/bin/mc mb "{{ minio_alias }}/{{ minio_bucket_name }}"
   when: bucket_check.rc != 0
 
-- name: Create PublicRead policy for MinIO
-  template:
-    src: templates/minio_public-read_policy.json.j2
-    dest: "/home/{{ ansible_user }}/.mc/public_read_policy.json"
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0644'
-
-- name: Apply PublicRead policy to the bucket
-  command: /usr/local/bin/mc policy set publicread "{{ minio_alias }}/{{ minio_bucket_name }}"
-
 - name: Configure Nginx for MinIO
   template:
     src: templates/nginx_minio.conf.j2
