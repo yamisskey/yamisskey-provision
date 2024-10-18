@@ -51,4 +51,21 @@
     mode: '0755'
 
 - name: Set Minio Client alias
-  command: /usr/local/bin/mc alias set myminio http://localhost:9000 "{{ minio_access_key }}" "{{ minio_secret_key }}"
+  command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_access_key }}" "{{ minio_secret_key }}"
+
+- name: Create bucket in MinIO
+  command: /usr/local/bin/mc mb "{{ minio_alias }}/{{ minio_bucket_name }}"
+
+- name: Configure Nginx for MinIO
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/conf.d/minio.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable Nginx site configuration
+  command: nginx -s reload
+
+- name: Reload Nginx
+  notify: Reload Nginx

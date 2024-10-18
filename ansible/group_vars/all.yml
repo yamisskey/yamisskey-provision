@@ -11,5 +11,8 @@ synapse_server_name: matrix.yami.ski
 synapse_secrets_file: '/var/www/synapse/secrets.yml'
 element_server_name: element.yami.ski
 matrix_use_ssl: true
+r2_server_name: drive.yami.ski
+minio_alias: yaminio
 minio_server_name: minio.yami.ski
 minio_secrets_file: '/opt/minio/secrets.yml'
+minio_bucket_name: "yamisskey-files"
