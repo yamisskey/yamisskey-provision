@@ -82,10 +82,14 @@ update:
 	sudo docker exec backup /root/backup.sh
 	cd $(MISSKEY_DIR) && sudo docker-compose down
 	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
-	mkdir -p ~/misskey-backup
-	cd $(MISSKEY_DIR) && sudo tar -czvf ~/misskey-backup/misskey-backup-$(TIMESTAMP).tar.gz ./
+	mkdir -p ~/backups/misskey
+	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
 	cd $(MISSKEY_DIR) && git checkout master && git pull origin master
 	cd $(MISSKEY_DIR) && sudo docker compose up --build -d
+
+migrate:
+	$(ANSIBLE_PLAYBOOK) ansible/playbooks/migrate.yml --tags backup --ask-become-pass
+	$(ANSIBLE_PLAYBOOK) ansible/playbooks/migrate.yml --tags restore --ask-become-pass
 
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)

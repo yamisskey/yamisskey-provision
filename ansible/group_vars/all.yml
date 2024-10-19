@@ -16,3 +16,4 @@ minio_api_server_name: drive.yami.ski
 minio_web_server_name: minio.yami.ski
 minio_bucket_name: "files"
 minio_secrets_file: '/opt/minio/secrets.yml'
+backup_dir: '/home/{{ user_name }}/backups'

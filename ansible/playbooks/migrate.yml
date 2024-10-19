@@ -1,0 +1,6 @@
+- name: Migrate Docker services from VPS to home server
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - migrate

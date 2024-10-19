@@ -1,0 +1,50 @@
+- name: Migrate Docker services from VPS to home server
+  hosts: vps
+  become: true
+  tasks:
+    - name: Stop all Docker Compose services on VPS
+      ansible.builtin.shell: |
+        cd /var/www/{{ item }} && docker-compose down
+      loop:
+        - misskey
+        - synapse
+      with_items: "{{ docker_services }}"
+  
+    - name: Create backup of Docker Compose services on VPS
+      ansible.builtin.shell: |
+        cd /var/www/{{ item }} && tar -czvf /home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
+      loop:
+        - misskey
+        - synapse
+      with_items: "{{ docker_services }}"
+
+    - name: Transfer backup files to home server
+      ansible.builtin.copy:
+        src: "/home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz"
+        dest: "{{ backup_dir }}"
+      delegate_to: home_server
+      loop:
+        - misskey
+        - synapse
+      with_items: "{{ docker_services }}"
+
+- name: Restore Docker services on home server
+  hosts: home_server
+  become: true
+  tasks:
+    - name: Extract backup files on home server
+      ansible.builtin.shell: |
+        mkdir -p /var/www/{{ item }}
+        tar -xzvf {{ backup_dir }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz -C /var/www/{{ item }}
+      loop:
+        - misskey
+        - synapse
+      with_items: "{{ docker_services }}"
+
+    - name: Start Docker Compose services on home server
+      ansible.builtin.shell: |
+        cd /var/www/{{ item }} && docker-compose up --build -d
+      loop:
+        - misskey
+        - synapse
+      with_items: "{{ docker_services }}"
