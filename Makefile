@@ -84,7 +84,7 @@ update:
 	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
-	cd $(MISSKEY_DIR) && git checkout master && git pull origin master
+	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
 	cd $(MISSKEY_DIR) && sudo docker compose up --build -d
 
 migrate:
