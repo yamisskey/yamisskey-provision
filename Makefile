@@ -4,6 +4,9 @@ SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
 IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
 SSH_PORT=2222
+OS=$(shell lsb_release -is | tr '[:upper:]' '[:lower:]')
+CODENAME=$(shell lsb_release -cs)
+USER=$(shell whoami)
 MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
@@ -21,11 +24,11 @@ install:
 	curl -fsSL https://tailscale.com/install.sh | sh
 	sudo mkdir -p --mode=0755 /usr/share/keyrings
 	curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-	echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared bookworm main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+	echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 	sudo apt-get update
 	sudo apt-get install -y cloudflared
 	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	sudo apt-get update
 	sudo apt-get install -y cloudflare-warp
 
