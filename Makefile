@@ -78,6 +78,15 @@ backup:
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 
+update:
+	sudo docker exec backup /root/backup.sh
+	cd $(MISSKEY_DIR) && sudo docker-compose down
+	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
+	mkdir -p ~/misskey-backup
+	cd $(MISSKEY_DIR) && sudo tar -czvf ~/misskey-backup/misskey-backup-$(TIMESTAMP).tar.gz ./
+	cd $(MISSKEY_DIR) && git checkout master && git pull origin master
+	cd $(MISSKEY_DIR) && sudo docker compose up --build -d
+
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)
 
