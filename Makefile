@@ -84,8 +84,12 @@ update:
 	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
+	cd $(MISSKEY_DIR) && git stash
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
-	cd $(MISSKEY_DIR) && sudo docker compose up --build -d
+	cd $(MISSKEY_DIR) && git submodule update --init
+	cd $(MISSKEY_DIR) && git stash pop || true
+	cd $(MISSKEY_DIR) && sudo docker compose build
+	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
 
 migrate:
 	$(ANSIBLE_PLAYBOOK) ansible/playbooks/migrate.yml --tags backup --ask-become-pass
