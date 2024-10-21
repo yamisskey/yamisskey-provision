@@ -43,8 +43,13 @@
     port: '{{ item }}'
     proto: tcp
   loop:
-    - '8008' # Synapse HTTP
-    - '8448' # Synapse HTTPS
+    - '2222'   # SSH (new port)
+    - '80'     # HTTP
+    - '443'    # HTTPS
+    - '8008'   # Synapse HTTP
+    - '8448'   # Synapse HTTPS
+    - '3478'   # TURN/STUN
+    - '5349'   # TURN/STUN over TLS
   become: true
 
 - name: Allow necessary UDP ports through UFW
@@ -53,6 +58,8 @@
     port: '{{ item }}'
     proto: udp
   loop:
+    - '3478'   # TURN/STUN
+    - '5349'   # TURN/STUN over TLS
     - '49160:49200' # TURN relay ports
   become: true
 
