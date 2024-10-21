@@ -1,3 +1,6 @@
-docker_services:
+docker_services_www:
   - misskey
   - synapse
+docker_services_opt:
+  - misskey-backup
+  - minio
