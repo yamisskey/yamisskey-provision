@@ -34,7 +34,6 @@ services:
     image: coturn/coturn
     container_name: coturn
     restart: unless-stopped
-    network_mode: "host"
     ports:
       - '3478:3478/udp'
       - '3478:3478/tcp'
