@@ -44,8 +44,10 @@
 
 - name: Create required Jitsi configuration directories
   file:
-    path: '/var/www/jitsi/{{ item }}'
+    path: '/home/{{ ansible_user }}/.jitsi-meet-cfg/{{ item }}'
     state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
   loop:
     - web
@@ -62,6 +64,12 @@
     path: '/var/www/jitsi/.env'
     regexp: '^#?PUBLIC_URL=.*$'
     line: 'PUBLIC_URL=https://{{ jitsi_server_name }}'
+
+- name: Update .env file with CONFIG directory
+  lineinfile:
+    path: '/var/www/jitsi/.env'
+    regexp: '^#?CONFIG=.*$'
+    line: 'CONFIG=/home/{{ ansible_user }}/.jitsi-meet-cfg'
 
 - name: Deploy Nginx configuration for Jitsi Meet
   template:
