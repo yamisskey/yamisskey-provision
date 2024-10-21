@@ -4,3 +4,6 @@ docker_services_www:
 docker_services_opt:
   - misskey-backup
   - minio
+docker_services_home:
+  - ai
+  - ctfd
