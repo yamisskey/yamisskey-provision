@@ -7,8 +7,8 @@ server {
 server {
     listen 443 ssl;
     server_name {{ coturn_server_name }};
-    ssl_certificate /etc/letsencrypt/live/{{ coturn_server_name }}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{ coturn_server_name }}/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/yami.ski/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yami.ski/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
