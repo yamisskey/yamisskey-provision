@@ -1,0 +1,64 @@
+server {
+    listen 80;
+    server_name {{ jitsi_server_name }};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name {{ jitsi_server_name }};
+
+    # SSL設定
+    ssl_certificate /etc/letsencrypt/live/yami.ski/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yami.ski/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # WebSocket用のヘッダー設定
+    location ~ ^/colibri-ws/ {
+        proxy_pass http://localhost:8443;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # XMPP WebSocket用設定
+    location ~ ^/xmpp-websocket {
+        proxy_pass http://localhost:8443;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # BOSHのプロキシ設定（モバイルクライアント用）
+    location /http-bind {
+        proxy_pass http://localhost:8443/http-bind;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+    }
+
+    # Jitsi MeetのWebインターフェースをプロキシ
+    location / {
+        proxy_pass http://localhost:8443;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffer_size 128k;
+        proxy_buffers 4 256k;
+        proxy_busy_buffers_size 256k;
+    }
+}

@@ -1,0 +1,56 @@
+- name: Download the latest Jitsi Meet Docker release
+  command: wget -q $(curl -s https://api.github.com/repos/jitsi/docker-jitsi-meet/releases/latest | grep 'zip' | cut -d\" -f4) -O jitsi-docker.zip
+  args:
+    chdir: /var/www/jitsi
+
+- name: Unzip the Jitsi Meet package
+  unarchive:
+    src: /var/www/jitsi/jitsi-docker.zip
+    dest: /var/www/jitsi/
+    remote_src: yes
+
+- name: Copy env.example to .env
+  command: cp env.example .env
+  args:
+    chdir: /var/www/jitsi
+
+- name: Set strong passwords in the security section of .env file
+  command: ./gen-passwords.sh
+  args:
+    chdir: /var/www/jitsi
+
+- name: Create required Jitsi configuration directories
+  file:
+    path: '/var/www/jitsi/{{ item }}'
+    state: directory
+    mode: '0755'
+  loop:
+    - web
+    - transcripts
+    - prosody/config
+    - prosody/prosody-plugins-custom
+    - jicofo
+    - jvb
+    - jigasi
+    - jibri
+
+- name: Update .env file with PUBLIC_URL and other settings
+  lineinfile:
+    path: '/var/www/jitsi/.env'
+    regexp: '^#?PUBLIC_URL=.*$'
+    line: 'PUBLIC_URL=https://{{ jitsi_server_name }}'
+
+- name: Deploy Nginx configuration for Jitsi Meet
+  template:
+    src: nginx_jitsi.conf.j2
+    dest: '/etc/nginx/conf.d/jitsi.conf'
+
+- name: Reload Nginx to apply new configuration
+  service:
+    name: nginx
+    state: reloaded
+
+- name: Start Jitsi Meet with Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /var/www/jitsi
