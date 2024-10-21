@@ -10,6 +10,7 @@ ctfd_dir: '/home/{{ user_name }}/ctfd'
 synapse_server_name: matrix.yami.ski
 synapse_secrets_file: '/var/www/synapse/secrets.yml'
 coturn_server_name: coturn.yami.ski
+coturns_server_name: coturns.yami.ski
 element_server_name: element.yami.ski
 matrix_use_ssl: true
 minio_alias: yaminio

@@ -17,6 +17,8 @@ services:
     ports:
       - '8008:8008/tcp'
       - '8448:8448/tcp'
+    networks:
+      - coturn_network
 
   db:
     image: postgres:latest
@@ -29,6 +31,8 @@ services:
       POSTGRES_INITDB_ARGS: --encoding='UTF8' --lc-collate='C' --lc-ctype='C'
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - coturn_network
 
   coturn:
     image: coturn/coturn
@@ -47,3 +51,9 @@ services:
       - TURN_PASSWORD={{ turn_password }}
       - DETECT_EXTERNAL_IP=yes
     command: turnserver -c /etc/coturn/turnserver.conf
+    networks:
+      - coturn_network
+
+networks:
+  coturn_network:
+    driver: bridge

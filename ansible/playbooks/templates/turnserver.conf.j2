@@ -1,9 +1,10 @@
 syslog
-use-auth-secret
 
 # Use fingerprint in TURN message
 fingerprint
 
+# Enable authentication to secure access to the TURN server
+use-auth-secret
 static-auth-secret={{ turn_secret }}
 
 # server name and realm
@@ -23,6 +24,8 @@ max-port=49200
 no-tcp-relay
 no-stun
 no-multicast-peers
+
+# Deny specific IP ranges
 denied-peer-ip=10.0.0.0-10.255.255.255
 denied-peer-ip=192.168.0.0-192.168.255.255
 denied-peer-ip=172.16.0.0-172.31.255.255
@@ -37,8 +40,11 @@ denied-peer-ip=198.18.0.0-198.19.255.255
 denied-peer-ip=198.51.100.0-198.51.100.255
 denied-peer-ip=203.0.113.0-203.0.113.255
 denied-peer-ip=240.0.0.0-255.255.255.255
-allowed-peer-ip=10.0.0.1
 
+# Remove allowed-peer-ip as it may not be necessary
+# allowed-peer-ip=10.0.0.1
+
+# Quota settings
 user-quota=12
 total-quota=1200
 
@@ -49,5 +55,14 @@ lt-cred-mech
 cert=/etc/letsencrypt/live/yami.ski/fullchain.pem
 pkey=/etc/letsencrypt/live/yami.ski/privkey.pem
 
+# External IP-Address of the TURN server
 external-ip={{ turn_external_ip }}
+
+# Internal IP-Address of the TURN server
 listening-ip={{ turn_internal_ip }}
+
+# Log file path
+log-file=/var/tmp/turnserver.log
+
+# Enable verbose logging
+verbose
