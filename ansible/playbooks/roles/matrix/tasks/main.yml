@@ -22,51 +22,6 @@
     postgresql_database: "{{ (lookup('file', synapse_secrets_file) | from_yaml).postgresql.database }}"
     postgresql_host: "{{ (lookup('file', synapse_secrets_file) | from_yaml).postgresql.host }}"
 
-# TURNサーバーの秘密情報をsecrets.ymlから読み込む
-- name: Load TURN server secrets from secrets.yml
-  set_fact:
-    turn_user: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.user }}"
-    turn_password: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.password }}"
-    turn_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.secret }}"
-    turn_external_ip: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.external_ip }}"
-    turn_internal_ip: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.internal_ip }}"
-
-- name: Add TURN server configuration
-  template:
-    src: turnserver.conf.j2
-    dest: /var/www/synapse/turnserver.conf
-
-# 必要なポートをUFWで解放
-- name: Allow necessary ports through UFW
-  ufw:
-    rule: allow
-    port: '{{ item }}'
-    proto: tcp
-  loop:
-    - '2222'   # SSH (new port)
-    - '80'     # HTTP
-    - '443'    # HTTPS
-    - '8008'   # Synapse HTTP
-    - '8448'   # Synapse HTTPS
-    - '3478'   # TURN/STUN
-    - '5349'   # TURN/STUN over TLS
-  become: true
-
-- name: Allow necessary UDP ports through UFW
-  ufw:
-    rule: allow
-    port: '{{ item }}'
-    proto: udp
-  loop:
-    - '3478'   # TURN/STUN
-    - '5349'   # TURN/STUN over TLS
-    - '49160:49200' # TURN relay ports
-  become: true
-
-- name: Reload UFW to apply changes
-  command: ufw reload
-  become: true
-
 # Docker Composeファイルをテンプレートから生成
 - name: Add required configurations to Docker Compose file
   template:
@@ -136,10 +91,6 @@
         password: "{{ postgresql_password }}"
         database: "{{ postgresql_database }}"
         host: "{{ postgresql_host }}"
-      coturn:
-        user: "{{ turn_user }}"
-        password: "{{ turn_password }}"
-        secret: "{{ turn_secret }}"
   when: not synapse_secrets_file_stat.stat.exists
 
 # Synapseの設定ファイルを反映
@@ -198,11 +149,6 @@
   template:
     src: nginx_element.conf.j2
     dest: /etc/nginx/conf.d/element.conf
-
-- name: Copy nginx configuration for coturn
-  template:
-    src: nginx_coturn.conf.j2
-    dest: /etc/nginx/conf.d/coturn.conf
 
 - name: Restart nginx
   service:
