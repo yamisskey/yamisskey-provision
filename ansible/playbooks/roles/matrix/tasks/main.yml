@@ -29,6 +29,30 @@
     turn_password: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.password }}"
     turn_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.secret }}"
 
+# 必要なポートをUFWで解放
+- name: Allow necessary ports through UFW
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '8008'   # Synapse HTTP
+    - '8448'   # Synapse HTTPS
+  become: true
+
+- name: Allow necessary UDP ports through UFW
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+  loop:
+    - '49160:49200'  # TURN relay ports
+  become: true
+
+- name: Reload UFW to apply changes
+  command: ufw reload
+  become: true
+
 # Docker Composeファイルをテンプレートから生成
 - name: Add required configurations to Docker Compose file
   template:

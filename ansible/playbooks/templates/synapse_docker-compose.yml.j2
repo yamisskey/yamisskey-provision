@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
   synapse:
@@ -16,6 +16,7 @@ services:
       - SYNAPSE_REPORT_STATS=yes
     ports:
       - '8008:8008/tcp'
+      - '8448:8448/tcp'
 
   db:
     image: postgres:latest
