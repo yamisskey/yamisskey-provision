@@ -4,16 +4,33 @@
     state: directory
     mode: '0755'
 
+- name: Check if Jitsi Meet is already unzipped
+  stat:
+    path: /var/www/jitsi/docker-compose.yml
+  register: jitsi_unzipped
+
 - name: Download the latest Jitsi Meet Docker release
   shell: wget -q $(curl -s https://api.github.com/repos/jitsi/docker-jitsi-meet/releases/latest | grep 'zip' | cut -d\" -f4) -O jitsi-docker.zip
   args:
     chdir: /var/www/jitsi
+  when: not jitsi_unzipped.stat.exists
 
 - name: Unzip the Jitsi Meet package
   unarchive:
     src: /var/www/jitsi/jitsi-docker.zip
     dest: /var/www/jitsi/
     remote_src: yes
+  when: not jitsi_unzipped.stat.exists
+
+- name: Move Jitsi Meet files from subfolder to /var/www/jitsi
+  shell: mv /var/www/jitsi/jitsi-docker-jitsi-meet-*/* /var/www/jitsi/
+  when: not jitsi_unzipped.stat.exists
+
+- name: Remove the now empty subfolder
+  file:
+    path: '/var/www/jitsi/jitsi-docker-jitsi-meet-*'
+    state: absent
+  when: not jitsi_unzipped.stat.exists
 
 - name: Copy env.example to .env
   command: cp env.example .env
