@@ -28,25 +28,32 @@
     turn_user: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.user }}"
     turn_password: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.password }}"
     turn_secret: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.secret }}"
+    turn_external_ip: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.external_ip }}"
+    turn_internal_ip: "{{ (lookup('file', synapse_secrets_file) | from_yaml).turn.internal_ip }}"
+
+- name: Add TURN server configuration
+  template:
+    src: turnserver.conf.j2
+    dest: /var/www/synapse/turnserver.conf
 
 # 必要なポートをUFWで解放
 - name: Allow necessary ports through UFW
   ufw:
     rule: allow
-    port: "{{ item }}"
+    port: '{{ item }}'
     proto: tcp
   loop:
-    - '8008'   # Synapse HTTP
-    - '8448'   # Synapse HTTPS
+    - '8008' # Synapse HTTP
+    - '8448' # Synapse HTTPS
   become: true
 
 - name: Allow necessary UDP ports through UFW
   ufw:
     rule: allow
-    port: "{{ item }}"
+    port: '{{ item }}'
     proto: udp
   loop:
-    - '49160:49200'  # TURN relay ports
+    - '49160:49200' # TURN relay ports
   become: true
 
 - name: Reload UFW to apply changes

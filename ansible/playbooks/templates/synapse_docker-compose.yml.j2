@@ -34,24 +34,17 @@ services:
     image: coturn/coturn
     container_name: coturn
     restart: unless-stopped
+    network_mode: "host"
     ports:
       - '3478:3478/udp'
       - '3478:3478/tcp'
       - '5349:5349/udp'
       - '5349:5349/tcp'
       - '49160-49200:49160-49200/udp'
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf
     environment:
       - TURN_USER={{ turn_user }}
       - TURN_PASSWORD={{ turn_password }}
       - DETECT_EXTERNAL_IP=yes
-    command: >
-      --no-stun
-      --no-multicast-peers
-      --fingerprint
-      --use-auth-secret
-      --static-auth-secret={{ turn_secret }}
-      --realm={{ synapse_server_name }}
-      --listening-port=3478
-      --tls-listening-port=5349
-      --min-port=49160
-      --max-port=49200
+    command: turnserver -c /etc/coturn/turnserver.conf
