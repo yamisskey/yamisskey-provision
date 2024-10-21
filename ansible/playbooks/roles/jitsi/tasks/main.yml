@@ -109,12 +109,24 @@
     group: root
     mode: '0644'
 
-- name: Update interface_config.js to include custom CSS
+- name: Create plugin.head.html if it does not exist
+  file:
+    path: /usr/share/jitsi-meet/plugin.head.html
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Add custom CSS to plugin.head.html
   lineinfile:
-    path: /usr/share/jitsi-meet/interface_config.js
-    regexp: '^//?CUSTOM_CSS_FILE=.*$'
-    line: 'CUSTOM_CSS_FILE: "/css/custom.css",'
+    path: /usr/share/jitsi-meet/plugin.head.html
+    line: '<link rel="stylesheet" href="css/custom.css?v=1">'
     state: present
+
+- name: Reload Nginx to apply changes
+  service:
+    name: nginx
+    state: reloaded
 
 - name: Deploy Nginx configuration for Jitsi Meet
   template:
