@@ -11,6 +11,7 @@ MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
 BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
+ASSETS_DIR=$(HOME)/misskey-assets
 CTFD_DIR=$(HOME)/ctfd
 
 all: install clone provision backup
@@ -38,6 +39,11 @@ clone:
 	if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR); \
 		cd $(MISSKEY_DIR) && git checkout master; \
+	fi
+	sudo mkdir -p $(ASSETS_DIR)
+	sudo chown $(USER):$(USER) $(ASSETS_DIR)
+	if [ ! -d "$(ASSETS_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-assets.git $(ASSETS_DIR); \
 	fi
 	mkdir -p $(AI_DIR)
 	if [ ! -d "$(AI_DIR)/.git" ]; then \

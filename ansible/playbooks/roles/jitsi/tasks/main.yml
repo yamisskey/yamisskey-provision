@@ -46,8 +46,8 @@
   file:
     path: '/home/{{ ansible_user }}/.jitsi-meet-cfg/{{ item }}'
     state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
     mode: '0755'
   loop:
     - web
@@ -77,6 +77,45 @@
     regexp: '^#?CONFIG=.*$'
     line: 'CONFIG=/home/{{ ansible_user }}/.jitsi-meet-cfg'
 
+- name: Create custom CSS directory
+  file:
+    path: /usr/share/jitsi-meet/css
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy custom CSS file
+  template:
+    src: templates/jitsi_custom.css.j2
+    dest: /usr/share/jitsi-meet/css/custom.css
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create custom images directory
+  file:
+    path: /usr/share/jitsi-meet/images
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy custom background image
+  copy:
+    src: /home/{{ ansible_user }}/misskey-assets/wallpaper.jpg
+    dest: /usr/share/jitsi-meet/images/custom-background.jpg
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Update interface_config.js to include custom CSS
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^//?CUSTOM_CSS_FILE=.*$'
+    line: 'CUSTOM_CSS_FILE: "/css/custom.css",'
+    state: present
+
 - name: Deploy Nginx configuration for Jitsi Meet
   template:
     src: nginx_jitsi.conf.j2
@@ -91,3 +130,4 @@
   command: docker-compose up -d
   args:
     chdir: /var/www/jitsi
+
