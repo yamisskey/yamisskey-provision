@@ -65,6 +65,12 @@
     regexp: '^#?PUBLIC_URL=.*$'
     line: 'PUBLIC_URL=https://{{ jitsi_server_name }}'
 
+- name: Update .env file with HTTP_PORT
+  lineinfile:
+    path: '/var/www/jitsi/.env'
+    regexp: '^#?HTTP_PORT=.*$'
+    line: 'HTTP_PORT=8002'
+
 - name: Update .env file with CONFIG directory
   lineinfile:
     path: '/var/www/jitsi/.env'
