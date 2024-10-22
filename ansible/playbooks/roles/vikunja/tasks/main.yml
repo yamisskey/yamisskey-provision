@@ -37,6 +37,8 @@
     dest: '{{ vikunja_secrets_file }}'
     content: |
       jwt_secret: "{{ jwt_secret }}"
+      db_root_password : "{{ db_root_password }}"
+      db_user: "{{ db_user }}"
       db_password: "{{ db_password }}"
       mailer_password: "{{ mailer_password }}"
   when: vikunja_secrets_file is not exists
