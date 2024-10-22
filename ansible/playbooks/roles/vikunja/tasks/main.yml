@@ -5,7 +5,7 @@
 
 - name: Create necessary directories
   file:
-    path: /var/www/vikunja/{{ item }}'
+    path: /var/www/vikunja/{{ item }}
     state: directory
     owner: 1000
     group: 1000
@@ -54,7 +54,7 @@
 - name: Generate nginx.conf from template
   template:
     src: nginx_vikunja.conf.j2
-    dest: '/var/www/vikunja/nginx.conf'
+    dest: '/etc/nginx/conf.d/vikunja.conf'
 
 # Docker Composeでサービスを起動
 - name: Start Vikunja services
