@@ -125,10 +125,12 @@ sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudfl
 
 Need to manually log in to tailscale, cloudflared and warp
 
+#### tailscale
 ```consol
 tailscale login
 ```
 
+#### cloudflared
 ```consol
 cloudflared tunnel login
 ```
@@ -138,6 +140,21 @@ create cloudflare tunnel named yamisskey-cloudflared by Zero Trust in https://on
 sudo cloudflared service install your_connector_token_value
 ```
 
+#### warp-cli
+
+##### warp+
+
+subscribe warp licence key on mobile device
+```consol
+warp-cli registration new
+warp-cli registration license <your-warp-licence-key-subscribed-on-mobile-device>
+warp-cli registration show
+warp-cli connect
+curl https://www.cloudflare.com/cdn-cgi/trace/
+```
+verify that warp=on.
+
+##### cloudflare zero trust(optional)
 create cloudflare tunnel named yamisskey-warp by Zero Trust in https://one.dash.cloudflare.com/
 
 copy mdm.xml to /var/lib/cloudflare-warp/mdm.xml
