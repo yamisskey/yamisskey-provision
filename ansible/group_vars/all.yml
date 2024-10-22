@@ -18,3 +18,5 @@ minio_web_server_name: minio.yami.ski
 minio_bucket_name: "files"
 minio_secrets_file: '/opt/minio/secrets.yml'
 backup_dir: '/home/{{ user_name }}/backups'
+vikunja_server_name: vikunja.yami.ski
+vikunja_secrets_file: '/var/www/vikunja/secrets.yml'

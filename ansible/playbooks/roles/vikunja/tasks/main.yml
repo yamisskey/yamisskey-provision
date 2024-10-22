@@ -1,0 +1,63 @@
+- name: Create project directory
+  file:
+    path: /var/www/vikunja
+    state: directory
+
+- name: Create necessary directories
+  file:
+    path: /var/www/vikunja/{{ item }}'
+    state: directory
+    owner: 1000
+    group: 1000
+  loop:
+    - files
+    - db
+
+# 秘密情報をsecrets.ymlから読み込む
+- name: Load Vikunja secrets from secrets.yml
+  set_fact:
+    vikunja_secrets: "{{ lookup('file', vikunja_secrets_file) | from_yaml }}"
+  when: vikunja_secrets_file is exists
+
+# secrets.ymlからJWTシークレットを取得または生成
+- name: Ensure JWT secret exists
+  block:
+    - name: Generate JWT secret
+      shell: 'cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 64 | head -n 1'
+      register: jwt_secret_output
+      when: vikunja_secrets.jwt_secret is not defined
+
+    - name: Set JWT secret fact
+      set_fact:
+        jwt_secret: '{{ vikunja_secrets.jwt_secret if vikunja_secrets.jwt_secret is defined else jwt_secret_output.stdout }}'
+  when: vikunja_secrets_file is exists
+
+- name: Create secrets.yml if not exists
+  copy:
+    dest: '{{ vikunja_secrets_file }}'
+    content: |
+      jwt_secret: "{{ jwt_secret }}"
+      db_password: "{{ db_password }}"
+  when: vikunja_secrets_file is not exists
+
+- name: Load secrets from secrets.yml
+  set_fact:
+    vikunja_secrets: "{{ lookup('file', vikunja_secrets_file) | from_yaml }}"
+
+# Docker Composeファイルをテンプレートから生成
+- name: Generate docker-compose.yml from template
+  template:
+    src: vikunja_docker-compose.yml.j2
+    dest: '/var/www/vikunja/docker-compose.yml'
+
+# Nginx設定ファイルをテンプレートから生成
+- name: Generate nginx.conf from template
+  template:
+    src: vikunja_nginx.conf.j2
+    dest: '/var/www/vikunja/nginx.conf'
+
+# Docker Composeでサービスを起動
+- name: Start Vikunja services
+  shell: docker-compose up -d
+  args:
+    chdir: '/var/www/vikunja'
