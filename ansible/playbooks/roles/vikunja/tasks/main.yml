@@ -53,7 +53,7 @@
 # Nginx設定ファイルをテンプレートから生成
 - name: Generate nginx.conf from template
   template:
-    src: vikunja_nginx.conf.j2
+    src: nginx_vikunja.conf.j2
     dest: '/var/www/vikunja/nginx.conf'
 
 # Docker Composeでサービスを起動
