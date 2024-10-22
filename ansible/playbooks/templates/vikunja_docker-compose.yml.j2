@@ -4,7 +4,8 @@ services:
     vikunja:
         image: vikunja/vikunja
         environment:
-            VIKUNJA_SERVICE_PUBLICURL: http://{{ vikunja_server_name }}
+            VIKUNJA_SERVICE_PUBLICURL: https://{{ vikunja_server_name }}/
+            VIKUNJA_FRONTEND_APIURL: https://{{ vikunja_server_name }}/api/v1
             VIKUNJA_DATABASE_HOST: db
             VIKUNJA_DATABASE_PASSWORD: "{{ vikunja_secrets.db_password }}"
             VIKUNJA_DATABASE_TYPE: mysql
