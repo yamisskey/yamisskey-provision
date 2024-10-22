@@ -38,6 +38,7 @@
     content: |
       jwt_secret: "{{ jwt_secret }}"
       db_password: "{{ db_password }}"
+      mailer_password: "{{ mailer_password }}"
   when: vikunja_secrets_file is not exists
 
 - name: Load secrets from secrets.yml

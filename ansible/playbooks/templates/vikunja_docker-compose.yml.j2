@@ -13,7 +13,14 @@ services:
             VIKUNJA_DATABASE_DATABASE: vikunja
             VIKUNJA_SERVICE_JWTSECRET: "{{ vikunja_secrets.jwt_secret }}"
             VIKUNJA_SERVICE_ENABLEREGISTRATION: "true"
-            VIKUNJA_MAILER_ENABLED: "false"
+            VIKUNJA_MAILER_ENABLED: "true"
+            VIKUNJA_MAILER_HOST: "smtp.protonmail.ch"
+            VIKUNJA_MAILER_PORT: "465"
+            VIKUNJA_MAILER_USERNAME: "admin@yami.ski"
+            VIKUNJA_MAILER_PASSWORD: "{{ vikunja_secrets.mailer_password }}"
+            VIKUNJA_MAILER_FROMEMAIL: "admin@yami.ski"
+            VIKUNJA_MAILER_FORCESSL: "true"
+            VIKUNJA_MAILER_SKIPTLSVERIFY: "false"
         ports:
             - 3456:3456
         volumes:
