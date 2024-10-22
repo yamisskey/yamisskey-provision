@@ -155,21 +155,6 @@
     name: nginx
     state: restarted
 
-# Cloudflaredの管理
-- name: Stop cloudflared service if running
-  systemd:
-    name: cloudflared
-    state: stopped
-    enabled: false
-  ignore_errors: yes
-
-- name: Start and enable cloudflared service
-  systemd:
-    name: cloudflared
-    state: started
-    enabled: true
-  become: true
-
 # Elementコンテナの起動
 - name: Start element
   docker_compose:
