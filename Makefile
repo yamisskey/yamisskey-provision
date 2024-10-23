@@ -91,13 +91,13 @@ update:
 	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
-	cd $(MISSKEY_DIR) && sudo git stash
+	cd $(MISSKEY_DIR) && sudo git stash || true
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
 	cd $(MISSKEY_DIR) && sudo git submodule update --init
 	cd $(MISSKEY_DIR) && git stash pop || true
 	IMAGE_TAG="misskey_web:$(TIMESTAMP)"
-	cd $(MISSKEY_DIR) && COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$(IMAGE_TAG)
-	cd $(MISSKEY_DIR) && docker tag misskey_web:latest $(IMAGE_TAG)
+	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$(IMAGE_TAG)
+	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest $(IMAGE_TAG)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
 
 migrate:
