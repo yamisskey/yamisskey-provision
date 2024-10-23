@@ -150,7 +150,7 @@
   failed_when: false
 
 - name: Check if Docker image exists
-  shell: docker images -q misskey_web:latest
+  shell: docker images -q yamisskey-web:latest
   register: docker_image
   failed_when: false
 
@@ -160,9 +160,9 @@
 
 - name: Build Misskey image if updates are needed
   shell: |
-    IMAGE_TAG="misskey_web:{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
     COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$IMAGE_TAG
-    docker tag misskey_web:latest $IMAGE_TAG
+    docker tag yamisskey-web:latest $IMAGE_TAG
   args:
     chdir: '{{ misskey_dir }}'
     executable: /bin/bash
