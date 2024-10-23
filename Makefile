@@ -7,6 +7,7 @@ SSH_PORT=2222
 OS=$(shell lsb_release -is | tr '[:upper:]' '[:lower:]')
 CODENAME=$(shell lsb_release -cs)
 USER=$(shell whoami)
+TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
 MISSKEY_DIR=/var/www/misskey
 CONFIG_FILES=$(MISSKEY_DIR)/.config/default.yml $(MISSKEY_DIR)/.config/docker.env
 AI_DIR=$(HOME)/ai
@@ -88,16 +89,14 @@ backup:
 update:
 	sudo docker exec backup /root/backup.sh
 	cd $(MISSKEY_DIR) && sudo docker-compose down
-	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$$TIMESTAMP.tar.gz ./
 	cd $(MISSKEY_DIR) && sudo git stash || true
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
 	cd $(MISSKEY_DIR) && sudo git submodule update --init
 	cd $(MISSKEY_DIR) && git stash pop || true
-	IMAGE_TAG="misskey_web:$$TIMESTAMP"
-	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$$IMAGE_TAG
-	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$$TIMESTAMP
+	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
+	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
 
 migrate:
