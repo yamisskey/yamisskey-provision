@@ -90,7 +90,7 @@ update:
 	sudo docker exec backup /root/backup.sh
 	cd $(MISSKEY_DIR) && sudo docker-compose down
 	mkdir -p ~/backups/misskey
-	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$$TIMESTAMP.tar.gz ./
+	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
 	cd $(MISSKEY_DIR) && sudo git stash || true
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
 	cd $(MISSKEY_DIR) && sudo git submodule update --init
