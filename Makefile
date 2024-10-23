@@ -85,12 +85,11 @@ backup:
 	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
-
-update:
-	sudo docker exec backup /root/backup.sh
-	cd $(MISSKEY_DIR) && sudo docker-compose down
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
+
+update:
+	cd $(MISSKEY_DIR) && sudo docker-compose down
 	cd $(MISSKEY_DIR) && sudo git stash || true
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
 	cd $(MISSKEY_DIR) && sudo git submodule update --init
