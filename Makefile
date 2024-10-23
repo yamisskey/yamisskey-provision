@@ -97,7 +97,7 @@ update:
 	cd $(MISSKEY_DIR) && git stash pop || true
 	IMAGE_TAG="misskey_web:$(TIMESTAMP)"
 	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$(IMAGE_TAG)
-	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest $(IMAGE_TAG)
+	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
 
 migrate:
