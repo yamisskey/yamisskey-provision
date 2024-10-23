@@ -88,7 +88,7 @@ backup:
 update:
 	sudo docker exec backup /root/backup.sh
 	cd $(MISSKEY_DIR) && sudo docker-compose down
-	TIMESTAMP=$(shell date +%Y%m%d%H%M%S)
+	TIMESTAMP=$(date +%Y%m%d%H%M%S)
 	mkdir -p ~/backups/misskey
 	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
 	cd $(MISSKEY_DIR) && sudo git stash || true
