@@ -8,10 +8,8 @@ in
   ];
 
   home.activation = {
-    installWrangler = {
-      text = ''
-        npx wrangler --version || npx wrangler@latest
-      '';
-    };
+    installWrangler = ''
+      npx wrangler --version || npx wrangler@latest
+    '';
   };
 }
