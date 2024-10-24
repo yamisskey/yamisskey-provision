@@ -1,6 +1,6 @@
-# Setup VPS with Makefile and Ansible Playbook
+# Provisioning servers with Make, Ansible, and Nix
 
-This guide will walk you through the process of setting up Misskey using the provided Makefile and Ansible playbook.
+This guide will walk you through the process of setting up Misskey etc using the provided Make and Ansible, and Nix.
 
 ## Steps
 
