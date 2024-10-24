@@ -298,11 +298,15 @@
     src: '{{ backup_dir }}/misskey/vapid_keys.yml'
   register: vapid_keys_content
 
+- name: Debug VAPID keys content
+  debug:
+    var: vapid_keys_content.content
+
 - name: Set VAPID keys variables
   set_fact:
-    vapid_keys_data: "{{ vapid_keys_content.content | b64decode | from_json }}"
-    vapid_public_key: "{{ vapid_keys_data.public_key }}"
-    vapid_private_key: "{{ vapid_keys_data.private_key }}"
+    vapid_keys_data: "{{ vapid_keys_content.content | b64decode | from_yaml }}"
+    vapid_public_key: "{{ vapid_keys_data.publicKey }}"
+    vapid_private_key: "{{ vapid_keys_data.privateKey }}"
 
 - name: Print VAPID keys
   debug:
