@@ -116,3 +116,18 @@
     executable: /bin/bash
   register: push_output
   failed_when: push_output.rc != 0
+
+- name: Create backup directory
+  file:
+    path: ~/backups/misskey
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Create tarball of Misskey directory
+  command: sudo tar -czvf ~/backups/misskey/misskey-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz -C {{ misskey_dir }} .
+  args:
+    executable: /bin/bash
+  register: backup_output
+  failed_when: backup_output.rc != 0

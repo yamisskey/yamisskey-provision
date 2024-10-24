@@ -86,7 +86,6 @@ backup:
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
 	mkdir -p ~/backups/misskey
-	cd $(MISSKEY_DIR) && sudo tar -czvf ~/backups/misskey/misskey-backup-$(TIMESTAMP).tar.gz ./
 
 update:
 	cd $(MISSKEY_DIR) && sudo docker-compose down
