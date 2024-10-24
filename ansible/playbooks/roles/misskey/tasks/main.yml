@@ -160,16 +160,14 @@
 
 - name: Build Misskey image if updates are needed
   shell: |
-    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_TAG="misskey-web:{{ ansible_date_time.iso8601_basic }}"
     COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$IMAGE_TAG
-    docker tag yamisskey-web:latest $IMAGE_TAG
+    docker tag misskey_web:latest $IMAGE_TAG
   args:
     chdir: '{{ misskey_dir }}'
-    executable: /bin/bash
   when: updates_needed
   register: build_output
   failed_when: build_output.rc != 0
-  ignore_errors: yes
 
 - name: Debug build output
   debug:
@@ -196,6 +194,21 @@
 #   fail:
 #     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr | default('Unknown error') }}"
 #   when: misskey_running.stdout == "" and init_output.rc != 0
+
+- name: Tag existing Misskey image
+  shell: |
+    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
+    docker tag misskey_web:latest $IMAGE_TAG
+  register: tag_output
+  failed_when: tag_output.rc != 0
+
+- name: Push Docker image to DockerHub
+  shell: |
+    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
+    docker push yamisskey/misskey-web:latest
+    docker push $IMAGE_TAG
+  register: push_output
+  failed_when: push_output.rc != 0
 
 - name: Stop Misskey services
   shell: docker-compose stop
