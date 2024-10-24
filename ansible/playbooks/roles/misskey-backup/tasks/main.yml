@@ -126,8 +126,6 @@
     mode: '0755'
 
 - name: Create tarball of Misskey directory
-  command: sudo tar -czvf ~/backups/misskey/misskey-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz -C {{ misskey_dir }} .
-  args:
-    executable: /bin/bash
+  shell: sudo tar -czvf ~/backups/misskey/misskey-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz -C {{ misskey_dir }} .
   register: backup_output
   failed_when: backup_output.rc != 0
