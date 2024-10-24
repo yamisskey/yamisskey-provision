@@ -49,9 +49,9 @@
     enabled: yes
     state: started
 
-- name: Copy grafana.conf to /etc/nginx/conf.d/
-  copy:
-    src: ~/yamisskey-provision/nginx/grafana.conf
+- name: Deploy Grafana Nginx configuration
+  template:
+    src: nginx_grafana.conf.j2
     dest: /etc/nginx/conf.d/grafana.conf
     owner: root
     group: root
@@ -61,7 +61,7 @@
 
 - name: Check if Nginx configuration exists for Grafana
   stat:
-    path: '/etc/nginx/conf.d/grafana.conf'
+    path: /etc/nginx/conf.d/grafana.conf
   register: grafana_nginx_conf
 
 - name: Fail if Nginx configuration does not exist for Grafana
