@@ -169,18 +169,27 @@
   become: true
   notify: Restart fail2ban
 
-- name: Copy custom jail.local
-  copy:
-    src: '{{ set_dir }}/fail2ban/jail.local'
-    dest: /etc/fail2ban/jail.local
+- name: Ensure fail2ban is installed
+  apt:
+    name: fail2ban
+    state: present
   become: true
-  notify: Restart fail2ban
 
-- name: Ensure fail2ban is started and enabled
+- name: Deploy fail2ban configuration
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart fail2ban
+
+- name: Ensure fail2ban service is enabled and started
   systemd:
     name: fail2ban
+    enabled: yes
     state: started
-    enabled: true
   become: true
 
 - name: Check fail2ban status for sshd
