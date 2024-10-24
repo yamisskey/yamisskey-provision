@@ -92,9 +92,11 @@
     file: '{{ misskey-backup_secrets_file }}'
 
 - name: Log in to DockerHub
-  shell: echo "{{ dockerhub_password }}" | docker login -u "{{ dockerhub_username }}" --password-stdin
+  docker_login:
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"
   register: login_output
-  failed_when: login_output.rc != 0
+  failed_when: login_output.failed
 
 - name: Tag existing Misskey image
   shell: |
