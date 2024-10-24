@@ -100,7 +100,7 @@
 
 - name: Tag existing Misskey image
   shell: |
-    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
     docker tag misskey_web:latest $IMAGE_TAG
   args:
     executable: /bin/bash
@@ -109,7 +109,7 @@
 
 - name: Push Docker image to DockerHub
   shell: |
-    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
     docker push misskey_web:latest
     docker push $IMAGE_TAG
   args:
