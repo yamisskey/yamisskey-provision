@@ -41,9 +41,9 @@
         restarted: true
       when: ctfd_container_status.stdout is not defined or ctfd_container_status.stdout == ""
 
-- name: Copy CTFd Nginx configuration to /etc/nginx/conf.d/
-  copy:
-    src: '{{ set_dir }}/nginx/ctfd.conf'
+- name: Deploy CTFd Nginx configuration
+  template:
+    src: nginx_ctfd.conf.j2
     dest: /etc/nginx/conf.d/ctfd.conf
     owner: root
     group: root
@@ -62,4 +62,3 @@
     state: restarted
     enabled: true
   when: nginx_test_result.rc == 0
-
