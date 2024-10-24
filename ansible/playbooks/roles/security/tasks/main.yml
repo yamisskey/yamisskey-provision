@@ -124,6 +124,89 @@
     from_ip: '{{ item }}'
   loop: '{{ tailscale_ips }}'
 
+- name: Ensure UFW is installed
+  apt:
+    name: ufw
+    state: present
+  become: true
+
+- name: Open necessary ports for Cloudflare WARP and WireGuard
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+  loop:
+    - 2408
+    - 500
+    - 1701
+    - 4500
+    - 51820  # WireGuard default port
+  become: true
+
+- name: Allow specific IP ranges for Cloudflare WARP
+  ufw:
+    rule: allow
+    from_ip: "{{ item }}"
+  loop:
+    - "162.159.137.105"
+    - "162.159.138.105"
+    - "2606:4700:7::a29f:8969"
+    - "2606:4700:7::a29f:8a69"
+    - "162.159.36.1"
+    - "162.159.46.1"
+    - "2606:4700:4700::1111"
+    - "2606:4700:4700::1001"
+    - "162.159.193.0/24"
+    - "2606:4700:100::/48"
+  become: true
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+  become: true
+
+- name: Enable UFW service
+  systemd:
+    name: ufw
+    enabled: yes
+  become: true
+
+- name: Reload UFW to apply changes
+  command: ufw reload
+  become: true
+
+- name: Check UFW status
+  command: ufw status verbose
+  register: ufw_status
+  become: true
+
+- name: Verify DNS resolution with dig
+  command: dig google.com
+  register: dig_result
+  changed_when: false
+
+- name: Display dig result
+  debug:
+    var: dig_result.stdout
+
+- name: Verify DNS resolution with nslookup
+  command: nslookup google.com
+  register: nslookup_result
+  changed_when: false
+
+- name: Display nslookup result
+  debug:
+    var: nslookup_result.stdout
+
+- name: Test DNS resolution with ping
+  command: ping -c 3 google.com
+  register: ping_result
+  changed_when: false
+
+- name: Display ping result
+  debug:
+    var: ping_result.stdout
+
 - name: Reload UFW to apply changes
   command: ufw reload
 
