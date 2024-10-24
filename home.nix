@@ -11,7 +11,7 @@
   programs.home-manager.enable = true;
 
   home.packages = with pkgs; [
-    docker
-    docker-compose
+    # docker
+    # docker-compose
   ];
 }
