@@ -5,6 +5,7 @@ mkp224o_output_dir: '/home/{{ user_name }}/mkp224o-output'
 domain_prefix: yamiski
 misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
+backup_dir: '/home/{{ user_name }}/backups'
 misskey_backup_secrets_file: '/opt/misskey-backup/secrets.yml'
 ai_dir: '/home/{{ user_name }}/ai'
 ctfd_dir: '/home/{{ user_name }}/ctfd'

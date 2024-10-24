@@ -85,7 +85,6 @@ backup:
 	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
 	@echo "Running backup script..."
 	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
-	mkdir -p ~/backups/misskey
 
 update:
 	cd $(MISSKEY_DIR) && sudo docker-compose down

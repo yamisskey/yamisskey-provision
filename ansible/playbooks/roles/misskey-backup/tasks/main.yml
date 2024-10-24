@@ -119,7 +119,7 @@
 
 - name: Create backup directory
   file:
-    path: ~/backups/misskey
+    path: '{{ backup_dir }}/misskey'
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
