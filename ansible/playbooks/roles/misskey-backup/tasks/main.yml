@@ -110,7 +110,7 @@
 - name: Push Docker image to DockerHub
   shell: |
     IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    docker push misskey_web:latest
+    docker push yamisskey/misskey-web:latest
     docker push $IMAGE_TAG
   args:
     executable: /bin/bash
