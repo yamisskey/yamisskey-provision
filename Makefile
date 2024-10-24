@@ -69,6 +69,7 @@ provision:
 	ansible-playbook -i ansible/inventory ansible/playbooks/ctfd.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/matrix.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/minio.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/jitsi.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory ansible/playbooks/vikunja.yml --ask-become-pass
 
 backup:
