@@ -1,12 +1,10 @@
 { pkgs, ... }:
 let
   nodejs = pkgs.nodejs;
-  npx = pkgs.nodePackages.npx;
 in
 {
   home.packages = with pkgs; [
     nodejs
-    npx
   ];
 
   home.activation = {
