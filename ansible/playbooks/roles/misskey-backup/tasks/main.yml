@@ -89,7 +89,7 @@
 
 - name: Load secrets from secrets.yml
   include_vars:
-    file: '{{ misskey-backup_secrets_file }}'
+    file: '{{ misskey_backup_secrets_file }}'
 
 - name: Log in to DockerHub
   docker_login:
