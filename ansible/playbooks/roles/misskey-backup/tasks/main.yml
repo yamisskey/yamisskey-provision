@@ -86,3 +86,31 @@
 
 - name: Run manual backup script
   command: sudo docker exec backup /root/backup.sh
+
+- name: Load secrets from secrets.yml
+  include_vars:
+    file: '{{ misskey-backup_secrets_file }}'
+
+- name: Log in to DockerHub
+  shell: echo "{{ dockerhub_password }}" | docker login -u "{{ dockerhub_username }}" --password-stdin
+  register: login_output
+  failed_when: login_output.rc != 0
+
+- name: Tag existing Misskey image
+  shell: |
+    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
+    docker tag misskey_web:latest $IMAGE_TAG
+  args:
+    executable: /bin/bash
+  register: tag_output
+  failed_when: tag_output.rc != 0
+
+- name: Push Docker image to DockerHub
+  shell: |
+    IMAGE_TAG="yamisskey-web:{{ ansible_date_time.iso8601_basic }}"
+    docker push misskey_web:latest
+    docker push $IMAGE_TAG
+  args:
+    executable: /bin/bash
+  register: push_output
+  failed_when: push_output.rc != 0
