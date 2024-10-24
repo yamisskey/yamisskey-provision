@@ -101,10 +101,11 @@
   debug:
     msg: 'Misskey Tor URL: http://{{ tor_hostname.stdout }}'
 
-- name: Save Tor URL in a text file
+- name: Save Tor URL in a YAML file
   copy:
-    content: 'http://{{ tor_hostname.stdout }}'
-    dest: '{{ misskey_dir }}/tor.txt'
+    content: |
+      tor_url: 'http://{{ tor_hostname.stdout }}'
+    dest: '{{ backup_dir }}/misskey/onion_domain.yml'
 
 - name: Configure Tor hidden service and TransPort
   blockinfile:
