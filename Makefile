@@ -36,6 +36,7 @@ install:
 	# sudo apt-get install -y cloudflared
 	curl https://get.volta.sh | bash
 	volta install node
+	npm install -g wrangler
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
