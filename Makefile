@@ -34,6 +34,8 @@ install:
 	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 	# sudo apt-get update
 	# sudo apt-get install -y cloudflared
+	curl https://get.volta.sh | bash
+	volta install node
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)

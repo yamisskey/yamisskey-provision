@@ -17,7 +17,6 @@
       in {
         docker = callPackage ./nix/docker.nix { };
         docker-compose = callPackage ./nix/docker-compose.nix { };
-        node = callPackage ./nix/node.nix { };
       };
 
       homeConfigurations = {
@@ -39,7 +38,6 @@
         buildInputs = [
           self.packages.x86_64-linux.docker
           self.packages.x86_64-linux.docker-compose
-          self.packages.x86_64-linux.node
         ];
       };
     };
