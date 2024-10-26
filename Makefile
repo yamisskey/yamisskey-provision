@@ -1,4 +1,4 @@
-.PHONY: all install clone provision backup encrypt decrypt help
+.PHONY: all install inventory clone provision backup encrypt decrypt help
 
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
@@ -33,9 +33,9 @@ install:
 	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
-	@echo "[$(HOSTNAME)]" > ansible/inventory
+	@echo "[source]" > ansible/inventory
 	@echo "$(HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
-	@echo "[$(DESTINATION_HOSTNAME)]" >> ansible/inventory
+	@echo "[destination]" >> ansible/inventory
 	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
 
