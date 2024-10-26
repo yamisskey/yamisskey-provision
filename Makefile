@@ -18,7 +18,7 @@ ANONOTE_DIR=$(HOME)/misskey-anoote
 ASSETS_DIR=$(HOME)/misskey-assets
 CTFD_DIR=$(HOME)/ctfd
 
-all: install inventory clone provision backup
+all: install inventory setup clone provision backup
 
 install:
 	sudo apt-get update
@@ -39,6 +39,9 @@ inventory:
 	@echo "[destination]" >> ansible/inventory
 	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
+
+setup:
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-become-pass
 
 migrate:
 	ansible-playbook -i ansible/inventory ansible/playbooks/migrate.yml --ask-become-pass
@@ -73,16 +76,15 @@ clone:
 	fi
 
 provision:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/monitoring.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ctfd.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source  ansible/playbooks/vikunja.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/vikunja.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
