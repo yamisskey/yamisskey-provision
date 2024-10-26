@@ -33,10 +33,10 @@ install:
 	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
-	@echo "[source]" > ansible/inventory
-	@echo "source ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
-	@echo "[destination]" >> ansible/inventory
-	@echo "destination ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "[$(HOSTNAME)]" > ansible/inventory
+	@echo "$(HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "[$(DESTINATION_HOSTNAME)]" >> ansible/inventory
+	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
 
 migrate:
