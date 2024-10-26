@@ -46,7 +46,7 @@ inventory:
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
-	@ansible-playbook -i ansible/inventory --extra-vars "@ansible/group_vars/sudo_passwords.yml" $(EXTRA_OPTS) --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) --ask-vault-pass --ask-become-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
 security misskey ai jitsi minio common matrix misskey_backup:
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml
@@ -58,12 +58,6 @@ $(ROLE): \
 )
 endef
 $(eval $(generate_role_targets))
-
-encrypt:
-	@ansible-vault encrypt ansible/group_vars/sudo_passwords.yml
-
-decrypt:
-	@ansible-vault decrypt ansible/group_vars/sudo_passwords.yml
 
 clone:
 	@echo "Cloning repositories if not already present..."
@@ -107,8 +101,6 @@ help:
 	@echo "  clone     - Clone the repositories if they don't exist"
 	@echo "  provision - Provision the server using Ansible"
 	@echo "  backup    - Run the backup playbook"
-	@echo "  encrypt   - Encrypt configuration files"
-	@echo "  decrypt   - Decrypt configuration files"
 	@echo "  update    - Update Misskey and rebuild Docker images"
 	@echo "  migrate, misskey, ai, jitsi, minio, common, matrix, misskey_backup - Run specific playbooks"
 	@echo "  $(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate') - Run role-based playbooks"
