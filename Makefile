@@ -1,4 +1,4 @@
-.PHONY: all install inventory clone provision backup help migrate
+.PHONY: all install inventory setup clone provision backup help migrate playbook run_playbook update
 
 SSH_USER=$(shell whoami)
 SOURCE_HOSTNAME=$(shell hostname)
@@ -17,95 +17,83 @@ BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 ANONOTE_DIR=$(HOME)/misskey-anoote
 ASSETS_DIR=$(HOME)/misskey-assets
 CTFD_DIR=$(HOME)/ctfd
+PLAYBOOK_DIR=ansible/playbooks
+ROLE_DIR=$(PLAYBOOK_DIR)/roles
+ENV_FILE=.env
+
+# Load environment variables if .env file exists
+ifneq (,$(wildcard $(ENV_FILE)))
+    include $(ENV_FILE)
+    export $(shell sed 's/=.*//' $(ENV_FILE))
+endif
 
 all: install inventory setup clone provision backup
 
 install:
-	sudo apt-get update
-	sudo apt-get install -y ansible
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-vault-pass
-	curl -fsSL https://tailscale.com/install.sh | sh
-	sudo mkdir -p --mode=0755 /usr/share/keyrings
-	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
-	echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
-	sudo apt-get update
-	sudo apt-get install -y cloudflare-warp
-	# curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+	@echo "Installing necessary packages..."
+	@sudo apt-get update && sudo apt-get install -y ansible || (echo "Install failed" && exit 1)
+	@ansible-playbook -i ansible/inventory --limit source $(PLAYBOOK_DIR)/common.yml --ask-vault-pass || (echo "Ansible setup failed" && exit 1)
+	@curl -fsSL https://tailscale.com/install.sh | sh
+	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
+	#@curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+	#@echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
-	@echo "Decrypting sudo_passwords.yml..."
-	ansible-vault decrypt ansible/group_vars/sudo_passwords.yml
-	@echo "[source]" > ansible/inventory
-	@echo "$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep source_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
-	@echo "[destination]" >> ansible/inventory
-	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep destination_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
+	@echo "Creating inventory file..."
+	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" > ansible/inventory
+	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
-	@echo "Encrypting sudo_passwords.yml..."
-	ansible-vault encrypt ansible/group_vars/sudo_passwords.yml
 
-setup:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-vault-pass
+run_playbook:
+	@echo "Running playbook: $(PLAYBOOK)"
+	@$(MAKE) decrypt
+	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@$(MAKE) encrypt
 
-migrate:
-	ansible-playbook -i ansible/inventory ansible/playbooks/migrate.yml --ask-vault-pass
+security migrate misskey ai jitsi minio common matrix misskey_backup:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml --limit source
+
+define generate_role_targets
+$(foreach ROLE,$(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;),\
+$(ROLE): \
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml --limit source;\
+)
+endef
+$(eval $(generate_role_targets))
+
+encrypt:
+	@ansible-vault encrypt ansible/group_vars/all/sudo_passwords.yml
+
+decrypt:
+	@ansible-vault decrypt ansible/group_vars/all/sudo_passwords.yml
 
 clone:
-	sudo mkdir -p $(MISSKEY_DIR)
-	sudo chown $(USER):$(USER) $(MISSKEY_DIR)
-	if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR); \
-		cd $(MISSKEY_DIR) && git checkout master; \
-	fi
-	sudo mkdir -p $(ASSETS_DIR)
-	sudo chown $(USER):$(USER) $(ASSETS_DIR)
-	if [ ! -d "$(ASSETS_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/yamisskey-assets.git $(ASSETS_DIR); \
-	fi
-	mkdir -p $(AI_DIR)
-	if [ ! -d "$(AI_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/yui.git $(AI_DIR); \
-	fi
-	mkdir -p $(BACKUP_SCRIPT_DIR)
-	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
-	fi
-	mkdir -p $(ANONOTE_DIR)
-	if [ ! -d "$(ANONOTE_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/yamisskey-anonote.git $(ANONOTE_DIR); \
-	fi
-	mkdir -p $(CTFD_DIR)
-	if [ ! -d "$(CTFD_DIR)/.git" ]; then \
-		git clone https://github.com/yamisskey/ctf.yami.ski.git $(CTFD_DIR); \
-	fi
+	@echo "Cloning repositories if not already present..."
+	$(foreach DIR, $(MISSKEY_DIR) $(ASSETS_DIR) $(AI_DIR) $(BACKUP_SCRIPT_DIR) $(ANONOTE_DIR) $(CTFD_DIR), \
+		@sudo mkdir -p $(DIR) && sudo chown $(USER):$(USER) $(DIR); \
+		if [ ! -d "$(DIR)/.git" ]; then \
+			git clone https://github.com/yamisskey/$(notdir $(DIR)).git $(DIR); \
+		fi;)
 
 provision:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/monitoring.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ctfd.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-vault-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/vikunja.yml --ask-vault-pass
+	@echo "Running provision playbooks..."
+	@$(MAKE) common
+	@$(MAKE) security
+	@$(MAKE) monitoring
+	$(foreach PLAYBOOK, minio misskey ai tor matrix jitsi vikunja, \
+		@$(MAKE) $(PLAYBOOK);)
 
 backup:
-	@echo "Converting .env to env.yml..."
+	@echo "Converting .env to env.yml and running backup..."
 	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
-	@while IFS= read -r line; do \
-	  if [ ! "$$line" = "${line#\#}" -a ! -z "$$line" ]; then \
-	    key=$$(echo $$line | cut -d '=' -f 1); \
-	    value=$$(echo $$line | cut -d '=' -f 2-); \
-	    echo "$$key: $$value" >> $(BACKUP_SCRIPT_DIR)/env.yml; \
-	  fi; \
-	done < $(BACKUP_SCRIPT_DIR)/.env
-	@echo "Moving env.yml to target directory..."
-	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
-	@echo "Running backup script..."
-	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-vault-pass
+	@awk -F '=' '/^[^#]/ {print $$1 ": " $$2}' $(BACKUP_SCRIPT_DIR)/.env >> $(BACKUP_SCRIPT_DIR)/env.yml
+	@sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/misskey-backup.yml
 
 update:
+	@echo "Updating Misskey..."
 	cd $(MISSKEY_DIR) && sudo docker-compose down
 	cd $(MISSKEY_DIR) && sudo git stash || true
 	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
@@ -114,3 +102,17 @@ update:
 	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
+
+help:
+	@echo "Available targets:"
+	@echo "  all       - Install, clone, setup, provision, and backup"
+	@echo "  install   - Update and install necessary packages"
+	@echo "  inventory - Create the Ansible inventory"
+	@echo "  clone     - Clone the repositories if they don't exist"
+	@echo "  provision - Provision the server using Ansible"
+	@echo "  backup    - Run the backup playbook"
+	@echo "  encrypt   - Encrypt configuration files"
+	@echo "  decrypt   - Decrypt configuration files"
+	@echo "  update    - Update Misskey and rebuild Docker images"
+	@echo "  security, migrate, misskey, ai, jitsi, minio, common, matrix, misskey_backup - Run specific playbooks"
+	@echo "  $(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;) - Run role-based playbooks"
