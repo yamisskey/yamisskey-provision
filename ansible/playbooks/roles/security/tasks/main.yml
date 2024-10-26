@@ -124,6 +124,13 @@
     from_ip: '{{ item }}'
   loop: '{{ tailscale_ips }}'
 
+- name: Allow SSH traffic on port 22 from self Tailscale IP
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+    from_ip: '{{ ansible_default_ipv4.address }}'
+
 - name: Ensure UFW is installed
   apt:
     name: ufw
@@ -180,6 +187,10 @@
   register: ufw_status
   become: true
 
+- name: Display UFW status
+  debug:
+    msg: '{{ ufw_status.stdout }}'
+
 - name: Verify DNS resolution with dig
   command: dig google.com
   register: dig_result
@@ -218,6 +229,7 @@
 - name: Display UFW status
   debug:
     msg: '{{ ufw_status.stdout }}'
+
 - name: Configure SSH settings
   lineinfile:
     path: /etc/ssh/sshd_config
