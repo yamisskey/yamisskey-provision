@@ -35,14 +35,14 @@ install:
 
 inventory:
 	@echo "Decrypting sudo_passwords.yml..."
-	ansible-vault decrypt ansible/group_vars/all/sudo_passwords.yml
+	ansible-vault decrypt ansible/group_vars/sudo_passwords.yml
 	@echo "[source]" > ansible/inventory
-	@echo "$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/all/sudo_passwords.yml | grep source_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
+	@echo "$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep source_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
 	@echo "[destination]" >> ansible/inventory
-	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/all/sudo_passwords.yml | grep destination_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
+	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep destination_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
 	@echo "Encrypting sudo_passwords.yml..."
-	ansible-vault encrypt ansible/group_vars/all/sudo_passwords.yml
+	ansible-vault encrypt ansible/group_vars/sudo_passwords.yml
 
 setup:
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-vault-pass
