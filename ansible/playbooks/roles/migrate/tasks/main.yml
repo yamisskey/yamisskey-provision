@@ -1,98 +1,98 @@
-- name: Stop all Docker Compose services on VPS (/var/www)
+- name: Stop all Docker Compose services on source server (/var/www)
   ansible.builtin.shell: |
     cd /var/www/{{ item }} && docker-compose down
   loop: '{{ docker_services_www }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Stop all Docker Compose services on VPS (/opt)
+- name: Stop all Docker Compose services on source server (/opt)
   ansible.builtin.shell: |
     cd /opt/{{ item }} && docker-compose down
   loop: '{{ docker_services_opt }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Stop all Docker Compose services on VPS (/home/{{ ansible_user }})
+- name: Stop all Docker Compose services on source server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     cd /home/{{ ansible_user }}/{{ item }} && docker-compose down
   loop: '{{ docker_services_home }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Create backup of Docker Compose services on VPS (/var/www)
+- name: Create backup of Docker Compose services on source server (/var/www)
   ansible.builtin.shell: |
     cd /var/www/{{ item }} && tar -czvf /home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
   loop: '{{ docker_services_www }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Create backup of Docker Compose services on VPS (/opt)
+- name: Create backup of Docker Compose services on source server (/opt)
   ansible.builtin.shell: |
     cd /opt/{{ item }} && tar -czvf /home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
   loop: '{{ docker_services_opt }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Create backup of Docker Compose services on VPS (/home/{{ ansible_user }})
+- name: Create backup of Docker Compose services on source server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     cd /home/{{ ansible_user }}/{{ item }} && tar -czvf /home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
   loop: '{{ docker_services_home }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Transfer backup files to home server (/var/www)
+- name: Transfer backup files to destination server (/var/www)
   ansible.builtin.copy:
     src: '/home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
     dest: '{{ backup_dir }}'
-  delegate_to: home_server
+  delegate_to: destination
   loop: '{{ docker_services_www }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Transfer backup files to home server (/opt)
+- name: Transfer backup files to destination server (/opt)
   ansible.builtin.copy:
     src: '/home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
     dest: '{{ backup_dir }}'
-  delegate_to: home_server
+  delegate_to: destination
   loop: '{{ docker_services_opt }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Transfer backup files to home server (/home/{{ ansible_user }})
+- name: Transfer backup files to destination server (/home/{{ ansible_user }})
   ansible.builtin.copy:
     src: '/home/{{ ansible_user }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
     dest: '{{ backup_dir }}'
-  delegate_to: home_server
+  delegate_to: destination
   loop: '{{ docker_services_home }}'
-  when: inventory_hostname == 'vps'
+  when: inventory_hostname == 'source'
 
-- name: Extract backup files on home server (/var/www)
+- name: Extract backup files on destination server (/var/www)
   ansible.builtin.shell: |
     mkdir -p /var/www/{{ item }}
     tar -xzvf {{ backup_dir }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz -C /var/www/{{ item }}
   loop: '{{ docker_services_www }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'
 
-- name: Extract backup files on home server (/opt)
+- name: Extract backup files on destination server (/opt)
   ansible.builtin.shell: |
     mkdir -p /opt/{{ item }}
     tar -xzvf {{ backup_dir }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz -C /opt/{{ item }}
   loop: '{{ docker_services_opt }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'
 
-- name: Extract backup files on home server (/home/{{ ansible_user }})
+- name: Extract backup files on destination server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     mkdir -p /home/{{ ansible_user }}/{{ item }}
     tar -xzvf {{ backup_dir }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz -C /home/{{ ansible_user }}/{{ item }}
   loop: '{{ docker_services_home }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'
 
-- name: Start Docker Compose services on home server (/var/www)
+- name: Start Docker Compose services on destination server (/var/www)
   ansible.builtin.shell: |
     cd /var/www/{{ item }} && docker-compose up -d
   loop: '{{ docker_services_www }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'
 
-- name: Start Docker Compose services on home server (/opt)
+- name: Start Docker Compose services on destination server (/opt)
   ansible.builtin.shell: |
     cd /opt/{{ item }} && docker-compose up -d
   loop: '{{ docker_services_opt }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'
 
-- name: Start Docker Compose services on home server (/home/{{ ansible_user }})
+- name: Start Docker Compose services on destination server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     cd /home/{{ ansible_user }}/{{ item }} && docker-compose up -d
   loop: '{{ docker_services_home }}'
-  when: inventory_hostname == 'home_server'
+  when: inventory_hostname == 'destination'

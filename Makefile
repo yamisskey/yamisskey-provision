@@ -2,7 +2,9 @@
 
 SSH_USER=$(shell whoami)
 HOSTNAME=$(shell hostname)
-IP_ADDRESS=$(shell hostname -I | awk '{print $$1}')
+SOURCE_IP=$(shell tailscale ip -4)
+DESTINATION_HOSTNAME=balthasar
+DESTINATION_IP=$(shell tailscale status | grep $(DESTINATION_HOSTNAME) | awk '{print $$1}')
 SSH_PORT=2222
 OS=$(shell lsb_release -is | tr '[:upper:]' '[:lower:]')
 CODENAME=$(shell lsb_release -cs)
@@ -16,14 +18,11 @@ ANONOTE_DIR=$(HOME)/misskey-anoote
 ASSETS_DIR=$(HOME)/misskey-assets
 CTFD_DIR=$(HOME)/ctfd
 
-all: install clone provision backup
+all: install inventory clone provision backup
 
 install:
 	sudo apt-get update
 	sudo apt-get install -y ansible
-	echo "[servers]" > ansible/inventory
-	echo "$(HOSTNAME) ansible_host=$(IP_ADDRESS) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
-	echo "Inventory file created at ansible/inventory"
 	curl -fsSL https://tailscale.com/install.sh | sh
 	sudo mkdir -p --mode=0755 /usr/share/keyrings
 	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
@@ -32,11 +31,16 @@ install:
 	sudo apt-get install -y cloudflare-warp
 	# curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
-	# sudo apt-get update
-	# sudo apt-get install -y cloudflared
-	curl https://get.volta.sh | bash
-	volta install node
-	npm install -g wrangler
+
+inventory:
+	@echo "[source]" > ansible/inventory
+	@echo "source ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "[destination]" >> ansible/inventory
+	@echo "destination ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "Inventory file created at ansible/inventory"
+
+migrate:
+	ansible-playbook -i ansible/inventory ansible/playbooks/migrate.yml --ask-become-pass
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
@@ -104,10 +108,6 @@ update:
 	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
-
-migrate:
-	$(ANSIBLE_PLAYBOOK) ansible/playbooks/migrate.yml --tags backup --ask-become-pass
-	$(ANSIBLE_PLAYBOOK) ansible/playbooks/migrate.yml --tags restore --ask-become-pass
 
 encrypt:
 	ansible-vault encrypt $(CONFIG_FILES)
