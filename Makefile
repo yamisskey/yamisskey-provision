@@ -46,7 +46,7 @@ inventory:
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
-	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) --ask-vault-pass --ask-become-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) --ask-become-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
 security misskey ai jitsi minio common matrix misskey_backup:
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml
