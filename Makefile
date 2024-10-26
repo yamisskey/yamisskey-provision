@@ -23,6 +23,7 @@ all: install inventory clone provision backup
 install:
 	sudo apt-get update
 	sudo apt-get install -y ansible
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
 	curl -fsSL https://tailscale.com/install.sh | sh
 	sudo mkdir -p --mode=0755 /usr/share/keyrings
 	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
@@ -72,7 +73,6 @@ clone:
 	fi
 
 provision:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
 	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-become-pass
