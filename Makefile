@@ -1,4 +1,4 @@
-.PHONY: all install inventory clone provision backup help migrate playbook run_playbook update
+.PHONY: all install inventory clone provision backup update help 
 
 SSH_USER=$(shell whoami)
 SOURCE_HOSTNAME=$(shell hostname)
@@ -18,8 +18,6 @@ BACKUP_SCRIPT_DIR=$(HOME)/misskey-backup
 ANONOTE_DIR=$(HOME)/misskey-anonote
 ASSETS_DIR=$(HOME)/misskey-assets
 CTFD_DIR=$(HOME)/ctfd
-PLAYBOOK_DIR=ansible/playbooks
-ROLE_DIR=$(PLAYBOOK_DIR)/roles
 ENV_FILE=.env
 
 # Load environment variables if .env file exists
@@ -33,7 +31,7 @@ all: install inventory clone provision backup
 install:
 	@echo "Installing necessary packages..."
 	@sudo apt-get update && sudo apt-get install -y ansible || (echo "Install failed" && exit 1)
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/common.yml EXTRA_OPTS="--limit source"
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
 	@curl -fsSL https://tailscale.com/install.sh | sh
 	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
@@ -47,103 +45,66 @@ inventory:
 	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(DESTINATION_SSH_PORT) ansible_become=true" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
 
-run_playbook:
-	@echo "Running playbook: $(PLAYBOOK)"
-	@ansible-playbook -i ansible/inventory --ask-become-pass $(EXTRA_OPTS) $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
-
-common:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/common.yml EXTRA_OPTS="--limit source"
-
-security:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/security.yml EXTRA_OPTS="--limit source"
-
-misskey:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/misskey.yml EXTRA_OPTS="--limit source"
-
-ai:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/ai.yml EXTRA_OPTS="--limit source"
-
-jitsi:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/jitsi.yml EXTRA_OPTS="--limit source"
-
-minio:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/minio.yml EXTRA_OPTS="--limit source"
-
-matrix:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/matrix.yml EXTRA_OPTS="--limit source"
-
-monitoring:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/monitoring.yml EXTRA_OPTS="--limit source"
-
-tor:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/tor.yml EXTRA_OPTS="--limit source"
-
-vikunja:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/vikunja.yml EXTRA_OPTS="--limit source"
-
-migrate:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/migrate.yml
-
 clone:
 	@echo "Cloning repositories if not already present..."
-	sudo mkdir -p $(MISSKEY_DIR)
-	sudo chown $(USER):$(USER) $(MISSKEY_DIR)
-	if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
+	@sudo mkdir -p $(MISSKEY_DIR)
+	@sudo chown $(USER):$(USER) $(MISSKEY_DIR)
+	@if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR); \
 		cd $(MISSKEY_DIR) && git checkout master; \
 	fi
-	sudo mkdir -p $(ASSETS_DIR)
-	sudo chown $(USER):$(USER) $(ASSETS_DIR)
-	if [ ! -d "$(ASSETS_DIR)/.git" ]; then \
+	@sudo mkdir -p $(ASSETS_DIR)
+	@sudo chown $(USER):$(USER) $(ASSETS_DIR)
+	@if [ ! -d "$(ASSETS_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-assets.git $(ASSETS_DIR); \
 	fi
-	mkdir -p $(AI_DIR)
-	if [ ! -d "$(AI_DIR)/.git" ]; then \
+	@mkdir -p $(AI_DIR)
+	@if [ ! -d "$(AI_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yui.git $(AI_DIR); \
 	fi
-	mkdir -p $(BACKUP_SCRIPT_DIR)
-	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
+	@mkdir -p $(BACKUP_SCRIPT_DIR)
+	@if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
 	fi
-	mkdir -p $(ANONOTE_DIR)
-	if [ ! -d "$(ANONOTE_DIR)/.git" ]; then \
+	@mkdir -p $(ANONOTE_DIR)
+	@if [ ! -d "$(ANONOTE_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/yamisskey-anonote.git $(ANONOTE_DIR); \
 	fi
-	mkdir -p $(CTFD_DIR)
-	if [ ! -d "$(CTFD_DIR)/.git" ]; then \
+	@mkdir -p $(CTFD_DIR)
+	@if [ ! -d "$(CTFD_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/ctf.yami.ski.git $(CTFD_DIR); \
 	fi
 
 provision:
 	@echo "Running provision playbooks..."
-	@$(MAKE) common
-	@$(MAKE) security
-	@$(MAKE) monitoring
-	@$(MAKE) minio
-	@$(MAKE) misskey
-	@$(MAKE) ai
-	@$(MAKE) tor
-	@$(MAKE) matrix
-	@$(MAKE) jitsi
-	@$(MAKE) vikunja
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/monitoring.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/vikunja.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml and running backup..."
 	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
 	@awk -F '=' '/^[^#]/ {print $$1 ": " $$2}' $(BACKUP_SCRIPT_DIR)/.env >> $(BACKUP_SCRIPT_DIR)/env.yml
 	@sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/misskey-backup.yml
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/backup.yml --ask-become-pass
 
 update:
 	@echo "Updating Misskey..."
-	cd $(MISSKEY_DIR) && sudo docker-compose down
-	cd $(MISSKEY_DIR) && sudo git stash || true
-	cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
-	cd $(MISSKEY_DIR) && sudo git submodule update --init
-	cd $(MISSKEY_DIR) && git stash pop || true
-	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
-	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
-	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
+	@cd $(MISSKEY_DIR) && sudo docker-compose down
+	@cd $(MISSKEY_DIR) && sudo git stash || true
+	@cd $(MISSKEY_DIR) && git checkout master && sudo git pull origin master
+	@cd $(MISSKEY_DIR) && sudo git submodule update --init
+	@cd $(MISSKEY_DIR) && git stash pop || true
+	@cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
+	@cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
+	@cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
 
 help:
 	@echo "Available targets:"
