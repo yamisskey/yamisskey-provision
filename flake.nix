@@ -15,8 +15,8 @@
       packages.x86_64-linux = let
         inherit (pkgs) callPackage;
       in {
-        docker = callPackage ./nix/docker.nix { };
-        docker-compose = callPackage ./nix/docker-compose.nix { };
+        # docker = callPackage ./nix/docker.nix { };
+        # docker-compose = callPackage ./nix/docker-compose.nix { };
       };
 
       homeConfigurations = {
@@ -36,8 +36,8 @@
 
       devShells.x86_64-linux.default = pkgs.mkShell {
         buildInputs = [
-          self.packages.x86_64-linux.docker
-          self.packages.x86_64-linux.docker-compose
+          # self.packages.x86_64-linux.docker
+          # self.packages.x86_64-linux.docker-compose
         ];
       };
     };
