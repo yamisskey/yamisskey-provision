@@ -85,11 +85,33 @@ migrate:
 
 clone:
 	@echo "Cloning repositories if not already present..."
-	$(foreach DIR, $(MISSKEY_DIR) $(ASSETS_DIR) $(AI_DIR) $(BACKUP_SCRIPT_DIR) $(ANONOTE_DIR) $(CTFD_DIR), \
-		@sudo mkdir -p $(DIR) && sudo chown $(USER):$(USER) $(DIR); \
-		if [ ! -d "$(DIR)/.git" ]; then \
-			git clone https://github.com/yamisskey/$(notdir $(DIR)).git $(DIR); \
-		fi;)
+	sudo mkdir -p $(MISSKEY_DIR)
+	sudo chown $(USER):$(USER) $(MISSKEY_DIR)
+	if [ ! -d "$(MISSKEY_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey.git $(MISSKEY_DIR); \
+		cd $(MISSKEY_DIR) && git checkout master; \
+	fi
+	sudo mkdir -p $(ASSETS_DIR)
+	sudo chown $(USER):$(USER) $(ASSETS_DIR)
+	if [ ! -d "$(ASSETS_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-assets.git $(ASSETS_DIR); \
+	fi
+	mkdir -p $(AI_DIR)
+	if [ ! -d "$(AI_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yui.git $(AI_DIR); \
+	fi
+	mkdir -p $(BACKUP_SCRIPT_DIR)
+	if [ ! -d "$(BACKUP_SCRIPT_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-backup.git $(BACKUP_SCRIPT_DIR); \
+	fi
+	mkdir -p $(ANONOTE_DIR)
+	if [ ! -d "$(ANONOTE_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/yamisskey-anonote.git $(ANONOTE_DIR); \
+	fi
+	mkdir -p $(CTFD_DIR)
+	if [ ! -d "$(CTFD_DIR)/.git" ]; then \
+		git clone https://github.com/yamisskey/ctf.yami.ski.git $(CTFD_DIR); \
+	fi
 
 provision:
 	@echo "Running provision playbooks..."
