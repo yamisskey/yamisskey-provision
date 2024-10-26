@@ -39,16 +39,16 @@
   tags:
     - nix_install
 
-- name: Configure Nix to use flakes
-  lineinfile:
-    path: '/etc/nix/nix.conf'
-    line: 'experimental-features = nix-command flakes'
-    create: yes
+# - name: Configure Nix to use flakes
+#   lineinfile:
+#     path: '/etc/nix/nix.conf'
+#     line: 'experimental-features = nix-command flakes'
+#     create: yes
 
-- name: Apply Home Manager configuration
-  become_user: "{{ user_name }}"
-  shell: nix run home-manager -- switch --flake ".#myHome"
-  environment:
-    NIX_PATH: nixpkgs=https://nixos.org/channels/nixos-unstable
-  tags:
-    - home_manager_update
+# - name: Apply Home Manager configuration
+#   become_user: "{{ user_name }}"
+#   shell: nix run home-manager -- switch --flake ".#myHome"
+#   environment:
+#     NIX_PATH: nixpkgs=https://nixos.org/channels/nixos-unstable
+#   tags:
+#     - home_manager_update
