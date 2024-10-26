@@ -5,7 +5,7 @@ SOURCE_HOSTNAME=$(shell hostname)
 SOURCE_IP=$(shell tailscale ip -4)
 DESTINATION_HOSTNAME=balthasar
 DESTINATION_IP=$(shell tailscale status | grep $(DESTINATION_HOSTNAME) | awk '{print $$1}')
-SSH_PORT=22
+SSH_PORT=2222
 OS=$(shell lsb_release -is | tr '[:upper:]' '[:lower:]')
 CODENAME=$(shell lsb_release -cs)
 USER=$(shell whoami)
@@ -46,7 +46,7 @@ inventory:
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
-	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@ansible-playbook -i ansible/inventory --ask-become-pass $(EXTRA_OPTS) $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
 security misskey ai jitsi minio common matrix misskey_backup:
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml
