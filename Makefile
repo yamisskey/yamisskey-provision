@@ -1,4 +1,4 @@
-.PHONY: all install inventory setup clone provision backup help migrate playbook run_playbook update
+.PHONY: all install inventory clone provision backup help migrate playbook run_playbook update
 
 SSH_USER=$(shell whoami)
 SOURCE_HOSTNAME=$(shell hostname)
@@ -32,7 +32,7 @@ all: install inventory setup clone provision backup
 install:
 	@echo "Installing necessary packages..."
 	@sudo apt-get update && sudo apt-get install -y ansible || (echo "Install failed" && exit 1)
-	@ansible-playbook -i ansible/inventory --limit source $(PLAYBOOK_DIR)/common.yml --ask-vault-pass || (echo "Ansible setup failed" && exit 1)
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/common.yml EXTRA_OPTS="--limit source"
 	@curl -fsSL https://tailscale.com/install.sh | sh
 	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
@@ -46,7 +46,7 @@ inventory:
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
-	@ansible-playbook -i ansible/inventory --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@ansible-playbook -i ansible/inventory --extra-vars "@ansible/group_vars/sudo_passwords.yml" $(EXTRA_OPTS) --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
 security misskey ai jitsi minio common matrix misskey_backup:
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml
