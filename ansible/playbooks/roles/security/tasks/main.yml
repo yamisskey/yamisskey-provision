@@ -239,6 +239,8 @@
     - 'TCPKeepAlive yes'
     - 'X11Forwarding no'
     - 'AllowAgentForwarding yes'
+  notify: Restart SSH service
+
 - name: Restart SSH service
   systemd:
     name: ssh
