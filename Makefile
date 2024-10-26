@@ -37,8 +37,6 @@ install:
 	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
-	#@curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-	#@echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
 	@echo "Creating inventory file..."
@@ -50,13 +48,11 @@ run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
 	@ansible-playbook -i ansible/inventory --ask-become-pass $(EXTRA_OPTS) $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
-security misskey ai jitsi minio common matrix misskey_backup monitoring tor vikunja:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml EXTRA_OPTS="--limit source"
-
+# Generate role-based targets dynamically for all roles in ROLE_DIR
 define generate_role_targets
 $(foreach ROLE,$(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate'),\
 $(ROLE): \
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml;\
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml;\n\
 )
 endef
 $(eval $(generate_role_targets))
@@ -104,5 +100,4 @@ help:
 	@echo "  provision - Provision the server using Ansible"
 	@echo "  backup    - Run the backup playbook"
 	@echo "  update    - Update Misskey and rebuild Docker images"
-	@echo "  migrate, misskey, ai, jitsi, minio, common, matrix, misskey_backup - Run specific playbooks"
 	@echo "  $(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate') - Run role-based playbooks"
