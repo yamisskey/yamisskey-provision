@@ -3,9 +3,10 @@
 SSH_USER=$(shell whoami)
 SOURCE_HOSTNAME=$(shell hostname)
 SOURCE_IP=$(shell tailscale ip -4)
+SOURCE_SSH_PORT=2222
 DESTINATION_HOSTNAME=balthasar
 DESTINATION_IP=$(shell tailscale status | grep $(DESTINATION_HOSTNAME) | awk '{print $$1}')
-SSH_PORT=2222
+DESTINATION_SSH_PORT=22
 OS=$(shell lsb_release -is | tr '[:upper:]' '[:lower:]')
 CODENAME=$(shell lsb_release -cs)
 USER=$(shell whoami)
@@ -42,8 +43,8 @@ install:
 
 inventory:
 	@echo "Creating inventory file..."
-	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become=true" > ansible/inventory
-	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become=true" >> ansible/inventory
+	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SOURCE_SSH_PORT) ansible_become=true" > ansible/inventory
+	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(DESTINATION_SSH_PORT) ansible_become=true" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
 
 run_playbook:
