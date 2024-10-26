@@ -46,17 +46,15 @@ inventory:
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
-	@$(MAKE) decrypt
-	@ansible-playbook -i ansible/inventory --extra-vars "ansible_become_password={{ source_sudo_password }}" --extra-vars "@ansible/group_vars/sudo_passwords.yml" --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
-	@$(MAKE) encrypt
+	@ansible-playbook -i ansible/inventory --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
 security misskey ai jitsi minio common matrix misskey_backup:
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml --limit source
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml
 
 define generate_role_targets
 $(foreach ROLE,$(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate'),\
 $(ROLE): \
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml --limit source;\
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml;\
 )
 endef
 $(eval $(generate_role_targets))
