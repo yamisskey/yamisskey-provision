@@ -27,7 +27,7 @@ ifneq (,$(wildcard $(ENV_FILE)))
     export $(shell sed 's/=.*//' $(ENV_FILE))
 endif
 
-all: install inventory setup clone provision backup
+all: install inventory clone provision backup
 
 install:
 	@echo "Installing necessary packages..."
@@ -50,14 +50,38 @@ run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
 	@ansible-playbook -i ansible/inventory --ask-become-pass $(EXTRA_OPTS) $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 
-# Generate role-based targets dynamically for all playbooks in PLAYBOOK_DIR except 'migrate'
-define generate_role_targets
-$(foreach PLAYBOOK,$(shell find $(PLAYBOOK_DIR) -maxdepth 1 -name "*.yml" -exec basename {} .yml \; | grep -v 'migrate'),\
-$(PLAYBOOK): \
-	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(PLAYBOOK).yml EXTRA_OPTS="--limit source";\
-)
-endef
-$(eval $(generate_role_targets))
+common:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/common.yml EXTRA_OPTS="--limit source"
+
+security:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/security.yml EXTRA_OPTS="--limit source"
+
+misskey:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/misskey.yml EXTRA_OPTS="--limit source"
+
+ai:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/ai.yml EXTRA_OPTS="--limit source"
+
+jitsi:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/jitsi.yml EXTRA_OPTS="--limit source"
+
+minio:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/minio.yml EXTRA_OPTS="--limit source"
+
+matrix:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/matrix.yml EXTRA_OPTS="--limit source"
+
+monitoring:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/monitoring.yml EXTRA_OPTS="--limit source"
+
+tor:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/tor.yml EXTRA_OPTS="--limit source"
+
+vikunja:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/vikunja.yml EXTRA_OPTS="--limit source"
+
+migrate:
+	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/migrate.yml
 
 clone:
 	@echo "Cloning repositories if not already present..."
@@ -69,8 +93,16 @@ clone:
 
 provision:
 	@echo "Running provision playbooks..."
-	$(foreach PLAYBOOK, common security monitoring minio misskey ai tor matrix jitsi vikunja, \
-		@$(MAKE) $(PLAYBOOK);)
+	@$(MAKE) common
+	@$(MAKE) security
+	@$(MAKE) monitoring
+	@$(MAKE) minio
+	@$(MAKE) misskey
+	@$(MAKE) ai
+	@$(MAKE) tor
+	@$(MAKE) matrix
+	@$(MAKE) jitsi
+	@$(MAKE) vikunja
 
 backup:
 	@echo "Converting .env to env.yml and running backup..."
@@ -99,4 +131,4 @@ help:
 	@echo "  provision - Provision the server using Ansible"
 	@echo "  backup    - Run the backup playbook"
 	@echo "  update    - Update Misskey and rebuild Docker images"
-	@echo "  $(shell find $(PLAYBOOK_DIR) -maxdepth 1 -name "*.yml" -exec basename {} .yml \; | grep -v 'migrate') - Run playbook-based targets"
+	@echo "  common, security, misskey, ai, jitsi, minio, matrix, monitoring, tor, vikunja, migrate - Run specific playbooks"
