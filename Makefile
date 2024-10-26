@@ -39,18 +39,15 @@ install:
 	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
 
 inventory:
-	@echo "Decrypting sudo_passwords.yml..."
-	@$(MAKE) decrypt
 	@echo "Creating inventory file..."
 	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" > ansible/inventory
 	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
-	@$(MAKE) encrypt
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
 	@$(MAKE) decrypt
-	@ansible-playbook -i ansible/inventory --extra-vars "@ansible/group_vars/sudo_passwords.yml" --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
+	@ansible-playbook -i ansible/inventory --extra-vars "ansible_become_password={{ source_sudo_password }}" --extra-vars "@ansible/group_vars/sudo_passwords.yml" --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 	@$(MAKE) encrypt
 
 security misskey ai jitsi minio common matrix misskey_backup:
