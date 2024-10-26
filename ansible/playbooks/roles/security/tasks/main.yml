@@ -218,7 +218,6 @@
 - name: Display UFW status
   debug:
     msg: '{{ ufw_status.stdout }}'
-
 - name: Configure SSH settings
   lineinfile:
     path: /etc/ssh/sshd_config
@@ -240,11 +239,6 @@
     - 'X11Forwarding no'
     - 'AllowAgentForwarding yes'
   notify: Restart SSH service
-
-- name: Restart SSH service
-  systemd:
-    name: ssh
-    state: restarted
 
 - name: Backup original jail.conf
   copy:

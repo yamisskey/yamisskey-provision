@@ -27,3 +27,7 @@
   command: sysctl -p
   become: yes
 
+- name: Restart SSH service
+  systemd:
+    name: ssh
+    state: restarted
