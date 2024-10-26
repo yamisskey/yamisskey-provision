@@ -1,2 +1,3 @@
 ansible/inventory
 ansible/vault_pass
+ansible/group_vars/all/sudo_passwords.yml

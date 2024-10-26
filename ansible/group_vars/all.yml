@@ -1,4 +1,6 @@
 user_name: taka
+source_sudo_password: "source_user_password"
+destination_sudo_password: "destination_user_password"
 set_dir: '/home/{{ user_name }}/yamisskey-provision'
 backup_script_dir: '/home/{{ user_name }}/misskey-backup'
 mkp224o_output_dir: '/home/{{ user_name }}/mkp224o-output'

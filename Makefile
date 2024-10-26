@@ -1,7 +1,7 @@
-.PHONY: all install inventory clone provision backup encrypt decrypt help
+.PHONY: all install inventory clone provision backup help migrate
 
 SSH_USER=$(shell whoami)
-HOSTNAME=$(shell hostname)
+SOURCE_HOSTNAME=$(shell hostname)
 SOURCE_IP=$(shell tailscale ip -4)
 DESTINATION_HOSTNAME=balthasar
 DESTINATION_IP=$(shell tailscale status | grep $(DESTINATION_HOSTNAME) | awk '{print $$1}')
@@ -23,7 +23,7 @@ all: install inventory setup clone provision backup
 install:
 	sudo apt-get update
 	sudo apt-get install -y ansible
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-vault-pass
 	curl -fsSL https://tailscale.com/install.sh | sh
 	sudo mkdir -p --mode=0755 /usr/share/keyrings
 	curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
@@ -34,17 +34,21 @@ install:
 	# echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
+	@echo "Decrypting sudo_passwords.yml..."
+	ansible-vault decrypt ansible/group_vars/all/sudo_passwords.yml
 	@echo "[source]" > ansible/inventory
-	@echo "$(HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/all/sudo_passwords.yml | grep source_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
 	@echo "[destination]" >> ansible/inventory
-	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/all/sudo_passwords.yml | grep destination_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
+	@echo "Encrypting sudo_passwords.yml..."
+	ansible-vault encrypt ansible/group_vars/all/sudo_passwords.yml
 
 setup:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/security.yml --ask-vault-pass
 
 migrate:
-	ansible-playbook -i ansible/inventory ansible/playbooks/migrate.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/migrate.yml --ask-vault-pass
 
 clone:
 	sudo mkdir -p $(MISSKEY_DIR)
@@ -76,15 +80,15 @@ clone:
 	fi
 
 provision:
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/monitoring.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ctfd.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-become-pass
-	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/vikunja.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/monitoring.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ctfd.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-vault-pass
+	ansible-playbook -i ansible/inventory --limit source ansible/playbooks/vikunja.yml --ask-vault-pass
 
 backup:
 	@echo "Converting .env to env.yml..."
@@ -99,7 +103,7 @@ backup:
 	@echo "Moving env.yml to target directory..."
 	sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
 	@echo "Running backup script..."
-	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-become-pass
+	ansible-playbook -i ansible/inventory ansible/playbooks/misskey-backup.yml --ask-vault-pass
 
 update:
 	cd $(MISSKEY_DIR) && sudo docker-compose down
@@ -110,19 +114,3 @@ update:
 	cd $(MISSKEY_DIR) && sudo COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker tag misskey_web:latest misskey_web:$(TIMESTAMP)
 	cd $(MISSKEY_DIR) && sudo docker compose stop && sudo docker compose up -d
-
-encrypt:
-	ansible-vault encrypt $(CONFIG_FILES)
-
-decrypt:
-	ansible-vault decrypt $(CONFIG_FILES)
-
-help:
-	@echo "Available targets:"
-	@echo "  all       - Install, clone, invent, provision, and encrypt"
-	@echo "  install   - Update and install necessary packages"
-	@echo "  clone     - Clone the misskey repository if it doesn't exist"
-	@echo "  provision - Provision the server using Ansible"
-	@echo "  backup    - Run the backup playbook"
-	@echo "  encrypt   - Encrypt configuration files"
-	@echo "  decrypt   - Decrypt configuration files"
