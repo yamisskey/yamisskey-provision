@@ -65,10 +65,10 @@ endef
 $(eval $(generate_role_targets))
 
 encrypt:
-	@ansible-vault encrypt ansible/group_vars/all/sudo_passwords.yml
+	@ansible-vault encrypt ansible/group_vars/sudo_passwords.yml
 
 decrypt:
-	@ansible-vault decrypt ansible/group_vars/all/sudo_passwords.yml
+	@ansible-vault decrypt ansible/group_vars/sudo_passwords.yml
 
 clone:
 	@echo "Cloning repositories if not already present..."
