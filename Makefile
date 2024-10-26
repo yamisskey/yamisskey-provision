@@ -37,14 +37,15 @@ install:
 	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
-	#@curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-	#@echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(CODENAME) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
 inventory:
+	@echo "Decrypting sudo_passwords.yml..."
+	@$(MAKE) decrypt
 	@echo "Creating inventory file..."
-	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" > ansible/inventory
-	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT)" >> ansible/inventory
+	@echo "[source]\n$(SOURCE_HOSTNAME) ansible_host=$(SOURCE_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep source_sudo_password | cut -d ' ' -f 2)" > ansible/inventory
+	@echo "[destination]\n$(DESTINATION_HOSTNAME) ansible_host=$(DESTINATION_IP) ansible_user=$(SSH_USER) ansible_port=$(SSH_PORT) ansible_become_password=$(shell ansible-vault view ansible/group_vars/sudo_passwords.yml | grep destination_sudo_password | cut -d ' ' -f 2)" >> ansible/inventory
 	@echo "Inventory file created at ansible/inventory"
+	@$(MAKE) encrypt
 
 run_playbook:
 	@echo "Running playbook: $(PLAYBOOK)"
@@ -52,11 +53,11 @@ run_playbook:
 	@ansible-playbook -i ansible/inventory $(EXTRA_OPTS) --ask-vault-pass $(PLAYBOOK) || (echo "Playbook $(PLAYBOOK) failed" && exit 1)
 	@$(MAKE) encrypt
 
-security migrate misskey ai jitsi minio common matrix misskey_backup:
+security misskey ai jitsi minio common matrix misskey_backup:
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$@.yml --limit source
 
 define generate_role_targets
-$(foreach ROLE,$(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;),\
+$(foreach ROLE,$(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate'),\
 $(ROLE): \
 	@$(MAKE) run_playbook PLAYBOOK=$(PLAYBOOK_DIR)/$(ROLE).yml --limit source;\
 )
@@ -114,5 +115,5 @@ help:
 	@echo "  encrypt   - Encrypt configuration files"
 	@echo "  decrypt   - Decrypt configuration files"
 	@echo "  update    - Update Misskey and rebuild Docker images"
-	@echo "  security, migrate, misskey, ai, jitsi, minio, common, matrix, misskey_backup - Run specific playbooks"
-	@echo "  $(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;) - Run role-based playbooks"
+	@echo "  migrate, misskey, ai, jitsi, minio, common, matrix, misskey_backup - Run specific playbooks"
+	@echo "  $(shell find $(ROLE_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -v 'migrate') - Run role-based playbooks"
