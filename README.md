@@ -113,14 +113,6 @@ dns_cloudflare_api_key = your-cloudflare-global-api-key
 sudo chmod 600 /etc/cloudflare/cloudflare.ini
 ```
 
-In addition, in order to access grafana with a subdomain, register the DNS record of grafana.yami.ski with cloudflare.
-
-Obtain SSL certificate using Cloudflare DNS:
-
-```consol
-sudo certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory -d yami.ski -d *.yami.ski -m yamisskey@proton.me
-```
-
 ### init
 
 Need to manually log in to tailscale, cloudflared and warp
