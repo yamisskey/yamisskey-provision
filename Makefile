@@ -41,7 +41,7 @@ install:
 	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
 	@echo "Installing Cloudflared..."
 	@wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-	@dpkg -i cloudflared-linux-amd64.deb
+	@sudo dpkg -i cloudflared-linux-amd64.deb
 	@echo "Installing Docker..."
 	@sudo install -m 0755 -d /etc/apt/keyrings
 	@curl -fsSL https://download.docker.com/linux/$(OS)/gpg | sudo gpg --yes --dearmor --output /etc/apt/keyrings/docker.asc
