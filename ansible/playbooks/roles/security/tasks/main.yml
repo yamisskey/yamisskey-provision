@@ -242,20 +242,68 @@
   command: sysctl -p
   become: true
 
-- name: Validate DNS resolution
+- name: Ensure correct DNS settings
   block:
+    - name: Backup current resolv.conf
+      copy:
+        src: /etc/resolv.conf
+        dest: /etc/resolv.conf.backup
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Set DNS server to Cloudflare DNS
+      lineinfile:
+        path: /etc/resolv.conf
+        line: "nameserver 1.1.1.1"
+        create: yes
+        state: present
+
     - name: Test DNS resolution with dig
-      command: dig google.com
+      command: dig cloudflare.com
       register: dig_result
       changed_when: false
 
     - name: Test DNS resolution with nslookup
-      command: nslookup google.com
+      command: nslookup cloudflare.com
       register: nslookup_result
       changed_when: false
 
     - name: Test DNS resolution with ping
-      command: ping -c 3 google.com
+      command: ping -c 3 cloudflare.com
+      register: ping_result
+      changed_when: false
+
+    - name: Display DNS test results
+      debug:
+        msg: |
+          dig result: {{ dig_result.stdout }}
+          nslookup result: {{ nslookup_result.stdout }}
+          ping result: {{ ping_result.stdout }}
+
+    - name: Restore original resolv.conf
+      copy:
+        src: /etc/resolv.conf.backup
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+      when: dig_result.rc != 0 or nslookup_result.rc != 0 or ping_result.rc != 0
+
+- name: Validate DNS resolution
+  block:
+    - name: Test DNS resolution with dig
+      command: dig cloudflare.com
+      register: dig_result
+      changed_when: false
+
+    - name: Test DNS resolution with nslookup
+      command: nslookup cloudflare.com
+      register: nslookup_result
+      changed_when: false
+
+    - name: Test DNS resolution with ping
+      command: ping -c 3 cloudflare.com
       register: ping_result
       changed_when: false
 
