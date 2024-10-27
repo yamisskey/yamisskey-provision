@@ -37,26 +37,50 @@
   loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
 
+- name: Create destination directories for /var/www backups
+  ansible.builtin.file:
+    path: '{{ backup_dir }}/{{ item }}'
+    state: directory
+  delegate_to: "{{ groups['destination'][0] }}"
+  loop: '{{ docker_services_www }}'
+  when: "'source' in group_names"
+
 - name: Transfer backup files to destination server (/var/www)
   ansible.builtin.copy:
     src: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
-    dest: '{{ backup_dir }}'
+    dest: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_www }}'
+  when: "'source' in group_names"
+
+- name: Create destination directories for /opt backups
+  ansible.builtin.file:
+    path: '{{ backup_dir }}/{{ item }}'
+    state: directory
+  delegate_to: "{{ groups['destination'][0] }}"
+  loop: '{{ docker_services_opt }}'
   when: "'source' in group_names"
 
 - name: Transfer backup files to destination server (/opt)
   ansible.builtin.copy:
     src: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
-    dest: '{{ backup_dir }}'
+    dest: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_opt }}'
+  when: "'source' in group_names"
+
+- name: Create destination directories for /home/{{ ansible_user }} backups
+  ansible.builtin.file:
+    path: '{{ backup_dir }}/{{ item }}'
+    state: directory
+  delegate_to: "{{ groups['destination'][0] }}"
+  loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
 
 - name: Transfer backup files to destination server (/home/{{ ansible_user }})
   ansible.builtin.copy:
     src: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
-    dest: '{{ backup_dir }}'
+    dest: '{{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
