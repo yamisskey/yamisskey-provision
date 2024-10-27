@@ -20,6 +20,13 @@
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
     cd /var/www/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
+  register: backup_output
+  loop: '{{ docker_services_www }}'
+  when: "'source' in group_names"
+
+- name: Debug backup creation output
+  ansible.builtin.debug:
+    var: backup_output.stdout_lines
   loop: '{{ docker_services_www }}'
   when: "'source' in group_names"
 
@@ -27,6 +34,13 @@
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
     cd /opt/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
+  register: backup_output
+  loop: '{{ docker_services_opt }}'
+  when: "'source' in group_names"
+
+- name: Debug backup creation output
+  ansible.builtin.debug:
+    var: backup_output.stdout_lines
   loop: '{{ docker_services_opt }}'
   when: "'source' in group_names"
 
@@ -34,7 +48,26 @@
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
     cd /home/{{ ansible_user }}/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
+  register: backup_output
   loop: '{{ docker_services_home }}'
+  when: "'source' in group_names"
+
+- name: Debug backup creation output
+  ansible.builtin.debug:
+    var: backup_output.stdout_lines
+  loop: '{{ docker_services_home }}'
+  when: "'source' in group_names"
+
+- name: List backup directory contents
+  ansible.builtin.shell: ls -l ~/backups/{{ item }}
+  register: backup_dir_contents
+  loop: '{{ docker_services_www }}'
+  when: "'source' in group_names"
+
+- name: Debug backup directory contents
+  ansible.builtin.debug:
+    var: backup_dir_contents.stdout_lines
+  loop: '{{ docker_services_www }}'
   when: "'source' in group_names"
 
 - name: Transfer backup files to destination server (/var/www)
