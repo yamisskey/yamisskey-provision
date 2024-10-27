@@ -1,0 +1,6 @@
+- name: import  destination host from source host
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - import

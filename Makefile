@@ -1,4 +1,4 @@
-.PHONY: all install inventory clone provision backup update help 
+.PHONY: all install inventory clone migrate provision backup update help 
 
 SSH_USER=$(shell whoami)
 SOURCE_HOSTNAME=$(shell hostname)
@@ -76,6 +76,10 @@ clone:
 	@if [ ! -d "$(CTFD_DIR)/.git" ]; then \
 		git clone https://github.com/yamisskey/ctf.yami.ski.git $(CTFD_DIR); \
 	fi
+
+migrate:
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/export.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit destination ansible/playbooks/import.yml --ask-become-pass
 
 provision:
 	@echo "Running provision playbooks..."
