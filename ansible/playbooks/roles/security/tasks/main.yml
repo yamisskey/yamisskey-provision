@@ -259,6 +259,33 @@
         create: yes
         state: present
 
+    - name: Configure Docker daemon DNS settings
+      block:
+        - name: Create Docker daemon configuration directory
+          file:
+            path: /etc/docker
+            state: directory
+            owner: root
+            group: root
+            mode: '0755'
+
+        - name: Set Docker daemon DNS to Cloudflare
+          copy:
+            dest: /etc/docker/daemon.json
+            content: |
+              {
+                "dns": ["1.1.1.1", "1.0.0.1"]
+              }
+            owner: root
+            group: root
+            mode: '0644'
+
+        - name: Restart Docker daemon
+          systemd:
+            name: docker
+            state: restarted
+            enabled: true
+
     - name: Test DNS resolution with dig
       command: dig cloudflare.com
       register: dig_result
