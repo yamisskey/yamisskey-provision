@@ -135,7 +135,51 @@ tailscale login
 cloudflared tunnel login
 ```
 
-create cloudflare tunnel named yamisskey-cloudflared by Zero Trust in https://one.dash.cloudflare.com/
+##### locally-managed tunnel
+
+```consol
+cloudflared tunnel create yamisskey
+cloudflared tunnel list
+```
+
+`.cloudflared` directory, create a `config.yml` file using any text editor. This file will configure the tunnel to route traffic from a given origin to the hostname of your choice.
+```yml
+tunnel: <Tunnel-UUID>
+credentials-file: /home/taka/.cloudflared/<Tunnel-UUID>.json
+warp-routing:
+  enabled: true
+
+ingress:
+  - hostname: yami.ski
+    service: http://localhost:8080
+  - hostname: search.yami.ski
+    service: http://localhost:8082
+  - hostname: matrix.yami.ski
+    service: http://localhost:8008
+  - hostname: element.yami.ski
+    service: http://localhost:8081
+  - hostname: drive.yami.ski
+    service: http://localhost:9000
+  - hostname: minio.yami.ski
+    service: http://localhost:9001
+  - hostname: jitsi.yami.ski
+    service: http://localhost:8002
+  - hostname: grafana.yami.ski
+    service: http://localhost:3000
+  - service: http_status:404
+```
+
+```consol
+cloudflared tunnel run yamisskey
+```
+
+```consol
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+```
+
+##### cloudflare zero trust(optional)
+create cloudflare tunnel named yamisskey by Zero Trust in https://one.dash.cloudflare.com/
 ```consol
 sudo cloudflared service install your_connector_token_value
 ```
