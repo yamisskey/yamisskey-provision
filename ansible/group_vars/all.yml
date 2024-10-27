@@ -23,12 +23,3 @@ minio_secrets_file: '/opt/minio/secrets.yml'
 backup_dir: '/home/{{ user_name }}/backups'
 vikunja_server_name: vikunja.yami.ski
 vikunja_secrets_file: '/var/www/vikunja/secrets.yml'
-docker_services_www:
-  - misskey
-  - synapse
-docker_services_opt:
-  - misskey-backup
-  - minio
-docker_services_home:
-  - ai
-  - ctfd
