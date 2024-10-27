@@ -30,10 +30,10 @@
   loop: '{{ docker_services_opt }}'
   when: "'source' in group_names"
 
-- name: Create backup of Docker Compose services on source server (~)
+- name: Create backup of Docker Compose services on source server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     mkdir -p {{ backup_dir }}/{{ item }}
-    cd ~/{{ item }} && tar -czvf {{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
+    cd /home/{{ ansible_user }}/{{ item }} && tar -czvf {{ backup_dir }}/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
   loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
 
@@ -60,4 +60,3 @@
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
-
