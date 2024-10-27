@@ -14,7 +14,7 @@
   programs.docker-compose.enable = true;
 
   # Add Docker group to the user
-  users.users.${username} = {
+  users.users.taka = {
     isNormalUser = true;
     extraGroups = [ "docker" ];
   };
