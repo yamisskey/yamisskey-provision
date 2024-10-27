@@ -29,15 +29,25 @@ endif
 all: install inventory clone provision backup update
 
 install:
-	@echo "Installing necessary packages..."
+	@echo "Installing Ansible..."
 	@sudo apt-get update && sudo apt-get install -y ansible || (echo "Install failed" && exit 1)
+	@echo "Installing necessary packages..."
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/common.yml --ask-become-pass
+	@echo "Installing Tailscale..."
 	@curl -fsSL https://tailscale.com/install.sh | sh
+	@echo "Installing Cloudflare Warp..."
 	@curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
 	@echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(CODENAME) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
 	@sudo apt-get update && sudo apt-get install -y cloudflare-warp
+	@echo "Installing Cloudflared..."
 	@wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 	@dpkg -i cloudflared-linux-amd64.deb
+	@echo "Installing Docker..."
+	@sudo install -m 0755 -d /etc/apt/keyrings
+	@curl -fsSL https://download.docker.com/linux/$(OS)/gpg | sudo gpg --yes --dearmor --output /etc/apt/keyrings/docker.asc
+	@echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$(OS) $(CODENAME) stable" | \
+	sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+	@sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || (echo "Docker installation failed" && exit 1)
 
 inventory:
 	@echo "Creating inventory file..."
