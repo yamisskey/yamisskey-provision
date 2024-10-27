@@ -19,27 +19,27 @@
 - name: Create backup of Docker Compose services on source server (/var/www)
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
-    cd /var/www/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
+    cd /var/www/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
   loop: '{{ docker_services_www }}'
   when: "'source' in group_names"
 
 - name: Create backup of Docker Compose services on source server (/opt)
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
-    cd /opt/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
+    cd /opt/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
   loop: '{{ docker_services_opt }}'
   when: "'source' in group_names"
 
 - name: Create backup of Docker Compose services on source server (/home/{{ ansible_user }})
   ansible.builtin.shell: |
     mkdir -p ~/backups/{{ item }}
-    cd /home/{{ ansible_user }}/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz .
+    cd /home/{{ ansible_user }}/{{ item }} && tar -czvf ~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz .
   loop: '{{ docker_services_home }}'
   when: "'source' in group_names"
 
 - name: Transfer backup files to destination server (/var/www)
   ansible.builtin.copy:
-    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
+    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
     dest: '{{ backup_dir }}'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_www }}'
@@ -47,7 +47,7 @@
 
 - name: Transfer backup files to destination server (/opt)
   ansible.builtin.copy:
-    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
+    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
     dest: '{{ backup_dir }}'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_opt }}'
@@ -55,7 +55,7 @@
 
 - name: Transfer backup files to destination server (/home/{{ ansible_user }})
   ansible.builtin.copy:
-    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.date }}.tar.gz'
+    src: '~/backups/{{ item }}/{{ item }}-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz'
     dest: '{{ backup_dir }}'
   delegate_to: "{{ groups['destination'][0] }}"
   loop: '{{ docker_services_home }}'
