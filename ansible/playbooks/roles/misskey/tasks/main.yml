@@ -105,21 +105,6 @@
 #     msg: "Initialization of Misskey database failed with error: {{ init_output.stderr | default('Unknown error') }}"
 #   when: misskey_running.stdout == "" and init_output.rc != 0
 
-- name: Tag existing Misskey image
-  shell: |
-    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    docker tag misskey_web:latest $IMAGE_TAG
-  register: tag_output
-  failed_when: tag_output.rc != 0
-
-- name: Push Docker image to DockerHub
-  shell: |
-    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    docker push yamisskey/misskey-web:latest
-    docker push $IMAGE_TAG
-  register: push_output
-  failed_when: push_output.rc != 0
-
 - name: Stop Misskey services
   shell: docker-compose stop
   args:
