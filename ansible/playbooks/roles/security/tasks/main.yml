@@ -1,7 +1,16 @@
-- name: Ensure rsyslog is installed
+---
+- name: Ensure required packages are installed
   apt:
-    name: rsyslog
+    name: "{{ item }}"
     state: present
+  loop:
+    - rsyslog
+    - logrotate
+    - ufw
+    - tailscale
+    - fail2ban
+    - lynis
+  become: true
 
 - name: Ensure syslog user exists
   user:
@@ -9,27 +18,23 @@
     state: present
     system: yes
 
-- name: Backup original rsyslog.conf
-  copy:
-    src: /etc/rsyslog.conf
-    dest: /etc/rsyslog.conf.bak
-    remote_src: yes
-  become: true
+- name: Backup and deploy rsyslog configuration
+  block:
+    - name: Backup original rsyslog.conf
+      copy:
+        src: /etc/rsyslog.conf
+        dest: /etc/rsyslog.conf.bak
+        remote_src: yes
+      become: true
 
-- name: Deploy custom rsyslog configuration
-  template:
-    src: templates/rsyslog.conf.j2
-    dest: /etc/rsyslog.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify: Validate rsyslog configuration
-
-- name: Ensure logrotate is installed
-  apt:
-    name: logrotate
-    state: present
-  become: true
+    - name: Deploy custom rsyslog configuration
+      template:
+        src: templates/rsyslog.conf.j2
+        dest: /etc/rsyslog.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Validate rsyslog configuration
 
 - name: Deploy custom logrotate configuration for rsyslog
   template:
@@ -38,197 +43,92 @@
     owner: root
     group: root
     mode: '0644'
-
-- name: Ensure UFW is installed
-  apt:
-    name: ufw
-    state: present
-
-- name: Allow SSH on port 2222
-  ufw:
-    rule: allow
-    port: 2222
-    proto: tcp
-
-- name: Allow HTTP traffic on port 80
-  ufw:
-    rule: allow
-    port: 80
-    proto: tcp
-
-- name: Allow HTTPS traffic on port 443
-  ufw:
-    rule: allow
-    port: 443
-    proto: tcp
-
-- name: Enable UFW
-  ufw:
-    state: enabled
-
-- name: Set default deny policy for incoming traffic
-  command: ufw default deny incoming
   become: true
 
-- name: Set default allow policy for outgoing traffic
-  command: ufw default allow outgoing
+- name: Configure UFW rules and service
+  block:
+    - name: Ensure UFW is enabled
+      ufw:
+        state: enabled
+
+    - name: Set default deny policy for incoming traffic
+      command: ufw default deny incoming
+      become: true
+
+    - name: Set default allow policy for outgoing traffic
+      command: ufw default allow outgoing
+      become: true
+
+    - name: Allow specified ports
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ ufw_ports }}"
+
+    - name: Open necessary ports for WARP and WireGuard
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: udp
+      loop: "{{ warp_wireguard_ports }}"
+      become: true
+
+    - name: Allow specific IP ranges for Cloudflare WARP
+      ufw:
+        rule: allow
+        from_ip: "{{ item }}"
+      loop: "{{ cloudflare_warp_ips }}"
+      become: true
+
+    - name: Ensure UFW logging is off
+      command: ufw logging off
+      ignore_errors: yes
+      become: true
+
+    - name: Reload UFW to apply changes
+      command: ufw reload
+      become: true
+
+    - name: Check UFW status
+      command: ufw status verbose
+      register: ufw_status
+      become: true
+
+    - name: Display UFW status
+      debug:
+        msg: '{{ ufw_status.stdout }}'
   become: true
 
-- name: Ensure UFW logging is off
-  command: ufw logging off
-  ignore_errors: yes
-
-- name: Enable UFW service
-  systemd:
-    name: ufw
-    enabled: yes
-
-- name: Reload UFW to apply changes
-  command: ufw reload
-
-- name: Check UFW status
-  command: ufw status verbose
-  register: ufw_status
-  become: true
-
-- name: Display UFW status
-  debug:
-    msg: '{{ ufw_status.stdout }}'
-
-- name: Ensure Tailscale is installed
-  apt:
-    name: tailscale
-    state: present
-
-- name: Start Tailscale with SSH enabled and reset settings
+- name: Start Tailscale with SSH enabled
   command: tailscale up --ssh --accept-dns=false --reset
   register: tailscale_up
 
-- name: Retrieve Tailscale status
-  command: tailscale status --json
-  register: tailscale_status
+- name: Retrieve and parse Tailscale IP addresses
+  block:
+    - name: Retrieve Tailscale status
+      command: tailscale status --json
+      register: tailscale_status
 
-- name: Parse Tailscale IP addresses
-  set_fact:
-    tailscale_ips: "{{ tailscale_status.stdout | from_json | json_query('Peer.*.TailscaleIPs') | flatten | select('match', '100\\..*') | list }}"
+    - name: Set Tailscale IPs
+      set_fact:
+        tailscale_ips: "{{ tailscale_status.stdout | from_json | json_query('Peer.*.TailscaleIPs') | flatten | select('match', '100\\..*') | list }}"
 
-- name: Debug parsed Tailscale IP addresses
-  debug:
-    var: tailscale_ips
+    - name: Allow SSH from Tailscale IPs
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+        from_ip: '{{ item }}'
+      loop: "{{ tailscale_ips }}"
 
-- name: Allow SSH traffic on port 22 only from Tailscale IPs
-  ufw:
-    rule: allow
-    port: 22
-    proto: tcp
-    from_ip: '{{ item }}'
-  loop: '{{ tailscale_ips }}'
-
-- name: Allow SSH traffic on port 22 from self Tailscale IP
-  ufw:
-    rule: allow
-    port: 22
-    proto: tcp
-    from_ip: '{{ ansible_default_ipv4.address }}'
-
-- name: Ensure UFW is installed
-  apt:
-    name: ufw
-    state: present
+    - name: Allow SSH from self Tailscale IP
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+        from_ip: '{{ ansible_default_ipv4.address }}'
   become: true
-
-- name: Open necessary ports for Cloudflare WARP and WireGuard
-  ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: udp
-  loop:
-    - 2408
-    - 500
-    - 1701
-    - 4500
-    - 51820  # WireGuard default port
-  become: true
-
-- name: Allow specific IP ranges for Cloudflare WARP
-  ufw:
-    rule: allow
-    from_ip: "{{ item }}"
-  loop:
-    - "162.159.137.105"
-    - "162.159.138.105"
-    - "2606:4700:7::a29f:8969"
-    - "2606:4700:7::a29f:8a69"
-    - "162.159.36.1"
-    - "162.159.46.1"
-    - "2606:4700:4700::1111"
-    - "2606:4700:4700::1001"
-    - "162.159.193.0/24"
-    - "2606:4700:100::/48"
-  become: true
-
-- name: Enable UFW
-  ufw:
-    state: enabled
-  become: true
-
-- name: Enable UFW service
-  systemd:
-    name: ufw
-    enabled: yes
-  become: true
-
-- name: Reload UFW to apply changes
-  command: ufw reload
-  become: true
-
-- name: Check UFW status
-  command: ufw status verbose
-  register: ufw_status
-  become: true
-
-- name: Display UFW status
-  debug:
-    msg: '{{ ufw_status.stdout }}'
-
-- name: Verify DNS resolution with dig
-  command: dig google.com
-  register: dig_result
-  changed_when: false
-
-- name: Display dig result
-  debug:
-    var: dig_result.stdout
-
-- name: Verify DNS resolution with nslookup
-  command: nslookup google.com
-  register: nslookup_result
-  changed_when: false
-
-- name: Display nslookup result
-  debug:
-    var: nslookup_result.stdout
-
-- name: Test DNS resolution with ping
-  command: ping -c 3 google.com
-  register: ping_result
-  changed_when: false
-
-- name: Display ping result
-  debug:
-    var: ping_result.stdout
-
-- name: Reload UFW to apply changes
-  command: ufw reload
-
-- name: Check UFW status
-  command: ufw status verbose
-  register: ufw_status
-  become: true
-
-- name: Display UFW status
-  debug:
-    msg: '{{ ufw_status.stdout }}'
 
 - name: Configure SSH settings
   lineinfile:
@@ -252,29 +152,23 @@
     - 'AllowAgentForwarding yes'
   notify: Restart SSH service
 
-- name: Backup original jail.conf
-  copy:
-    src: /etc/fail2ban/jail.conf
-    dest: /etc/fail2ban/jail.conf.bak
-    remote_src: yes
-  become: true
-  notify: Restart fail2ban
+- name: Backup and deploy fail2ban configuration
+  block:
+    - name: Backup original jail.conf
+      copy:
+        src: /etc/fail2ban/jail.conf
+        dest: /etc/fail2ban/jail.conf.bak
+        remote_src: yes
+      become: true
 
-- name: Ensure fail2ban is installed
-  apt:
-    name: fail2ban
-    state: present
-  become: true
-
-- name: Deploy fail2ban configuration
-  template:
-    src: jail.local.j2
-    dest: /etc/fail2ban/jail.local
-    owner: root
-    group: root
-    mode: '0644'
-  notify:
-    - Restart fail2ban
+    - name: Deploy fail2ban configuration
+      template:
+        src: jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
 
 - name: Ensure fail2ban service is enabled and started
   systemd:
@@ -293,84 +187,46 @@
   debug:
     msg: '{{ result.stdout }}'
 
-- name: Ensure log directory for ClamAV exists
-  file:
-    path: /var/log/clamav
-    state: directory
-    owner: clamav
-    group: adm
-    mode: '0755'
-  become: true
+- name: Ensure ClamAV configuration
+  block:
+    - name: Ensure log directory for ClamAV exists
+      file:
+        path: /var/log/clamav
+        state: directory
+        owner: clamav
+        group: adm
+        mode: '0755'
+      become: true
 
-- name: Ensure freshclam log file is writable
-  file:
-    path: /var/log/clamav/freshclam.log
-    state: touch
-    owner: clamav
-    group: adm
-    mode: '0644'
-  become: true
+    - name: Ensure freshclam log file is writable
+      file:
+        path: /var/log/clamav/freshclam.log
+        state: touch
+        owner: clamav
+        group: adm
+        mode: '0644'
+      become: true
 
-- name: Update ClamAV virus database
-  command: freshclam
-  become: true
-  failed_when: false
-  changed_when: false
+    - name: Update ClamAV virus database
+      command: freshclam
+      become: true
+      failed_when: false
+      changed_when: false
 
-- name: Ensure ClamAV daemon is started and enabled
-  systemd:
-    name: clamav-daemon
-    state: started
-    enabled: true
-  become: true
+    - name: Ensure ClamAV daemon is started and enabled
+      systemd:
+        name: clamav-daemon
+        state: started
+        enabled: true
+      become: true
 
-- name: Schedule daily ClamAV scan
-  cron:
-    name: 'Daily ClamAV scan'
-    minute: '0'
-    hour: '2'
-    job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
-  become: true
-
-- name: Ensure Lynis is installed
-  apt:
-    name: lynis
-    state: present
-
-- name: Run Lynis security audit
-  command: lynis audit system --quiet --logfile /var/log/lynis.log --report-file /var/log/lynis-report.dat
-  register: lynis_audit
-  become: true
-
-- name: Display Lynis security audit report
-  debug:
-    msg: '{{ lynis_audit.stdout }}'
-
-- name: Ensure password hashing rounds in /etc/login.defs
-  lineinfile:
-    path: /etc/login.defs
-    state: present
-    regexp: '^PASS_MAX_DAYS'
-    line: 'PASS_MAX_DAYS   90'
-    create: yes
-  become: true
-
-- name: Ensure password hashing rounds in /etc/login.defs
-  lineinfile:
-    path: /etc/login.defs
-    state: present
-    regexp: '^PASS_MIN_DAYS'
-    line: 'PASS_MIN_DAYS   7'
-    create: yes
-  become: true
-
-- name: Disable USB storage driver
-  lineinfile:
-    path: /etc/modprobe.d/blacklist.conf
-    state: present
-    line: 'blacklist usb-storage'
-    create: yes
-  become: true
+    - name: Schedule daily ClamAV scan
+      cron:
+        name: 'Daily ClamAV scan'
+        minute: '0'
+        hour: '2'
+        job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
+      become: true
 
 - name: Configure sysctl settings
   sysctl:
@@ -378,46 +234,35 @@
     value: '{{ item.value }}'
     state: present
     reload: yes
-  loop:
-    - { name: 'dev.tty.ldisc_autoload', value: '0' }
-    - { name: 'fs.protected_fifos', value: '2' }
-    - { name: 'kernel.core_uses_pid', value: '1' }
-    - { name: 'kernel.kptr_restrict', value: '2' }
-    - { name: 'kernel.sysrq', value: '0' }
-    - { name: 'kernel.unprivileged_bpf_disabled', value: '1' }
-    - { name: 'kernel.yama.ptrace_scope', value: '1' }
-    - { name: 'net.core.bpf_jit_harden', value: '2' }
-    - { name: 'net.ipv4.conf.all.forwarding', value: '0' }
-    - { name: 'net.ipv4.conf.all.log_martians', value: '1' }
-    - { name: 'net.ipv4.conf.all.rp_filter', value: '1' }
-    - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.default.accept_source_route', value: '0' }
-    - { name: 'net.ipv4.conf.default.log_martians', value: '1' }
-    - { name: 'vm.overcommit_memory', value: '1' }
-  become: true
+  loop: "{{ sysctl_settings }}"
   notify: Reload sysctl
+  become: true
 
 - name: Reload sysctl
   command: sysctl -p
   become: true
 
-- name: Ensure AppArmor service is enabled
-  systemd:
-    name: apparmor
-    enabled: true
-    state: started
-  become: true
+- name: Validate DNS resolution
+  block:
+    - name: Test DNS resolution with dig
+      command: dig google.com
+      register: dig_result
+      changed_when: false
 
-- name: Ensure auditd service is enabled
-  systemd:
-    name: auditd
-    enabled: true
-    state: started
-  become: true
+    - name: Test DNS resolution with nslookup
+      command: nslookup google.com
+      register: nslookup_result
+      changed_when: false
 
-- name: Ensure sysstat service is enabled
-  systemd:
-    name: sysstat
-    enabled: true
-    state: started
+    - name: Test DNS resolution with ping
+      command: ping -c 3 google.com
+      register: ping_result
+      changed_when: false
+
+    - name: Display DNS test results
+      debug:
+        msg: |
+          dig result: {{ dig_result.stdout }}
+          nslookup result: {{ nslookup_result.stdout }}
+          ping result: {{ ping_result.stdout }}
   become: true
