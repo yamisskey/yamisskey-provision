@@ -141,6 +141,7 @@ credentials-file: /home/taka/.cloudflared/<Tunnel-UUID>.json
 origincert: /home/taka/.cloudflared/cert.pem
 warp-routing:
   enabled: true
+protocol: quic
 
 ingress:
   - hostname: yami.ski
