@@ -168,6 +168,8 @@ sudo cloudflared tunnel --config /home/taka/.cloudflared/config.yml run yamisske
 ```
 
 ```consol
+sudo mkdir -p /etc/cloudflared
+sudo cp /home/taka/.cloudflared/config.yml /etc/cloudflared/config.yml
 sudo cloudflared service install
 sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
