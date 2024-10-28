@@ -96,12 +96,13 @@
       command: ufw default allow outgoing
       become: true
 
-    - name: Allow specified ports
+    - name: Allow specified TCP ports
       ufw:
         rule: allow
         port: "{{ item }}"
         proto: tcp
       loop: "{{ ufw_ports }}"
+      become: true
 
     - name: Open necessary ports for WARP and WireGuard
       ufw:
@@ -111,11 +112,18 @@
       loop: "{{ warp_wireguard_ports }}"
       become: true
 
-    - name: Allow specific IP ranges for Cloudflare WARP
+    - name: Allow Cloudflare WARP IP ranges
       ufw:
         rule: allow
-        from_ip: "{{ item }}"
+        from: "{{ item }}"
       loop: "{{ cloudflare_warp_ips }}"
+      become: true
+
+    - name: Open necessary ports for QUIC (UDP 443)
+      ufw:
+        rule: allow
+        port: 443
+        proto: udp
       become: true
 
     - name: Ensure UFW logging is off
@@ -135,6 +143,21 @@
     - name: Display UFW status
       debug:
         msg: '{{ ufw_status.stdout }}'
+  become: true
+
+- name: Start WARP client
+  command: warp-cli connect
+  become: true
+
+- name: Set WARP to always-on mode
+  command: warp-cli enable-always-on
+  become: true
+
+- name: Restart cloudflared service
+  systemd:
+    name: cloudflared
+    state: restarted
+    enabled: true
   become: true
 
 - name: Start Tailscale with SSH enabled
