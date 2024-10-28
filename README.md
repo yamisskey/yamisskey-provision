@@ -138,6 +138,7 @@ cloudflared tunnel list
 ```yml
 tunnel: <Tunnel-UUID>
 credentials-file: /home/taka/.cloudflared/<Tunnel-UUID>.json
+origincert: /home/taka/.cloudflared/cert.pem
 warp-routing:
   enabled: true
 
@@ -162,12 +163,15 @@ ingress:
 ```
 
 ```consol
-cloudflared tunnel run yamisskey
+sudo cloudflared tunnel --config /home/taka/.cloudflared/config.yml run yamisskey
 ```
 
 ```consol
+sudo cloudflared service install
 sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
+sudo systemctl status cloudflared
+sudo systemctl restart cloudflared
 ```
 
 ##### cloudflare zero trust(optional)
