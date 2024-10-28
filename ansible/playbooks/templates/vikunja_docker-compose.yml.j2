@@ -16,9 +16,9 @@ services:
             VIKUNJA_MAILER_ENABLED: 'true'
             VIKUNJA_MAILER_HOST: 'smtp.protonmail.ch'
             VIKUNJA_MAILER_PORT: '465'
-            VIKUNJA_MAILER_USERNAME: 'admin@yami.ski'
+            VIKUNJA_MAILER_USERNAME: 'admin@{{ domain }}'
             VIKUNJA_MAILER_PASSWORD: '{{ vikunja_secrets.mailer_password }}'
-            VIKUNJA_MAILER_FROMEMAIL: 'admin@yami.ski'
+            VIKUNJA_MAILER_FROMEMAIL: 'admin@{{ domain }}'
             VIKUNJA_MAILER_FORCESSL: 'true'
             VIKUNJA_MAILER_SKIPTLSVERIFY: 'false'
         ports:

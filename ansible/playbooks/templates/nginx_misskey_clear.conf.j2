@@ -8,19 +8,19 @@ proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:32m max_size=2g in
 # Set a very high rate and burst limit to effectively disable rate limiting
 limit_req_zone $binary_remote_addr zone=mylimit:10m rate=1000r/s;
 
-# Main server block for yami.ski
+# Main server block for {{ domain }}
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name yami.ski;
+    server_name {{ domain }};
 
     ssl_session_timeout 1d;
     ssl_session_cache shared:ssl_session_cache:10m;
     ssl_session_tickets off;
 
     # SSL certificate paths
-    ssl_certificate /etc/letsencrypt/live/yami.ski/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yami.ski/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ domain }}/privkey.pem;
 
     # SSL protocol settings
     ssl_protocols TLSv1.2 TLSv1.3;

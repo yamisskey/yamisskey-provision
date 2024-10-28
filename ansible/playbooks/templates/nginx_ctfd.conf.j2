@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name ctf.yami.ski;
+    server_name {{ ctfd_server_name }};
 
     location / {
         proxy_pass http://localhost:8000;
