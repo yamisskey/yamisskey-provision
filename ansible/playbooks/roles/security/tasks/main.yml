@@ -145,13 +145,6 @@
         msg: '{{ ufw_status.stdout }}'
   become: true
 
-- name: Restart cloudflared service
-  systemd:
-    name: cloudflared
-    state: restarted
-    enabled: true
-  become: true
-
 - name: Start Tailscale with SSH enabled
   command: tailscale up --ssh --accept-dns=false --reset
   register: tailscale_up
