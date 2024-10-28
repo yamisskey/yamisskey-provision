@@ -145,14 +145,6 @@
         msg: '{{ ufw_status.stdout }}'
   become: true
 
-- name: Start WARP client
-  command: warp-cli connect --accept-tos
-  become: true
-
-- name: Set WARP to always-on mode
-  command: warp-cli enable-always-on --accept-tos
-  become: true
-
 - name: Restart cloudflared service
   systemd:
     name: cloudflared
