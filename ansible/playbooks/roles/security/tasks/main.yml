@@ -10,6 +10,8 @@
     - tailscale
     - fail2ban
     - lynis
+    - certbot
+    - python3-certbot-dns-cloudflare
   become: true
 
 - name: Ensure syslog user exists
@@ -35,6 +37,41 @@
         group: root
         mode: '0644'
       notify: Validate rsyslog configuration
+
+- name: Verify Cloudflare configuration exists
+  stat:
+    path: '/etc/cloudflare/cloudflare.ini'
+  register: cloudflare_conf
+
+- name: Fail if Cloudflare configuration does not exist
+  fail:
+    msg: 'Cloudflare configuration file /etc/cloudflare/cloudflare.ini does not exist.'
+  when: not cloudflare_conf.stat.exists
+
+- name: Obtain SSL certificate for main domain using certbot and Cloudflare DNS
+  command: >
+    certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
+    --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
+    -d {{ domain }} -m admin@{{ domain }} --agree-tos --non-interactive
+  become: true
+  register: certbot_result_main
+
+- name: Display certbot result for main domain
+  debug:
+    msg: "{{ certbot_result_main.stdout }}"
+
+- name: Obtain SSL certificate for subdomains using certbot and Cloudflare DNS
+  command: >
+    certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
+    --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
+    -d {{ synapse_server_name }},{{ element_server_name }},{{ jitsi_server_name }},{{ minio_api_server_name }},{{ minio_web_server_name }},{{ vikunja_server_name }},{{ ctfd_server_name }},{{ grafana_server_name }}
+    -m admin@{{ domain }} --agree-tos --non-interactive
+  become: true
+  register: certbot_result_subdomains
+
+- name: Display certbot result for subdomains
+  debug:
+    msg: "{{ certbot_result_subdomains.stdout }}"
 
 - name: Deploy custom logrotate configuration for rsyslog
   template:

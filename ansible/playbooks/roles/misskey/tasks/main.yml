@@ -148,28 +148,6 @@
     msg: 'Nginx configuration file /etc/nginx/conf.d/misskey.conf does not exist.'
   when: not nginx_conf.stat.exists
 
-- name: Verify Cloudflare configuration exists
-  stat:
-    path: '/etc/cloudflare/cloudflare.ini'
-  register: cloudflare_conf
-
-- name: Fail if Cloudflare configuration does not exist
-  fail:
-    msg: 'Cloudflare configuration file /etc/cloudflare/cloudflare.ini does not exist.'
-  when: not cloudflare_conf.stat.exists
-
-- name: Obtain SSL certificate using certbot and Cloudflare DNS
-  command: >
-    certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
-    --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
-    -d {{ domain }} -m admin@{{ domain }} --agree-tos --non-interactive
-  become: true
-  register: certbot_result
-
-- name: Display certbot result
-  debug:
-    msg: "{{ certbot_result.stdout }}"
-
 - name: Reload Nginx if configuration files exist
   systemd:
     name: nginx
