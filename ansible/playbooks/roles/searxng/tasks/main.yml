@@ -6,11 +6,12 @@
     group: root
     mode: '0755'
 
-- name: Clone SearXNG repository
+- name: Clone SearXNG repository if not already cloned
   ansible.builtin.git:
     repo: '{{ searxng_repo }}'
     dest: '{{ searxng_dir }}'
     version: master
+    force: no
 
 - name: Configure .env file for SearXNG
   ansible.builtin.copy:
