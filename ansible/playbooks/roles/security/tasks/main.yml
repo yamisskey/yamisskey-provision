@@ -114,11 +114,40 @@
       loop: "{{ ufw_ports }}"
       become: true
 
-    - name: Open necessary ports for Cloudflared QUIC protocol (UDP)
+    - name: Allow QUIC and HTTP2 traffic to Cloudflare Tunnel for IPv4 addresses
       ufw:
         rule: allow
         port: "{{ cloudflared_quic_port }}"
         proto: udp
+        to_ip: "{{ item }}"
+      loop: "{{ cloudflare_region1_ips_v4 + cloudflare_region2_ips_v4 }}"
+      become: true
+
+    - name: Allow QUIC and HTTP2 traffic to Cloudflare Tunnel for IPv6 addresses
+      ufw:
+        rule: allow
+        port: "{{ cloudflared_quic_port }}"
+        proto: udp
+        to_ip: "{{ item }}"
+      loop: "{{ cloudflare_region1_ips_v6 + cloudflare_region2_ips_v6 }}"
+      become: true
+
+    - name: Optionally allow HTTPS traffic for Cloudflare services (IPv4)
+      ufw:
+        rule: allow
+        port: "{{ cloudflared_https_port }}"
+        proto: tcp
+        to_ip: "{{ item }}"
+      loop: "{{ cloudflare_region1_ips_v4 + cloudflare_region2_ips_v4 }}"
+      become: true
+
+    - name: Optionally allow HTTPS traffic for Cloudflare services (IPv6)
+      ufw:
+        rule: allow
+        port: "{{ cloudflared_https_port }}"
+        proto: tcp
+        to_ip: "{{ item }}"
+      loop: "{{ cloudflare_region1_ips_v6 + cloudflare_region2_ips_v6 }}"
       become: true
 
     - name: Open necessary ports for WARP and WireGuard
