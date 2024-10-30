@@ -26,3 +26,8 @@ vikunja_server_name: vikunja.{{ domain }}
 vikunja_secrets_file: '/var/www/vikunja/secrets.yml'
 ctfd_server_name: ctf.{{ domain }}
 grafana_server_name: grafana.{{ domain }}
+searxng_repo : "https://github.com/yamisskey/search.yami.ski.git"
+searxng_server_name: search.{{ domain }}
+searxng_dir: '/usr/local/{{ serxng_server_name }}'
+searxng_env_file: '{{ searxng_dir }}/.env'
+searxng_settings_file: '{{ searxng_dir }}/searxng/settings.yml'

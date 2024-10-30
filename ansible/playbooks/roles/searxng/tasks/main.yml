@@ -1,0 +1,71 @@
+- name: Create SearXNG directory
+  file:
+    path: "{{ searxng_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Clone SearXNG repository
+  git:
+    repo: "{{ searxng_repo }}"
+    dest: "{{ searxng_dir }}"
+    version: master
+
+- name: Copy .env file
+  copy:
+    dest: "{{ searxng_env_file }}"
+    content: |
+      SEARXNG_HOSTNAME={{ searxng_server_name }}
+      SEARXNG_ADMIN_EMAIL=admin@{{ domain }}
+
+- name: Generate secret key for SearXNG
+  shell: "openssl rand -hex 32"
+  register: secret_key
+
+- name: Update SearXNG settings.yml with secret key
+  lineinfile:
+    path: "{{ searxng_settings_file }}"
+    regexp: 'ultrasecretkey'
+    line: "secret_key: {{ secret_key.stdout }}"
+
+- name: Remove cap_drop: - ALL from docker-compose.yaml
+  replace:
+    path: "{{ searxng_dir }}/docker-compose.yaml"
+    regexp: 'cap_drop: - ALL'
+    replace: '# cap_drop: - ALL'
+
+- name: Run Docker Compose for SearXNG
+  shell: docker-compose up -d
+  args:
+    chdir: "{{ searxng_dir }}"
+
+- name: Re-add cap_drop: - ALL to docker-compose.yaml
+  replace:
+    path: "{{ searxng_dir }}/docker-compose.yaml"
+    regexp: '# cap_drop: - ALL'
+    replace: 'cap_drop: - ALL'
+
+- name: Create systemd service file for SearXNG
+  copy:
+    dest: "/etc/systemd/system/searxng-docker.service"
+    content: |
+      [Unit]
+      Description=SearXNG Docker Service
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Restart=always
+      WorkingDirectory={{ searxng_dir }}
+      ExecStart=/usr/bin/docker-compose up
+      ExecStop=/usr/bin/docker-compose down
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start SearXNG service
+  systemd:
+    name: searxng-docker
+    enabled: true
+    state: started
