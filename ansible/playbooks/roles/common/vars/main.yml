@@ -1,5 +1,4 @@
 packages:
-  - certificates
   - htop
   - net-tools
   - nmap
