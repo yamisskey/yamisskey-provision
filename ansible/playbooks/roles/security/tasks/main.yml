@@ -192,6 +192,7 @@
     create: yes
     line: '{{ item }}'
   loop:
+    - 'Port 22'
     - 'Port 2222'
     - 'AuthorizedKeysFile .ssh/authorized_keys'
     - 'RSAAuthentication yes'
