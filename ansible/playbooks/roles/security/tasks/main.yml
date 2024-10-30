@@ -114,6 +114,13 @@
       loop: "{{ ufw_ports }}"
       become: true
 
+    - name: Open necessary ports for Cloudflared QUIC protocol (UDP)
+      ufw:
+        rule: allow
+        port: "{{ cloudflared_quic_port }}"
+        proto: udp
+      become: true
+
     - name: Open necessary ports for WARP and WireGuard
       ufw:
         rule: allow

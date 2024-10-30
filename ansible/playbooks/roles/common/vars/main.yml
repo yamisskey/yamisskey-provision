@@ -2,6 +2,7 @@ packages:
   - htop
   - net-tools
   - nmap
+  - inetutils-traceroute
   - rsync
   - zip
   - nginx

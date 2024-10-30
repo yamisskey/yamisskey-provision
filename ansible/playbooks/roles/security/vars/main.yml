@@ -3,6 +3,8 @@ ufw_ports:
   - 80
   - 443
 
+cloudflared_quic_port: 7844
+
 warp_wireguard_ports:
   - 2408
   - 500
