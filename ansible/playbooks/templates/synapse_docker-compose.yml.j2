@@ -19,7 +19,7 @@ services:
 
   db:
     image: postgres:16
-    container_name: postgres
+    container_name: synapse-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: "{{ postgresql_user }}"
