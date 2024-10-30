@@ -16,8 +16,8 @@
 
 - name: Load Minio secrets from secrets.yml
   set_fact:
-    minio_access_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.access_key }}"
-    minio_secret_key: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.secret_key }}"
+    minio_root_user: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.root_user }}"
+    minio_root_password: "{{ (lookup('file', minio_secrets_file) | from_yaml).minio.root_password }}"
 
 - name: Deploy Docker Compose file for Minio
   template:
@@ -39,7 +39,7 @@
     mode: '0755'
 
 - name: Set Minio Client alias
-  command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_access_key }}" "{{ minio_secret_key }}"
+  command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ MINIO_ROOT_USER }}" "{{ MINIO_ROOT_PASSWORD }}"
 
 - name: Check if bucket exists
   command: /usr/local/bin/mc ls "{{ minio_alias }}/{{ minio_bucket_name }}"

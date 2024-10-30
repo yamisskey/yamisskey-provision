@@ -6,8 +6,8 @@ services:
     container_name: minio
     restart: always
     environment:
-      - MINIO_ACCESS_KEY={{ minio_access_key }}
-      - MINIO_SECRET_KEY={{ minio_secret_key }}
+      - MINIO_ROOT_USER={{ minio_root_user }}
+      - MINIO_ROOT_PASSWORD={{ minio_root_password }}
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
