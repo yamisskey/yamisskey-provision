@@ -39,7 +39,7 @@
     mode: '0755'
 
 - name: Set Minio Client alias
-  command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ MINIO_ROOT_USER }}" "{{ MINIO_ROOT_PASSWORD }}"
+  command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
 
 - name: Check if bucket exists
   command: /usr/local/bin/mc ls "{{ minio_alias }}/{{ minio_bucket_name }}"
