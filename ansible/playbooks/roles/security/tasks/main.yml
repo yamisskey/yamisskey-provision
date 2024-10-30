@@ -60,18 +60,28 @@
   debug:
     msg: "{{ certbot_result_main.stdout }}"
 
-- name: Obtain SSL certificate for subdomains using certbot and Cloudflare DNS
+- name: Obtain SSL certificate for each subdomain using certbot and Cloudflare DNS
+  vars:
+    subdomains:
+      - "{{ synapse_server_name }}"
+      - "{{ element_server_name }}"
+      - "{{ jitsi_server_name }}"
+      - "{{ minio_api_server_name }}"
+      - "{{ minio_web_server_name }}"
+      - "{{ vikunja_server_name }}"
+      - "{{ ctfd_server_name }}"
+      - "{{ grafana_server_name }}"
   command: >
     certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
     --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
-    -d {{ synapse_server_name }},{{ element_server_name }},{{ jitsi_server_name }},{{ minio_api_server_name }},{{ minio_web_server_name }},{{ vikunja_server_name }},{{ ctfd_server_name }},{{ grafana_server_name }}
-    -m admin@{{ domain }} --agree-tos --non-interactive
+    -d {{ item }} -m admin@{{ domain }} --agree-tos --non-interactive
+  with_items: "{{ subdomains }}"
   become: true
   register: certbot_result_subdomains
 
-- name: Display certbot result for subdomains
+- name: Display certbot result for each subdomain
   debug:
-    msg: "{{ certbot_result_subdomains.stdout }}"
+    msg: "{{ certbot_result_subdomains.results | map(attribute='stdout') | list }}"
 
 - name: Deploy custom logrotate configuration for rsyslog
   template:
