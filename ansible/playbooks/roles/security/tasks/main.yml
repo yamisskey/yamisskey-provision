@@ -366,3 +366,13 @@
       nslookup result: {{ nslookup_result.stdout }}
       ping result: {{ ping_result.stdout }}
   become: true
+
+- name: Test SRV record resolution with dig
+  command: dig srv _origintunneld._tcp.argotunnel.com
+  register: srv_dig_result
+  changed_when: false
+
+- name: Display SRV test results
+  debug:
+    msg: "SRV dig result: {{ srv_dig_result.stdout }}"
+  become: true
