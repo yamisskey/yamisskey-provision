@@ -298,102 +298,66 @@
   command: sysctl -p
   become: true
 
-- name: Ensure correct DNS settings
-  block:
-    - name: Backup current resolv.conf
-      copy:
-        src: /etc/resolv.conf
-        dest: /etc/resolv.conf.backup
-        owner: root
-        group: root
-        mode: '0644'
+- name: Ensure systemd-resolved is enabled and started
+  systemd:
+    name: systemd-resolved
+    state: started
+    enabled: true
+  become: true
 
-    - name: Set DNS server to Cloudflare DNS
-      lineinfile:
-        path: /etc/resolv.conf
-        line: "nameserver 1.1.1.1"
-        create: yes
-        state: present
+- name: Configure systemd-resolved DNS servers
+  lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '^#?DNS='
+    line: 'DNS=1.1.1.1 1.0.0.1'
+  become: true
 
-    - name: Configure Docker daemon DNS settings
-      block:
-        - name: Create Docker daemon configuration directory
-          file:
-            path: /etc/docker
-            state: directory
-            owner: root
-            group: root
-            mode: '0755'
+- name: Restart systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted
+  become: true
 
-        - name: Set Docker daemon DNS to Cloudflare
-          copy:
-            dest: /etc/docker/daemon.json
-            content: |
-              {
-                "dns": ["1.1.1.1", "1.0.0.1"]
-              }
-            owner: root
-            group: root
-            mode: '0644'
+- name: Ensure /etc/resolv.conf points to systemd-resolved stub resolver
+  file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: yes
+  become: true
 
-        - name: Restart Docker daemon
-          systemd:
-            name: docker
-            state: restarted
-            enabled: true
+- name: Remove custom Docker daemon DNS settings if exists
+  file:
+    path: /etc/docker/daemon.json
+    state: absent
+  become: true
 
-    - name: Test DNS resolution with dig
-      command: dig cloudflare.com
-      register: dig_result
-      changed_when: false
+- name: Restart Docker daemon
+  systemd:
+    name: docker
+    state: restarted
+    enabled: true
+  become: true
 
-    - name: Test DNS resolution with nslookup
-      command: nslookup cloudflare.com
-      register: nslookup_result
-      changed_when: false
+- name: Test DNS resolution with dig
+  command: dig cloudflare.com
+  register: dig_result
+  changed_when: false
 
-    - name: Test DNS resolution with ping
-      command: ping -c 3 cloudflare.com
-      register: ping_result
-      changed_when: false
+- name: Test DNS resolution with nslookup
+  command: nslookup cloudflare.com
+  register: nslookup_result
+  changed_when: false
 
-    - name: Display DNS test results
-      debug:
-        msg: |
-          dig result: {{ dig_result.stdout }}
-          nslookup result: {{ nslookup_result.stdout }}
-          ping result: {{ ping_result.stdout }}
+- name: Test DNS resolution with ping
+  command: ping -c 3 cloudflare.com
+  register: ping_result
+  changed_when: false
 
-    - name: Restore original resolv.conf
-      copy:
-        src: /etc/resolv.conf.backup
-        dest: /etc/resolv.conf
-        owner: root
-        group: root
-        mode: '0644'
-      when: dig_result.rc != 0 or nslookup_result.rc != 0 or ping_result.rc != 0
-
-- name: Validate DNS resolution
-  block:
-    - name: Test DNS resolution with dig
-      command: dig cloudflare.com
-      register: dig_result
-      changed_when: false
-
-    - name: Test DNS resolution with nslookup
-      command: nslookup cloudflare.com
-      register: nslookup_result
-      changed_when: false
-
-    - name: Test DNS resolution with ping
-      command: ping -c 3 cloudflare.com
-      register: ping_result
-      changed_when: false
-
-    - name: Display DNS test results
-      debug:
-        msg: |
-          dig result: {{ dig_result.stdout }}
-          nslookup result: {{ nslookup_result.stdout }}
-          ping result: {{ ping_result.stdout }}
+- name: Display DNS test results
+  debug:
+    msg: |
+      dig result: {{ dig_result.stdout }}
+      nslookup result: {{ nslookup_result.stdout }}
+      ping result: {{ ping_result.stdout }}
   become: true
