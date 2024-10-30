@@ -326,10 +326,14 @@
     force: yes
   become: true
 
-- name: Remove custom Docker daemon DNS settings if exists
-  file:
-    path: /etc/docker/daemon.json
-    state: absent
+- name: Configure Docker daemon DNS settings with Cloudflare DNS
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "dns": ["1.1.1.1", "1.0.0.1"]
+      }
+    mode: '0644'
   become: true
 
 - name: Restart Docker daemon
@@ -339,6 +343,7 @@
     enabled: true
   become: true
 
+# DNS resolution test tasks remain as is
 - name: Test DNS resolution with dig
   command: dig cloudflare.com
   register: dig_result
