@@ -1,54 +1,55 @@
-- name: Create SearXNG directory
-  file:
-    path: "{{ searxng_dir }}"
+- name: Ensure SearXNG directory exists
+  ansible.builtin.file:
+    path: '{{ searxng_dir }}'
     state: directory
     owner: root
     group: root
     mode: '0755'
 
 - name: Clone SearXNG repository
-  git:
-    repo: "{{ searxng_repo }}"
-    dest: "{{ searxng_dir }}"
+  ansible.builtin.git:
+    repo: '{{ searxng_repo }}'
+    dest: '{{ searxng_dir }}'
     version: master
 
-- name: Copy .env file
-  copy:
-    dest: "{{ searxng_env_file }}"
+- name: Configure .env file for SearXNG
+  ansible.builtin.copy:
+    dest: '{{ searxng_env_file }}'
     content: |
       SEARXNG_HOSTNAME={{ searxng_server_name }}
       SEARXNG_ADMIN_EMAIL=admin@{{ domain }}
 
 - name: Generate secret key for SearXNG
-  shell: "openssl rand -hex 32"
+  ansible.builtin.command: 'openssl rand -hex 32'
   register: secret_key
 
-- name: Update SearXNG settings.yml with secret key
-  lineinfile:
-    path: "{{ searxng_settings_file }}"
+- name: Insert secret key into SearXNG settings.yml
+  ansible.builtin.lineinfile:
+    path: '{{ searxng_settings_file }}'
     regexp: 'ultrasecretkey'
-    line: "secret_key: {{ secret_key.stdout }}"
+    line: 'secret_key: {{ secret_key.stdout }}'
 
-- name: Remove cap_drop
-  replace:
-    path: "{{ searxng_dir }}/docker-compose.yaml"
+- name: Temporarily disable cap_drop for initial setup
+  ansible.builtin.replace:
+    path: '{{ searxng_dir }}/docker-compose.yaml'
     regexp: 'cap_drop: - ALL'
     replace: '# cap_drop: - ALL'
 
-- name: Run Docker Compose for SearXNG
-  shell: docker-compose up -d
-  args:
-    chdir: "{{ searxng_dir }}"
+- name: Start SearXNG Docker container
+  ansible.builtin.docker_compose:
+    project_src: '{{ searxng_dir }}'
+    state: present
+    restarted: true
 
-- name: Re-add cap_drop
-  replace:
-    path: "{{ searxng_dir }}/docker-compose.yaml"
+- name: Re-enable cap_drop for security
+  ansible.builtin.replace:
+    path: '{{ searxng_dir }}/docker-compose.yaml'
     regexp: '# cap_drop: - ALL'
     replace: 'cap_drop: - ALL'
 
 - name: Create systemd service file for SearXNG
-  copy:
-    dest: "/etc/systemd/system/searxng-docker.service"
+  ansible.builtin.copy:
+    dest: '/etc/systemd/system/searxng-docker.service'
     content: |
       [Unit]
       Description=SearXNG Docker Service
@@ -64,8 +65,8 @@
       [Install]
       WantedBy=multi-user.target
 
-- name: Enable and start SearXNG service
-  systemd:
+- name: Enable and start SearXNG systemd service
+  ansible.builtin.systemd:
     name: searxng-docker
     enabled: true
     state: started
