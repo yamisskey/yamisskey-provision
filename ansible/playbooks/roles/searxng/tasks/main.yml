@@ -29,7 +29,7 @@
     regexp: 'ultrasecretkey'
     line: "secret_key: {{ secret_key.stdout }}"
 
-- name: Remove cap_drop: - ALL from docker-compose.yaml
+- name: Remove cap_drop
   replace:
     path: "{{ searxng_dir }}/docker-compose.yaml"
     regexp: 'cap_drop: - ALL'
@@ -40,7 +40,7 @@
   args:
     chdir: "{{ searxng_dir }}"
 
-- name: Re-add cap_drop: - ALL to docker-compose.yaml
+- name: Re-add cap_drop
   replace:
     path: "{{ searxng_dir }}/docker-compose.yaml"
     regexp: '# cap_drop: - ALL'
