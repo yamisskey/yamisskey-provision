@@ -114,6 +114,14 @@
       loop: "{{ ufw_ports }}"
       become: true
 
+    - name: Allow specified Tailscale UDP ports
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: udp
+      loop: "{{ tailscale_ports }}"
+      become: true
+
     - name: Allow QUIC and HTTP2 traffic to Cloudflare Tunnel for IPv4 addresses
       ufw:
         rule: allow
