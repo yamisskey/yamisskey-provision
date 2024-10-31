@@ -362,17 +362,26 @@
   become: true
 
 - name: Configure systemd-resolved DNS servers
-  lineinfile:
-    path: /etc/systemd/resolved.conf
-    regexp: '^#?DNS='
-    line: 'DNS=1.1.1.1 1.0.0.1'
-  become: true
+  block:
+    - name: Set DNS in /etc/systemd/resolved.conf
+      lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: '^#?DNS='
+        line: 'DNS=1.1.1.1'
+      become: true
 
-- name: Restart systemd-resolved
-  systemd:
-    name: systemd-resolved
-    state: restarted
-  become: true
+    - name: Set FallbackDNS in /etc/systemd/resolved.conf
+      lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: '^#?FallbackDNS='
+        line: 'FallbackDNS=1.0.0.1'
+      become: true
+
+    - name: Restart systemd-resolved to apply DNS settings
+      systemd:
+        name: systemd-resolved
+        state: restarted
+      become: true
 
 - name: Ensure /etc/resolv.conf points to systemd-resolved stub resolver
   file:
