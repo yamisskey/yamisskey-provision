@@ -97,18 +97,19 @@
 
 - name: Configure UFW rules and service
   block:
-    - name: Ensure UFW is enabled
-      ufw:
-        state: enabled
+    - name: Gather UFW status
+      command: ufw status verbose
+      register: ufw_status
+      changed_when: false
 
     - name: Set default deny policy for incoming traffic if not already set
       command: ufw default deny incoming
-      when: ansible_facts['ufw']['default_incoming_policy'] != "deny"
+      when: "'default: deny' not in ufw_status.stdout"
       become: true
 
     - name: Set default allow policy for outgoing traffic if not already set
       command: ufw default allow outgoing
-      when: ansible_facts['ufw']['default_outgoing_policy'] != "allow"
+      when: "'default: allow (outgoing)' not in ufw_status.stdout"
       become: true
 
     - name: Allow specified TCP ports
