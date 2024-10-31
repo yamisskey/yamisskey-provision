@@ -1,16 +1,16 @@
-user_name: taka
+ansible_user: taka
 source_sudo_password: "source_user_password"
 destination_sudo_password: "destination_user_password"
-set_dir: '/home/{{ user_name }}/yamisskey-provision'
-backup_script_dir: '/home/{{ user_name }}/misskey-backup'
-mkp224o_output_dir: '/home/{{ user_name }}/mkp224o-output'
+set_dir: '/home/{{ ansible_user }}/yamisskey-provision'
+backup_script_dir: '/home/{{ ansible_user }}/misskey-backup'
+mkp224o_output_dir: '/home/{{ ansible_user }}/mkp224o-output'
 domain_prefix: yamiski
 domain: yami.ski
 misskey_repo: 'https://github.com/yamisskey/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 misskey_backup_secrets_file: '/opt/misskey-backup/secrets.yml'
-ai_dir: '/home/{{ user_name }}/ai'
-ctfd_dir: '/home/{{ user_name }}/ctfd'
+ai_dir: '/home/{{ ansible_user }}/ai'
+ctfd_dir: '/home/{{ ansible_user }}/ctfd'
 synapse_server_name: matrix.{{ domain }}
 synapse_secrets_file: '/var/www/synapse/secrets.yml'
 element_server_name: element.{{ domain }}
@@ -21,7 +21,7 @@ minio_api_server_name: drive.{{ domain }}
 minio_web_server_name: minio.{{ domain }}
 minio_bucket_name: "files"
 minio_secrets_file: '/opt/minio/secrets.yml'
-backup_dir: '/home/{{ user_name }}/backups'
+backup_dir: '/home/{{ ansible_user }}/backups'
 vikunja_server_name: vikunja.{{ domain }}
 vikunja_secrets_file: '/var/www/vikunja/secrets.yml'
 ctfd_server_name: ctf.{{ domain }}

@@ -2,8 +2,8 @@
   file:
     path: '{{ misskey_dir }}'
     state: directory
-    owner: '{{ user_name }}'
-    group: '{{ user_name }}'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 - name: Check if required files exist
   stat:
@@ -158,8 +158,8 @@
   file:
     path: '{{ backup_dir }}/misskey'
     state: directory
-    owner: '{{ user_name }}'
-    group: '{{ user_name }}'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
     mode: '0755'
 
 - name: Check if VAPID keys file exists
