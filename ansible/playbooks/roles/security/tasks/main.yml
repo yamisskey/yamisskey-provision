@@ -60,7 +60,8 @@
 
 - name: Display certbot result for main domain
   debug:
-    msg: "{{ certbot_result_main.stdout }}"
+    msg: "{{ certbot_result_main.stdout | default('Certbot result not available') }}"
+  when: certbot_result_main is defined and certbot_result_main.stdout is defined
 
 - name: Obtain SSL certificate for each subdomain using certbot and Cloudflare DNS
   vars:
