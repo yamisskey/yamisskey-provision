@@ -53,7 +53,8 @@
     certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
     --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
     -d {{ domain }} -m admin@{{ domain }} --agree-tos --non-interactive
-  when: '"Certificate not yet due for renewal" not in certbot_result_main.stdout'
+  when: certbot_result_main is defined and certbot_result_main.stdout is defined and 
+        "Certificate not yet due for renewal" not in certbot_result_main.stdout
   become: true
   register: certbot_result_main
 
