@@ -152,6 +152,8 @@ ingress:
     service: http://localhost:8008
   - hostname: element.yami.ski
     service: http://localhost:8081
+  - hostname: ctf.yami.ski
+    service: http://localhost:8000
   - hostname: drive.yami.ski
     service: http://localhost:9000
   - hostname: minio.yami.ski
@@ -160,6 +162,8 @@ ingress:
     service: http://localhost:8002
   - hostname: grafana.yami.ski
     service: http://localhost:3000
+  - hostname: vikunja.yami.ski
+    service: http://localhost:3456
   - service: http_status:404
 ```
 
