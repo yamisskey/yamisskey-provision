@@ -53,6 +53,7 @@
     certbot certonly --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini
     --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory
     -d {{ domain }} -m admin@{{ domain }} --agree-tos --non-interactive
+  when: '"Certificate not yet due for renewal" not in certbot_result_main.stdout'
   become: true
   register: certbot_result_main
 
@@ -98,12 +99,14 @@
       ufw:
         state: enabled
 
-    - name: Set default deny policy for incoming traffic
+    - name: Set default deny policy for incoming traffic if not already set
       command: ufw default deny incoming
+      when: ansible_facts['ufw']['default_incoming_policy'] != "deny"
       become: true
 
-    - name: Set default allow policy for outgoing traffic
+    - name: Set default allow policy for outgoing traffic if not already set
       command: ufw default allow outgoing
+      when: ansible_facts['ufw']['default_outgoing_policy'] != "allow"
       become: true
 
     - name: Allow specified TCP ports
@@ -199,9 +202,10 @@
         msg: '{{ ufw_status.stdout }}'
   become: true
 
-- name: Start Tailscale with SSH enabled
-  command: tailscale up --ssh --accept-dns=false --reset
-  register: tailscale_up
+- name: Start Tailscale only if not already connected
+  shell: tailscale up --ssh --accept-dns=false --reset
+  when: "'Connected' not in tailscale_status.stdout"
+  register: tailscale_status
 
 - name: Retrieve and parse Tailscale IP addresses
   block:
@@ -328,13 +332,21 @@
         job: "/usr/bin/clamscan -r / --exclude-dir='^/sys' --exclude-dir='^/proc' --exclude-dir='^/dev' --log=/var/log/clamav/clamav-$(date +\\%Y\\%m\\%d).log"
       become: true
 
-- name: Configure sysctl settings
-  sysctl:
-    name: '{{ item.name }}'
-    value: '{{ item.value }}'
-    state: present
-    reload: yes
-  loop: "{{ sysctl_settings }}"
+- name: Configure sysctl settings only if needed
+  block:
+    - name: Check if sysctl settings need to be applied
+      shell: "sysctl -n {{ item.name }}"
+      register: current_value
+      loop: "{{ sysctl_settings }}"
+      changed_when: current_value.stdout != item.value
+
+    - name: Apply sysctl settings if changes are detected
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop: "{{ sysctl_settings }}"
   notify: Reload sysctl
   become: true
 

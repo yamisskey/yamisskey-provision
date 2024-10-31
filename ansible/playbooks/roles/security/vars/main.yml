@@ -92,4 +92,4 @@ sysctl_settings:
   - { name: 'net.ipv4.conf.default.accept_source_route', value: '0' }
   - { name: 'net.ipv4.conf.default.log_martians', value: '1' }
   - { name: 'vm.overcommit_memory', value: '1' }
-
+  - { name: 'net.ipv4.ping_group_range', value: '0 2147483647' }
