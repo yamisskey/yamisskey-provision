@@ -205,10 +205,15 @@
         msg: '{{ ufw_status.stdout }}'
   become: true
 
+- name: Retrieve Tailscale status
+  command: tailscale status
+  register: tailscale_status
+  changed_when: false
+
 - name: Start Tailscale only if not already connected
   shell: tailscale up --ssh --accept-dns=false --reset
-  when: "'Connected' not in tailscale_status.stdout"
-  register: tailscale_status
+  when: tailscale_status is defined and 'Connected' not in tailscale_status.stdout
+  register: tailscale_start
 
 - name: Retrieve and parse Tailscale IP addresses
   block:
