@@ -2,6 +2,7 @@ ufw_ports:
   - 2222
   - 80
   - 443
+  - 9000
 
 # Ports required for Cloudflare Tunnel (QUIC and optional HTTPS)
 cloudflared_quic_port: 7844
