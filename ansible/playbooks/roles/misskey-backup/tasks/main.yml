@@ -123,7 +123,7 @@
   register: push_output
   failed_when: push_output.rc != 0
 
-- name: Create backup directory
+- name: Ensure backup directory
   file:
     path: '{{ backup_dir }}/misskey'
     state: directory
@@ -132,6 +132,6 @@
     mode: '0755'
 
 - name: Create tarball of Misskey directory
-  shell: sudo tar -czvf ~/backups/misskey/misskey-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz -C {{ misskey_dir }} .
+  shell: sudo tar -czvf {{ backup_dir }}/misskey/misskey-backup-{{ ansible_date_time.iso8601_basic }}.tar.gz -C {{ misskey_dir }} .
   register: backup_output
   failed_when: backup_output.rc != 0
