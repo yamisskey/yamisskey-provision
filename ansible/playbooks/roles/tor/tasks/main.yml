@@ -112,9 +112,9 @@
     onion_hostname: '{{ tor_hostname.stdout }}'
   notify: Reload Nginx
 
-- name: Add Onion-Location header to Nginx configuration
+- name: Add Onion-Location header to general Nginx configuration
   lineinfile:
-    path: '/etc/nginx/conf.d/misskey-onion.conf'
-    line: 'add_header Onion-Location "http://{{ tor_hostname.stdout }}$request_uri" always;'
+    path: '/etc/nginx/conf.d/misskey.conf'
+    line: 'add_header Onion-Location "http://{{ onion_hostname }}$request_uri" always;'
     insertafter: 'server_name'
   notify: Reload Nginx
