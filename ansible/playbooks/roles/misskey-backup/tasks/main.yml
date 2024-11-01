@@ -72,6 +72,12 @@
   notify:
     - Restart backup container
 
+- name: Ensure misskey-postgres network exists
+  docker_network:
+    name: misskey-postgres
+    state: present
+    driver: bridge
+
 - name: Pull and build Docker images
   docker_compose:
     project_src: /opt/misskey-backup
