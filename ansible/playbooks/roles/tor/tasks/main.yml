@@ -6,7 +6,7 @@
 
 - name: Ensure Tor hidden service directory exists
   file:
-    path: /var/lib/tor/misskey
+    path: '{{ hidden_service_dir }}'
     state: directory
     owner: debian-tor
     group: debian-tor
@@ -50,25 +50,10 @@
     onion_dir: "{{ list_onion_domains.stdout_lines[0] }}"
   when: list_onion_domains.stdout_lines | length > 0
 
-- name: Debug onion_dir
-  debug:
-    msg: 'Onion directory set to: {{ onion_dir }}'
-  when: onion_dir is defined
-
-- name: Copy generated secret keys to tor hidden service directory
+- name: Copy generated keys to tor hidden service directory
   copy:
     src: '{{ onion_dir }}/hs_ed25519_secret_key'
-    dest: '/var/lib/tor/misskey/hs_ed25519_secret_key'
-    owner: debian-tor
-    group: debian-tor
-    mode: '0400'
-    remote_src: yes
-  when: onion_dir is defined
-
-- name: Copy generated public keys to tor hidden service directory
-  copy:
-    src: '{{ onion_dir }}/hs_ed25519_public_key'
-    dest: '/var/lib/tor/misskey/hs_ed25519_public_key'
+    dest: '{{ hidden_service_dir }}/hs_ed25519_secret_key'
     owner: debian-tor
     group: debian-tor
     mode: '0400'
@@ -78,7 +63,7 @@
 - name: Copy hostname file to tor hidden service directory
   copy:
     src: '{{ onion_dir }}/hostname'
-    dest: '/var/lib/tor/misskey/hostname'
+    dest: '{{ hidden_service_dir }}/hostname'
     owner: debian-tor
     group: debian-tor
     mode: '0644'
@@ -87,13 +72,13 @@
 
 - name: Set correct permissions on tor hidden service directory
   file:
-    path: /var/lib/tor/misskey
+    path: '{{ hidden_service_dir }}'
     owner: debian-tor
     group: debian-tor
     recurse: yes
 
 - name: Read and display Tor URL for Misskey
-  command: cat /var/lib/tor/misskey/hostname
+  command: cat "{{ hidden_service_dir }}/hostname"
   register: tor_hostname
   changed_when: false
 
@@ -107,15 +92,13 @@
       tor_url: 'http://{{ tor_hostname.stdout }}'
     dest: '{{ backup_dir }}/misskey/onion_domain.yml'
 
-- name: Configure Tor hidden service and TransPort
-  blockinfile:
-    path: /etc/tor/torrc
-    block: |
-      HiddenServiceDir /var/lib/tor/misskey/
-      HiddenServicePort 80 unix:/var/run/tor-misskey.sock
-      HiddenServiceVersion 3
-    marker: '# {mark} ANSIBLE MANAGED BLOCK - Misskey Hidden Service with TransPort'
-    insertafter: EOF
+- name: Configure Tor hidden service in torrc
+  template:
+    src: templates/torrc.j2
+    dest: /etc/tor/torrc
+    owner: root
+    group: root
+    mode: '0644'
   notify: Reload Tor
 
 - name: Deploy Nginx configuration for onion
@@ -129,12 +112,9 @@
     onion_hostname: '{{ tor_hostname.stdout }}'
   notify: Reload Nginx
 
-- name: Check if Nginx onion configuration exists
-  stat:
+- name: Add Onion-Location header to Nginx configuration
+  lineinfile:
     path: '/etc/nginx/conf.d/misskey-onion.conf'
-  register: nginx_onion_conf
-
-- name: Notify user if Nginx onion configuration does not exist
-  fail:
-    msg: 'Nginx onion configuration file /etc/nginx/conf.d/misskey-onion.conf does not exist.'
-  when: not nginx_onion_conf.stat.exists
+    line: 'add_header Onion-Location "http://{{ onion_hostname }}$request_uri" always;'
+    insertafter: 'server_name'
+  notify: Reload Nginx

@@ -9,9 +9,3 @@
     name: tor@default
     state: reloaded
   become: true
-
-- name: Restart Privoxy
-  systemd:
-    name: privoxy
-    state: restarted
-  become: true

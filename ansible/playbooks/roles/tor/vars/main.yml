@@ -1,0 +1,5 @@
+hidden_service_dir: "/var/lib/tor/misskey"
+hidden_service_socket: "/var/run/tor-misskey.sock"
+hidden_service_port: 80
+internal_port: 8080
+onion_address: "{{ lookup('file', '/var/lib/tor/misskey/hostname') }}"

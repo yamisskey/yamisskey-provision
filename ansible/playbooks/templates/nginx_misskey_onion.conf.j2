@@ -9,7 +9,7 @@ proxy_cache_path /tmp/nginx_cache_onion levels=1:2 keys_zone=cache2:32m max_size
 limit_req_zone $binary_remote_addr zone=mylimit2:10m rate=1000r/s;
 
 server {
-    listen unix:/var/run/tor-misskey.sock;
+    listen unix:{{ hidden_service_socket }};
     server_name {{ onion_hostname }};
 
     client_max_body_size 100m;
