@@ -10,7 +10,7 @@ limit_req_zone $binary_remote_addr zone=mylimit2:10m rate=1000r/s;
 
 server {
     listen unix:{{ hidden_service_socket }};
-    server_name {{ onion_hostname }};
+    server_name {{ tor_hostname.stdout }};
 
     client_max_body_size 100m;
 
