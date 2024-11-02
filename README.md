@@ -159,7 +159,7 @@ ingress:
   - hostname: minio.yami.ski
     service: http://localhost:9001
   - hostname: jitsi.yami.ski
-    service: http://localhost:8002
+    service: https://localhost:8443
   - hostname: grafana.yami.ski
     service: http://localhost:3000
   - hostname: vikunja.yami.ski
