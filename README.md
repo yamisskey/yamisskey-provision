@@ -146,6 +146,8 @@ protocol: quic
 ingress:
   - hostname: yami.ski
     service: http://localhost:8080
+  - hostname: bypass.yami.ski
+    service: http://localhost:8080
   - hostname: search.yami.ski
     service: http://localhost:8082
   - hostname: matrix.yami.ski
