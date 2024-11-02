@@ -1,5 +1,5 @@
 packages:
-  - htop
+  - btop
   - net-tools
   - nmap
   - inetutils-traceroute
