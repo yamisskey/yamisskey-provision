@@ -160,6 +160,8 @@ ingress:
     service: http://localhost:9001
   - hostname: jitsi.yami.ski
     service: https://localhost:8443
+    originRequest:
+      noTLSVerify: true
   - hostname: grafana.yami.ski
     service: http://localhost:3000
   - hostname: vikunja.yami.ski
