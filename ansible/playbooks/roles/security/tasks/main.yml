@@ -186,6 +186,13 @@
         proto: udp
       become: true
 
+    - name: Allow UDP port 10000 for Jitsi media streaming
+      ufw:
+        rule: allow
+        port: 10000
+        proto: udp
+      become: true
+
     - name: Ensure UFW logging is off
       command: ufw logging off
       ignore_errors: yes
