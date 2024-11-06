@@ -1,6 +1,6 @@
-# Provisioning servers with Make, Ansible, and Nix
+# Provisioning servers with Make and Ansible
 
-This guide will walk you through the process of setting up Misskey etc using the provided Make and Ansible, and Nix.
+This guide will walk you through the process of setting up Misskey etc using the provided Make and Ansible.
 
 ## Steps
 
