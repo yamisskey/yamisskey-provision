@@ -107,7 +107,7 @@
 - name: Log in to GitHub Container Registry
   docker_login:
     registry: ghcr.io
-    username: "{{ github_username }}"
+    username: "{{ github_org }}"
     password: "{{ github_token }}"
   register: ghcr_login_output
   failed_when: ghcr_login_output.failed
@@ -118,14 +118,14 @@
     TIMESTAMP_TAG="{{ ansible_date_time.iso8601_basic }}"
 
     # DockerHub tagging and pushing
-    DOCKERHUB_IMAGE="{{ organization_name }}/misskey-web"
+    DOCKERHUB_IMAGE="{{ github_org }}/misskey-web"
     docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
     docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:latest"
     docker push "${DOCKERHUB_IMAGE}:latest"
     docker push "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
 
     # GitHub Container Registry tagging and pushing
-    GHCR_IMAGE="ghcr.io/{{ organization_name }}/misskey-web"
+    GHCR_IMAGE="ghcr.io/{{ github_org }}/misskey-web"
     docker tag misskey-web:latest "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
     docker tag misskey-web:latest "${GHCR_IMAGE}:latest"
     docker push "${GHCR_IMAGE}:latest"

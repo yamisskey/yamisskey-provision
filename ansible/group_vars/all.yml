@@ -6,8 +6,8 @@ backup_script_dir: '/home/{{ ansible_user }}/misskey-backup'
 mkp224o_output_dir: '/home/{{ ansible_user }}/mkp224o-output'
 domain_prefix: yamiski
 domain: yami.ski
-organization_name: yamisskey
-misskey_repo: 'https://github.com/{{ organization_name }}/yamisskey.git'
+github_org: yamisskey
+misskey_repo: 'https://github.com/{{ github_org }}/yamisskey.git'
 misskey_dir: '/var/www/misskey'
 misskey_backup_secrets_file: '/opt/misskey-backup/secrets.yml'
 ai_dir: '/home/{{ ansible_user }}/ai'
@@ -27,7 +27,7 @@ vikunja_server_name: vikunja.{{ domain }}
 vikunja_secrets_file: '/var/www/vikunja/secrets.yml'
 ctfd_server_name: ctf.{{ domain }}
 grafana_server_name: grafana.{{ domain }}
-searxng_repo : "https://github.com/{{ organization_name }}/search.yami.ski.git"
+searxng_repo : "https://github.com/{{ github_org }}/search.yami.ski.git"
 searxng_server_name: search.{{ domain }}
 searxng_dir: '/usr/local/{{ searxng_server_name }}'
 searxng_env_file: '{{ searxng_dir }}/.env'
