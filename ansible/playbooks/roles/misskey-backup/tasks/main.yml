@@ -104,24 +104,36 @@
   register: login_output
   failed_when: login_output.failed
 
-- name: Tag existing Misskey image
-  shell: |
-    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    docker tag misskey-web:latest $IMAGE_TAG
-  args:
-    executable: /bin/bash
-  register: tag_output
-  failed_when: tag_output.rc != 0
+- name: Log in to GitHub Container Registry
+  docker_login:
+    registry: ghcr.io
+    username: "{{ github_username }}"
+    password: "{{ github_token }}"
+  register: ghcr_login_output
+  failed_when: ghcr_login_output.failed
 
-- name: Push Docker image to DockerHub
+- name: Tag and push Docker images to registries
   shell: |
-    IMAGE_TAG="yamisskey/misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    docker push yamisskey/misskey-web:latest
-    docker push $IMAGE_TAG
+    # Set timestamp tag
+    TIMESTAMP_TAG="{{ ansible_date_time.iso8601_basic }}"
+
+    # DockerHub tagging and pushing
+    DOCKERHUB_IMAGE="{{ organization_name }}/misskey-web"
+    docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
+    docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:latest"
+    docker push "${DOCKERHUB_IMAGE}:latest"
+    docker push "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
+
+    # GitHub Container Registry tagging and pushing
+    GHCR_IMAGE="ghcr.io/{{ organization_name }}/misskey-web"
+    docker tag misskey-web:latest "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
+    docker tag misskey-web:latest "${GHCR_IMAGE}:latest"
+    docker push "${GHCR_IMAGE}:latest"
+    docker push "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
   args:
     executable: /bin/bash
-  register: push_output
-  failed_when: push_output.rc != 0
+  register: registry_push_output
+  failed_when: registry_push_output.rc != 0
 
 - name: Ensure backup directory
   file:
