@@ -108,7 +108,7 @@
   docker_login:
     registry: ghcr.io
     username: "{{ github_org }}"
-    password: "{{ github_token }}"
+    password: "{{ github_classic_token }}"
   register: ghcr_login_output
   failed_when: ghcr_login_output.failed
 
