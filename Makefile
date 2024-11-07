@@ -105,7 +105,7 @@ backup:
 	@echo "---" > $(BACKUP_SCRIPT_DIR)/env.yml
 	@awk -F '=' '/^[^#]/ {print $$1 ": " $$2}' $(BACKUP_SCRIPT_DIR)/.env >> $(BACKUP_SCRIPT_DIR)/env.yml
 	@sudo cp $(BACKUP_SCRIPT_DIR)/env.yml /opt/misskey-backup/config/env.yml
-	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/backup.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey-backup.yml --ask-become-pass
 
 update:
 	@echo "Updating Misskey..."
