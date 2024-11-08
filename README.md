@@ -27,11 +27,10 @@ PermitRootLogin  no
 ```consol
 systemctl restart sshd
 su your_username
-mkdir .ssh
-cd .ssh/
+mkdir ~/.ssh
 vi ~/.ssh/id_ed25519_vps.pub
-touch ~/authrized_keys
-cat ./id_ed25519_vps.pub >>  ./authorized_keys
+touch ~/.ssh/authrized_keys
+cat ~/.ssh/id_ed25519_vps.pub >>  ~/.ssh/authorized_keys
 chmod 700 ~/.ssh
 chmod 600 ~/.ssh/*
 ```
