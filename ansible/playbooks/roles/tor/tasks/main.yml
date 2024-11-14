@@ -40,16 +40,20 @@
 - name: Stop mkp224o containers if onion domains are found
   shell: docker stop mkp224o-{{ item.0.key }}
   loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
-  when: item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[loop.index0].stdout != ""
+  when: 
+    - item.1.stdout_lines | length > 0 
+    - mkp224o_containers_running.results[ansible_loop.index0].stdout != ""
 
 - name: Start mkp224o containers if not running and no onion domain is found
   shell: docker run -d --name mkp224o-{{ item.0.key }} -v {{ mkp224o_output_dir }}/{{ item.0.key }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ item.0.key }}"
   loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
-  when: item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[loop.index0].stdout == ""
+  when: 
+    - item.1.stdout_lines | length == 0 
+    - mkp224o_containers_running.results[ansible_loop.index0].stdout == ""
 
 - name: Debug message for mkp224o container states
   debug:
-    msg: "mkp224o-{{ item.0.key }} container {{ 'started' if item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[loop.index0].stdout == '' else 'stopped' if item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[loop.index0].stdout != '' else 'already running' }}"
+    msg: "mkp224o-{{ item.0.key }} container {{ 'started' if item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[ansible_loop.index0].stdout == '' else 'stopped' if item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[ansible_loop.index0].stdout != '' else 'already running' }}"
   loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
 
 - name: Set facts for onion directories if found
