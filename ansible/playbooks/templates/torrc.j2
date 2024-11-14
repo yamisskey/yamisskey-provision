@@ -1,3 +1,11 @@
 HiddenServiceDir {{ hidden_service_dir }}
 HiddenServicePort 80 unix:{{ hidden_service_socket }}
 HiddenServiceVersion 3
+
+SocksPort 9050
+ControlPort 9051
+CookieAuthentication 1
+
+CircuitBuildTimeout 60
+KeepalivePeriod 60
+NewCircuitPeriod 1800
