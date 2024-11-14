@@ -38,23 +38,40 @@
   changed_when: false
 
 - name: Stop mkp224o containers if onion domains are found
-  shell: docker stop mkp224o-{{ item.0.key }}
-  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+  shell: docker stop mkp224o-{{ item.key }}
+  loop: "{{ hidden_services | dict2items }}"
   when: 
-    - item.1.stdout_lines | length > 0 
-    - mkp224o_containers_running.results[ansible_loop.index0].stdout != ""
+    - list_onion_domains.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout_lines') | list | first | length > 0
+    - mkp224o_containers_running.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout') | list | first != ''
 
 - name: Start mkp224o containers if not running and no onion domain is found
-  shell: docker run -d --name mkp224o-{{ item.0.key }} -v {{ mkp224o_output_dir }}/{{ item.0.key }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ item.0.key }}"
-  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+  shell: docker run -d --name mkp224o-{{ item.key }} -v {{ mkp224o_output_dir }}/{{ item.key }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ item.key }}"
+  loop: "{{ hidden_services | dict2items }}"
   when: 
-    - item.1.stdout_lines | length == 0 
-    - mkp224o_containers_running.results[ansible_loop.index0].stdout == ""
+    - list_onion_domains.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout_lines') | list | first | length == 0
+    - mkp224o_containers_running.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout') | list | first == ''
 
 - name: Debug message for mkp224o container states
   debug:
-    msg: "mkp224o-{{ item.0.key }} container {{ 'started' if item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[ansible_loop.index0].stdout == '' else 'stopped' if item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[ansible_loop.index0].stdout != '' else 'already running' }}"
-  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+    msg: >-
+      mkp224o-{{ item.key }} container 
+      {%- set onion_lines = list_onion_domains.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout_lines') | list | first %}
+      {%- set container_status = mkp224o_containers_running.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout') | list | first %}
+      {%- if onion_lines | length == 0 and container_status == '' %} started
+      {%- elif onion_lines | length > 0 and container_status != '' %} stopped
+      {%- else %} already running
+      {%- endif %}
+  loop: "{{ hidden_services | dict2items }}"
+
+# デバッグ用のタスク（必要に応じて使用）
+- name: Debug variables
+  debug:
+    msg:
+      - "Service: {{ item.key }}"
+      - "Onion domains: {{ list_onion_domains.results | selectattr('item.key', 'equalto', item.key) | list }}"
+      - "Container status: {{ mkp224o_containers_running.results | selectattr('item.key', 'equalto', item.key) | list }}"
+  loop: "{{ hidden_services | dict2items }}"
+  when: debug_mode | default(false)
 
 - name: Set facts for onion directories if found
   set_fact:
