@@ -1,9 +1,25 @@
+- name: Check if Node Exporter service is running
+  systemd:
+    name: prometheus-node-exporter
+    state: started
+  register: node_exporter_status
+
+- name: Verify Node Exporter metrics endpoint
+  uri:
+    url: http://localhost:9100/metrics
+    method: GET
+    status_code: 200
+  register: node_exporter_metrics
+  ignore_errors: yes
+
+# Prometheus Setup
 - name: Ensure Prometheus is enabled and running
   systemd:
     name: prometheus
     enabled: yes
     state: started
 
+# Grafana Setup
 - name: Install prerequisites for Grafana
   apt:
     name:
@@ -49,6 +65,7 @@
     enabled: yes
     state: started
 
+# Nginx Configuration for Grafana
 - name: Deploy Grafana Nginx configuration
   template:
     src: nginx_grafana.conf.j2
@@ -69,6 +86,40 @@
     msg: 'Nginx configuration file /etc/nginx/conf.d/grafana.conf does not exist.'
   when: not grafana_nginx_conf.stat.exists
 
+# cAdvisor Setup
+- name: Create Docker network for monitoring
+  docker_network:
+    name: monitoring
+    state: present
+
+- name: Deploy cAdvisor container
+  docker_container:
+    name: cadvisor
+    image: "gcr.io/cadvisor/cadvisor:v0.49.1"
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:8080"
+    networks:
+      - name: monitoring
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
+
+- name: Verify cAdvisor metrics endpoint
+  uri:
+    url: http://localhost:8080/metrics
+    method: GET
+    status_code: 200
+  register: cadvisor_metrics
+  ignore_errors: yes
+  retries: 3
+  delay: 10
+
+# Final Nginx Configuration
 - name: Reload Nginx if configuration file exists
   become: yes
   become_user: root
@@ -76,3 +127,36 @@
     name: nginx
     state: reloaded
   when: grafana_nginx_conf.stat.exists
+
+- name: Update Prometheus scrape configs
+  blockinfile:
+    path: /etc/prometheus/prometheus.yml
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - MONITORING TARGETS"
+    block: |
+      scrape_configs:
+        - job_name: 'node'
+          static_configs:
+            - targets: ['localhost:9100']
+        
+        - job_name: 'cadvisor'
+          static_configs:
+            - targets: ['localhost:8080']
+  notify:
+    - Restart Prometheus
+
+- name: Verify all services
+  block:
+    - name: Check service endpoints
+      uri:
+        url: "http://localhost:{{ item.port }}{{ item.path | default('/metrics') }}"
+        method: GET
+        status_code: 200
+      loop:
+        - { port: 9100, name: 'node-exporter' }
+        - { port: 8080, name: 'cadvisor' }
+        - { port: 3000, name: 'grafana', path: '/api/health' }
+      register: service_checks
+  rescue:
+    - name: Report service check failures
+      debug:
+        msg: "Service checks failed: {{ service_checks }}"

@@ -1,0 +1,9 @@
+- name: Reload Nginx
+  systemd:
+    name: nginx
+    state: reloaded
+
+- name: Restart Prometheus
+  systemd:
+    name: prometheus
+    state: restarted
