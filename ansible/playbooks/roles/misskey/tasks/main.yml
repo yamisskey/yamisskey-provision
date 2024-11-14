@@ -131,7 +131,7 @@
 
 - name: Deploy Nginx configuration for clear net
   template:
-    src: templates/nginx_misskey_clear.conf.j2
+    src: templates/nginx_misskey.conf.j2
     dest: /etc/nginx/conf.d/misskey.conf
     owner: root
     group: root

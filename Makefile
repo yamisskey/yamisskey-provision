@@ -94,7 +94,6 @@ provision:
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minio.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/misskey.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ai.yml --ask-become-pass
-	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/tor.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/searxng.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/matrix.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/jitsi.yml --ask-become-pass
