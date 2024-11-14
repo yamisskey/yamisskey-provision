@@ -1,11 +1,18 @@
-HiddenServiceDir {{ hidden_service_dir }}
-HiddenServicePort 80 unix:{{ hidden_service_socket }}
+# Basic configuration
+SocksPort {{ tor_settings.socks_port }}
+ControlPort {{ tor_settings.control_port }}
+CookieAuthentication {{ tor_settings.cookie_authentication }}
+
+# Performance settings
+CircuitBuildTimeout {{ tor_settings.circuit_build_timeout }}
+KeepalivePeriod {{ tor_settings.keepalive_period }}
+NewCircuitPeriod {{ tor_settings.new_circuit_period }}
+
+# Hidden Services
+{% for service_name, service in hidden_services.items() %}
+# {{ service_name | upper }} Hidden Service
+HiddenServiceDir {{ service.dir }}
+HiddenServicePort {{ service.port }} unix:{{ service.socket }}
 HiddenServiceVersion 3
 
-SocksPort 9050
-ControlPort 9051
-CookieAuthentication 1
-
-CircuitBuildTimeout 60
-KeepalivePeriod 60
-NewCircuitPeriod 1800
+{% endfor %}

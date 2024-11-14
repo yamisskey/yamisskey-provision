@@ -4,95 +4,109 @@
     enabled: yes
     state: restarted
 
-- name: Ensure Tor hidden service directory exists
+- name: Ensure Tor hidden service directories exist
   file:
-    path: '{{ hidden_service_dir }}'
+    path: "{{ item.value.dir }}"
     state: directory
     owner: debian-tor
     group: debian-tor
     mode: '0700'
+  loop: "{{ hidden_services | dict2items }}"
 
 - name: Create output directory for onion keys
   file:
-    path: '{{ mkp224o_output_dir }}'
+    path: "{{ mkp224o_output_dir }}"
     state: directory
 
-- name: Create output directory for the current prefix
+- name: Create output directories for each service prefix
   file:
-    path: '{{ mkp224o_output_dir }}/{{ domain_prefix }}'
+    path: "{{ mkp224o_output_dir }}/{{ item.key }}"
     state: directory
+  loop: "{{ hidden_services | dict2items }}"
 
-- name: List existing onion domains
+- name: List existing onion domains for each service
   shell: |
-    find {{ mkp224o_output_dir }}/{{ domain_prefix }} -maxdepth 1 -name "*.onion"
+    find {{ mkp224o_output_dir }}/{{ item.key }} -maxdepth 1 -name "*.onion"
   register: list_onion_domains
+  loop: "{{ hidden_services | dict2items }}"
   changed_when: false
 
-- name: Check if mkp224o container is running
-  shell: docker ps --filter "name=mkp224o" --filter "status=running" --format "{{'{{.ID}}'}}"
-  register: mkp224o_container_running
+- name: Check if mkp224o containers are running
+  shell: docker ps --filter "name=mkp224o-{{ item.key }}" --filter "status=running" --format "{{'{{.ID}}'}}"
+  register: mkp224o_containers_running
+  loop: "{{ hidden_services | dict2items }}"
   changed_when: false
 
-- name: Stop mkp224o container if onion domain is found
-  shell: docker stop mkp224o
-  when: list_onion_domains.stdout_lines | length > 0 and mkp224o_container_running.stdout != ""
+- name: Stop mkp224o containers if onion domains are found
+  shell: docker stop mkp224o-{{ item.0.key }}
+  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+  when: item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[loop.index0].stdout != ""
 
-- name: Start mkp224o container if not running and no onion domain is found
-  shell: docker run -d --name mkp224o -v {{ mkp224o_output_dir }}/{{ domain_prefix }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ domain_prefix }}"
-  when: list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == ""
+- name: Start mkp224o containers if not running and no onion domain is found
+  shell: docker run -d --name mkp224o-{{ item.0.key }} -v {{ mkp224o_output_dir }}/{{ item.0.key }}:/keys ghcr.io/cathugger/mkp224o:master -d /keys "{{ item.0.key }}"
+  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+  when: item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[loop.index0].stdout == ""
 
-- name: Debug message for mkp224o container state
+- name: Debug message for mkp224o container states
   debug:
-    msg: "mkp224o container {{ 'started' if list_onion_domains.stdout_lines | length == 0 and mkp224o_container_running.stdout == '' else 'stopped' if list_onion_domains.stdout_lines | length > 0 and mkp224o_container_running.stdout != '' else 'already running' }}"
+    msg: "mkp224o-{{ item.0.key }} container {{ 'started' if item.1.stdout_lines | length == 0 and mkp224o_containers_running.results[loop.index0].stdout == '' else 'stopped' if item.1.stdout_lines | length > 0 and mkp224o_containers_running.results[loop.index0].stdout != '' else 'already running' }}"
+  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
 
-- name: Set fact for first onion directory if found
+- name: Set facts for onion directories if found
   set_fact:
-    onion_dir: "{{ list_onion_domains.stdout_lines[0] }}"
-  when: list_onion_domains.stdout_lines | length > 0
+    "{{ item.0.key }}_onion_dir": "{{ item.1.stdout_lines[0] }}"
+  loop: "{{ hidden_services | dict2items | zip(list_onion_domains.results) | list }}"
+  when: item.1.stdout_lines | length > 0
 
-- name: Copy generated keys to tor hidden service directory
+- name: Copy generated keys to tor hidden service directories
   copy:
-    src: '{{ onion_dir }}/hs_ed25519_secret_key'
-    dest: '{{ hidden_service_dir }}/hs_ed25519_secret_key'
+    src: "{{ lookup('vars', item.key + '_onion_dir') }}/hs_ed25519_secret_key"
+    dest: "{{ item.value.dir }}/hs_ed25519_secret_key"
     owner: debian-tor
     group: debian-tor
     mode: '0400'
     remote_src: yes
-  when: onion_dir is defined
+  loop: "{{ hidden_services | dict2items }}"
+  when: lookup('vars', item.key + '_onion_dir', default=false)
 
-- name: Copy hostname file to tor hidden service directory
+- name: Copy hostname files to tor hidden service directories
   copy:
-    src: '{{ onion_dir }}/hostname'
-    dest: '{{ hidden_service_dir }}/hostname'
+    src: "{{ lookup('vars', item.key + '_onion_dir') }}/hostname"
+    dest: "{{ item.value.dir }}/hostname"
     owner: debian-tor
     group: debian-tor
     mode: '0644'
     remote_src: yes
-  when: onion_dir is defined
+  loop: "{{ hidden_services | dict2items }}"
+  when: lookup('vars', item.key + '_onion_dir', default=false)
 
-- name: Set correct permissions on tor hidden service directory
+- name: Set correct permissions on tor hidden service directories
   file:
-    path: '{{ hidden_service_dir }}'
+    path: "{{ item.value.dir }}"
     owner: debian-tor
     group: debian-tor
     recurse: yes
+  loop: "{{ hidden_services | dict2items }}"
 
-- name: Read and display Tor URL for Misskey
-  command: cat "{{ hidden_service_dir }}/hostname"
-  register: tor_hostname
+- name: Read and register Tor URLs
+  command: "cat {{ item.value.dir }}/hostname"
+  register: tor_hostnames
+  loop: "{{ hidden_services | dict2items }}"
   changed_when: false
 
-- name: Display Tor URL for Misskey
+- name: Display Tor URLs
   debug:
-    msg: 'Misskey Tor URL: http://{{ tor_hostname.stdout }}'
+    msg: "{{ item.item.key | title }} Tor URL: http://{{ item.stdout }}"
+  loop: "{{ tor_hostnames.results }}"
 
-- name: Save Tor URL in a YAML file
+- name: Save Tor URLs in YAML files
   copy:
     content: |
-      tor_url: 'http://{{ tor_hostname.stdout }}'
-    dest: '{{ backup_dir }}/misskey/onion_domain.yml'
+      tor_url: 'http://{{ item.stdout }}'
+    dest: "{{ backup_dir }}/{{ item.item.key }}/onion_domain.yml"
+  loop: "{{ tor_hostnames.results }}"
 
-- name: Configure Tor hidden service in torrc
+- name: Configure Tor hidden services in torrc
   template:
     src: templates/torrc.j2
     dest: /etc/tor/torrc
@@ -101,18 +115,20 @@
     mode: '0644'
   notify: Reload Tor
 
-- name: Deploy Nginx configuration for onion
+- name: Deploy Nginx configurations for onion services
   template:
-    src: templates/nginx_misskey_onion.conf.j2
-    dest: /etc/nginx/conf.d/misskey-onion.conf
+    src: "templates/nginx_{{ item.key }}_onion.conf.j2"
+    dest: "/etc/nginx/conf.d/{{ item.key }}-onion.conf"
     owner: root
     group: root
     mode: '0644'
+  loop: "{{ hidden_services | dict2items }}"
   notify: Reload Nginx
 
-- name: Add Onion-Location header to general Nginx configuration
+- name: Add Onion-Location headers to general Nginx configurations
   lineinfile:
-    path: '/etc/nginx/conf.d/misskey.conf'
-    line: 'add_header Onion-Location "http://{{ tor_hostname.stdout }}$request_uri" always;'
+    path: "/etc/nginx/conf.d/{{ item.item.key }}.conf"
+    line: 'add_header Onion-Location "http://{{ item.stdout }}$request_uri" always;'
     insertafter: 'server_name'
+  loop: "{{ tor_hostnames.results }}"
   notify: Reload Nginx
