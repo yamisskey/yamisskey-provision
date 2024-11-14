@@ -9,7 +9,7 @@ proxy_cache_path /tmp/nginx_cache_onion levels=1:2 keys_zone=cache2:32m max_size
 limit_req_zone $binary_remote_addr zone=mylimit2:10m rate=1000r/s;
 
 server {
-    listen unix:{{ hidden_service_socket }};
+    listen unix:{{ item.value.socket }};
     server_name {{ tor_hostname.stdout }};
 
     client_max_body_size 100m;
@@ -39,7 +39,7 @@ server {
             return 204;
         }
 
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:{{ item.value.internal_port }};
         proxy_set_header Host $host;
         proxy_http_version 1.1;
         proxy_redirect off;
@@ -128,7 +128,7 @@ server {
     }
 
     location ~* \.(jpg|jpeg|png|gif|ico|svg|webp|bmp|tiff|woff|woff2|ttf|eot|otf)$ {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:{{ item.value.internal_port }};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
