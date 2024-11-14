@@ -10,7 +10,7 @@ limit_req_zone $binary_remote_addr zone=mylimit2:10m rate=1000r/s;
 
 server {
     listen unix:{{ item.value.socket }};
-    server_name {{ tor_hostname.stdout }};
+    server_name {{ tor_hostnames.results | selectattr('item.key', 'equalto', item.key) | map(attribute='stdout') | first }};
 
     client_max_body_size 100m;
 
