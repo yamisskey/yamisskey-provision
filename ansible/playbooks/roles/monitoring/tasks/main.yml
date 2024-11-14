@@ -99,7 +99,7 @@
     state: started
     restart_policy: always
     ports:
-      - "8080:8080"
+      - "8085:8080"
     networks:
       - name: monitoring
     volumes:
@@ -140,7 +140,7 @@
         
         - job_name: 'cadvisor'
           static_configs:
-            - targets: ['localhost:8080']
+            - targets: ['localhost:8085']
   notify:
     - Restart Prometheus
 
