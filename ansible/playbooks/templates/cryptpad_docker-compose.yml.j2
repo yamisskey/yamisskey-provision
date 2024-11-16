@@ -6,11 +6,10 @@ services:
     container_name: cryptpad
     restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - CPAD_MAIN_DOMAIN=https://{{ cryptpad_server_name }}
       - CPAD_SANDBOX_DOMAIN=https://{{ cryptpad_server_name }}
-      # 設定ファイルのパスを指定
       - CPAD_CONF=/cryptpad/config/config.js
-      - NODE_ENV=production
     volumes:
       - ./data/blob:/cryptpad/blob
       - ./data/block:/cryptpad/block
