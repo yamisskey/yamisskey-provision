@@ -1,43 +1,27 @@
-- name: Ensure correct permissions
-  block:
-    - name: Create directory structure
-      file:
-        path: "{{ item }}"
-        state: directory
-        mode: '0755'
-        owner: "4001"
-        group: "4001"
-      with_items:
-        - "{{ cryptpad_dir }}/config"
-        - "{{ cryptpad_dir }}/data"
-        - "{{ cryptpad_dir }}/data/files"
-        - "{{ cryptpad_dir }}/data/archive"
-        - "{{ cryptpad_dir }}/data/pins"
-        - "{{ cryptpad_dir }}/data/tasks"
-        - "{{ cryptpad_dir }}/data/block"
-        - "{{ cryptpad_dir }}/data/blob"
-        - "{{ cryptpad_dir }}/data/blobstage"
-        - "{{ cryptpad_dir }}/data/decrees"
-        - "{{ cryptpad_dir }}/data/logs"
-        - "{{ cryptpad_dir }}/customize"
+---
+# 1. ディレクトリ構造の作成
+- name: Create directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "4001"
+    group: "4001"
+  with_items:
+    - "{{ cryptpad_dir }}/config"
+    - "{{ cryptpad_dir }}/data"
+    - "{{ cryptpad_dir }}/data/files"
+    - "{{ cryptpad_dir }}/data/archive"
+    - "{{ cryptpad_dir }}/data/pins"
+    - "{{ cryptpad_dir }}/data/tasks"
+    - "{{ cryptpad_dir }}/data/block"
+    - "{{ cryptpad_dir }}/data/blob"
+    - "{{ cryptpad_dir }}/data/blobstage"
+    - "{{ cryptpad_dir }}/data/decrees"
+    - "{{ cryptpad_dir }}/data/logs"
+    - "{{ cryptpad_dir }}/customize"
 
-    - name: Create and set permissions for config.js
-      template:
-        src: cryptpad_config.j2
-        dest: "{{ cryptpad_dir }}/config/config.js"
-        mode: '0644'
-        owner: "4001"
-        group: "4001"
-
-    - name: Verify config file permissions
-      stat:
-        path: "{{ cryptpad_dir }}/config/config.js"
-      register: config_stat
-
-    - name: Show config file permissions
-      debug:
-        msg: "Config file permissions: {{ config_stat.stat }}"
-
+# 2. シークレット関連のタスク
 - name: Check if secrets file exists
   stat:
     path: "{{ cryptpad_secrets_file }}"
@@ -60,15 +44,8 @@
   when: not cryptpad_secrets_file_stat.stat.exists
   notify: restart cryptpad
 
-- name: Ensure config directory exists
-  file:
-    path: "{{ cryptpad_dir }}/config"
-    state: directory
-    mode: '0755'
-    owner: "4001"
-    group: "4001"
-
-- name: Copy CryptPad configuration
+# 3. 設定ファイルの作成と検証
+- name: Create and set permissions for config.js
   template:
     src: cryptpad_config.j2
     dest: "{{ cryptpad_dir }}/config/config.js"
@@ -77,6 +54,7 @@
     group: "4001"
   register: config_copy
 
+# 4. デバッグ情報の収集
 - name: Debug file existence
   block:
     - name: Check config.js existence
@@ -106,6 +84,7 @@
       debug:
         msg: "{{ ls_output.stdout_lines }}"
 
+# 5. Docker関連の設定
 - name: Copy docker-compose configuration
   template:
     src: cryptpad_docker-compose.yml.j2
@@ -124,6 +103,7 @@
     - check nginx configuration
     - reload nginx
 
+# 6. Dockerイメージとコンテナの管理
 - name: Pull CryptPad Docker image
   docker_image:
     name: cryptpad/cryptpad
@@ -136,4 +116,3 @@
     project_src: "{{ cryptpad_dir }}"
     state: present
     restarted: yes
-  when: config_stat.stat.exists
