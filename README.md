@@ -167,6 +167,8 @@ ingress:
     service: http://localhost:3000
   - hostname: vikunja.yami.ski
     service: http://localhost:3456
+  - hostname: cryptpad.yami.ski
+    service: http://localhost:3333
   - service: http_status:404
 ```
 

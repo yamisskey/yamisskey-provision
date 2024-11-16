@@ -1,0 +1,68 @@
+---
+- name: Create required directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  with_items:
+    - "{{ cryptpad_dir }}"
+    - "{{ cryptpad_dir }}/data"
+    - "{{ cryptpad_dir }}/customize"
+    - "{{ cryptpad_dir }}/config"
+
+- name: Check if secrets file exists
+  stat:
+    path: "{{ cryptpad_secrets_file }}"
+  register: cryptpad_secrets_file_stat
+
+- name: Generate secret key if not exists
+  shell: 'cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 64'
+  register: secret_key_output
+  when: not cryptpad_secrets_file_stat.stat.exists
+
+- name: Set secret key fact
+  set_fact:
+    cryptpad_secret_key: "{{ (lookup('file', cryptpad_secrets_file) | from_yaml).secret_key if cryptpad_secrets_file_stat.stat.exists else secret_key_output.stdout }}"
+
+- name: Save secrets to file
+  copy:
+    dest: "{{ cryptpad_secrets_file }}"
+    content: |
+      secret_key: "{{ cryptpad_secret_key }}"
+  when: not cryptpad_secrets_file_stat.stat.exists
+  notify: restart cryptpad
+
+- name: Copy docker-compose configuration
+  template:
+    src: cryptpad_docker-compose.yml.j2
+    dest: "{{ cryptpad_dir }}/docker-compose.yml"
+    mode: '0644'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  notify: restart cryptpad
+
+- name: Copy CryptPad configuration
+  template:
+    src: cryptpad_config.j2
+    dest: "{{ cryptpad_dir }}/config/config.js"
+    mode: '0644'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  notify: restart cryptpad
+
+- name: Copy nginx configuration
+  template:
+    src: nginx_cryptpad.conf.j2
+    dest: /etc/nginx/conf.d/cryptpad.conf
+    mode: '0644'
+  notify:
+    - check nginx configuration
+    - reload nginx
+
+- name: Start CryptPad containers
+  docker_compose:
+    project_src: "{{ cryptpad_dir }}"
+    state: present
+    restarted: yes

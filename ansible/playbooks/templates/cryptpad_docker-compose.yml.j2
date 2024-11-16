@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  cryptpad:
+    image: cryptpad/cryptpad:latest
+    container_name: cryptpad
+    restart: unless-stopped
+    volumes:
+      - ./data:/cryptpad/data
+      - ./customize:/cryptpad/customize
+      - ./config:/cryptpad/config
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3333:3000"  # 未使用のポート3333を使用
+    networks:
+      - cryptpad_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  cryptpad_network:
+    name: cryptpad_network
+    driver: bridge

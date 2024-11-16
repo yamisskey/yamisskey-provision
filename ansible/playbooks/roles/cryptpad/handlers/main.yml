@@ -1,0 +1,20 @@
+---
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart cryptpad
+  docker_compose:
+    project_src: "{{ cryptpad_dir }}"
+    state: present
+    restarted: yes
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: check nginx configuration
+  command: nginx -t
+  changed_when: false

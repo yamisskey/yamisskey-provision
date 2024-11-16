@@ -32,3 +32,6 @@ searxng_server_name: search.{{ domain }}
 searxng_dir: '/usr/local/{{ searxng_server_name }}'
 searxng_env_file: '{{ searxng_dir }}/.env'
 searxng_settings_file: '{{ searxng_dir }}/searxng/settings.yml'
+cryptpad_server_name: cryptpad.{{ domain }}
+cryptpad_dir: '/var/www/cryptpad'
+cryptpad_secrets_file: '{{ cryptpad_dir }}/secrets.yml'

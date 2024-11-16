@@ -1,0 +1,50 @@
+module.exports = {
+    /* =====================
+     *        業務設定
+     * ===================== */
+    
+    // サーバー設定
+    domain: '{{ cryptpad_server_name }}',
+    httpUnsafeOrigin: 'http://{{ cryptpad_server_name }}',
+    httpSafeOrigin: 'https://{{ cryptpad_server_name }}',
+
+    // セキュリティ設定
+    sessionSecret: '{{ cryptpad_secret_key }}',
+    adminKeys: [], // 必要に応じて管理者の公開鍵を追加
+    restrictRegistration: false,
+    requireAuthentication: false,
+    maxUploadSize: 100 * 1024 * 1024, // 100MB
+    defaultStorageLimit: 1024 * 1024 * 1024, // 1GB
+
+    /* =====================
+     *      パス設定
+     * ===================== */
+    filePath: './data/files',
+    pinPath: './data/pins',
+    taskPath: './data/tasks',
+    blockPath: './data/blocks',
+    blobPath: './data/blobs',
+    blobStagingPath: './data/blobstage',
+    decreePath: './data/decrees',
+    logPath: './data/logs',
+
+    /* =====================
+     *      ログ設定
+     * ===================== */
+    logToFile: true,
+    logLevel: 'info',
+    verbose: false,
+
+    /* =====================
+     *   パフォーマンス設定
+     * ===================== */
+    maxWorkers: 1,
+    websocketPath: '/cryptpad_websocket',
+
+    /* =====================
+     *     バックアップ設定
+     * ===================== */
+    enableBackups: true,
+    backupInterval: 24 * 60 * 60 * 1000, // 24時間
+    maxBackups: 7, // 1週間分保持
+};
