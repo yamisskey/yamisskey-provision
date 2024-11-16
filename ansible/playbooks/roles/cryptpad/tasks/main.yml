@@ -1,27 +1,42 @@
----
-- name: Create required directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-    owner: "4001"
-    group: "4001"
-  with_items:
-    - "{{ cryptpad_dir }}"
-    - "{{ cryptpad_dir }}/data"
-    - "{{ cryptpad_dir }}/data/blob"
-    - "{{ cryptpad_dir }}/data/block"
-    - "{{ cryptpad_dir }}/data/files"
-    - "{{ cryptpad_dir }}/data/archive"
-    - "{{ cryptpad_dir }}/data/pins"
-    - "{{ cryptpad_dir }}/data/tasks"
-    - "{{ cryptpad_dir }}/data/blobstage"
-    - "{{ cryptpad_dir }}/data/decrees"
-    - "{{ cryptpad_dir }}/data/logs"
-    - "{{ cryptpad_dir }}/customize"
-    - "{{ cryptpad_dir }}/config"
-    - "{{ cryptpad_dir }}/onlyoffice-dist"
-    - "{{ cryptpad_dir }}/onlyoffice-conf"
+- name: Ensure correct permissions
+  block:
+    - name: Create directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: "4001"
+        group: "4001"
+      with_items:
+        - "{{ cryptpad_dir }}/config"
+        - "{{ cryptpad_dir }}/data"
+        - "{{ cryptpad_dir }}/data/files"
+        - "{{ cryptpad_dir }}/data/archive"
+        - "{{ cryptpad_dir }}/data/pins"
+        - "{{ cryptpad_dir }}/data/tasks"
+        - "{{ cryptpad_dir }}/data/block"
+        - "{{ cryptpad_dir }}/data/blob"
+        - "{{ cryptpad_dir }}/data/blobstage"
+        - "{{ cryptpad_dir }}/data/decrees"
+        - "{{ cryptpad_dir }}/data/logs"
+        - "{{ cryptpad_dir }}/customize"
+
+    - name: Create and set permissions for config.js
+      template:
+        src: cryptpad_config.j2
+        dest: "{{ cryptpad_dir }}/config/config.js"
+        mode: '0644'
+        owner: "4001"
+        group: "4001"
+
+    - name: Verify config file permissions
+      stat:
+        path: "{{ cryptpad_dir }}/config/config.js"
+      register: config_stat
+
+    - name: Show config file permissions
+      debug:
+        msg: "Config file permissions: {{ config_stat.stat }}"
 
 - name: Check if secrets file exists
   stat:
@@ -62,16 +77,34 @@
     group: "4001"
   register: config_copy
 
-- name: Debug config file
-  stat:
-    path: "{{ cryptpad_dir }}/config/config.js"
-  register: config_stat
+- name: Debug file existence
+  block:
+    - name: Check config.js existence
+      stat:
+        path: "{{ cryptpad_dir }}/config/config.js"
+      register: config_stat
 
-- name: Show config file contents
-  command: "cat {{ cryptpad_dir }}/config/config.js"
-  register: config_contents
-  changed_when: false
-  when: config_stat.stat.exists
+    - name: Display config.js status
+      debug:
+        msg: "config.js exists: {{ config_stat.stat.exists }}, path: {{ cryptpad_dir }}/config/config.js"
+
+    - name: Display config.js contents
+      command: "cat {{ cryptpad_dir }}/config/config.js"
+      register: config_contents
+      when: config_stat.stat.exists
+
+    - name: Show config.js contents
+      debug:
+        msg: "{{ config_contents.stdout }}"
+      when: config_stat.stat.exists
+
+    - name: List config directory contents
+      command: "ls -la {{ cryptpad_dir }}/config"
+      register: ls_output
+
+    - name: Show directory contents
+      debug:
+        msg: "{{ ls_output.stdout_lines }}"
 
 - name: Copy docker-compose configuration
   template:
