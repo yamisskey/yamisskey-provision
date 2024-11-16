@@ -1,4 +1,10 @@
 ---
+- name: Install git for cloning repository
+  apt:
+    name: git
+    state: present
+  become: true
+
 - name: Create required directories
   file:
     path: "{{ item }}"
@@ -16,6 +22,35 @@
     - "{{ cryptpad_dir }}/config"
     - "{{ cryptpad_dir }}/onlyoffice-dist"
     - "{{ cryptpad_dir }}/onlyoffice-conf"
+    - "{{ cryptpad_dir }}/src"
+
+- name: Clone CryptPad repository
+  git:
+    repo: https://github.com/cryptpad/cryptpad.git
+    dest: "{{ cryptpad_dir }}/src"
+    version: main
+  register: git_clone
+
+- name: Copy Dockerfile and related files
+  copy:
+    src: "{{ cryptpad_dir }}/src/{{ item }}"
+    dest: "{{ cryptpad_dir }}/{{ item }}"
+    remote_src: yes
+  with_items:
+    - Dockerfile
+    - .dockerignore
+    - docker-entrypoint.sh
+  when: git_clone.changed
+
+- name: Build CryptPad Docker image
+  docker_image:
+    name: cryptpad/cryptpad
+    tag: local-latest
+    build:
+      path: "{{ cryptpad_dir }}"
+      pull: yes
+    source: build
+  notify: restart cryptpad
 
 - name: Check if secrets file exists
   stat:
@@ -39,13 +74,15 @@
   when: not cryptpad_secrets_file_stat.stat.exists
   notify: restart cryptpad
 
-- name: Copy docker-compose configuration
+- name: Update docker-compose template for local image
   template:
     src: cryptpad_docker-compose.yml.j2
     dest: "{{ cryptpad_dir }}/docker-compose.yml"
     mode: '0644'
     owner: root
     group: root
+  vars:
+    cryptpad_image: "cryptpad/cryptpad:local-latest"
   notify: restart cryptpad
 
 - name: Copy CryptPad configuration
