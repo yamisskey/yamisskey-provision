@@ -8,10 +8,16 @@
     group: "4001"
   with_items:
     - "{{ cryptpad_dir }}"
+    - "{{ cryptpad_dir }}/data"
     - "{{ cryptpad_dir }}/data/blob"
     - "{{ cryptpad_dir }}/data/block"
-    - "{{ cryptpad_dir }}/data/data"
     - "{{ cryptpad_dir }}/data/files"
+    - "{{ cryptpad_dir }}/data/archive"
+    - "{{ cryptpad_dir }}/data/pins"
+    - "{{ cryptpad_dir }}/data/tasks"
+    - "{{ cryptpad_dir }}/data/blobstage"
+    - "{{ cryptpad_dir }}/data/decrees"
+    - "{{ cryptpad_dir }}/data/logs"
     - "{{ cryptpad_dir }}/customize"
     - "{{ cryptpad_dir }}/config"
     - "{{ cryptpad_dir }}/onlyoffice-dist"
@@ -39,14 +45,13 @@
   when: not cryptpad_secrets_file_stat.stat.exists
   notify: restart cryptpad
 
-- name: Copy docker-compose configuration
-  template:
-    src: cryptpad_docker-compose.yml.j2
-    dest: "{{ cryptpad_dir }}/docker-compose.yml"
-    mode: '0644'
-    owner: root
-    group: root
-  notify: restart cryptpad
+- name: Ensure config directory exists
+  file:
+    path: "{{ cryptpad_dir }}/config"
+    state: directory
+    mode: '0755'
+    owner: "4001"
+    group: "4001"
 
 - name: Copy CryptPad configuration
   template:
@@ -55,6 +60,26 @@
     mode: '0644'
     owner: "4001"
     group: "4001"
+  register: config_copy
+
+- name: Debug config file
+  stat:
+    path: "{{ cryptpad_dir }}/config/config.js"
+  register: config_stat
+
+- name: Show config file contents
+  command: "cat {{ cryptpad_dir }}/config/config.js"
+  register: config_contents
+  changed_when: false
+  when: config_stat.stat.exists
+
+- name: Copy docker-compose configuration
+  template:
+    src: cryptpad_docker-compose.yml.j2
+    dest: "{{ cryptpad_dir }}/docker-compose.yml"
+    mode: '0644'
+    owner: root
+    group: root
   notify: restart cryptpad
 
 - name: Copy nginx configuration
@@ -66,22 +91,10 @@
     - check nginx configuration
     - reload nginx
 
-- name: Set correct permissions for CryptPad directories
-  file:
-    path: "{{ item }}"
-    owner: "4001"
-    group: "4001"
-    recurse: yes
-  with_items:
-    - "{{ cryptpad_dir }}/data"
-    - "{{ cryptpad_dir }}/customize"
-    - "{{ cryptpad_dir }}/onlyoffice-dist"
-    - "{{ cryptpad_dir }}/onlyoffice-conf"
-
 - name: Pull CryptPad Docker image
   docker_image:
     name: cryptpad/cryptpad
-    tag: version-2024.9.1  # 特定のバージョンを指定
+    tag: version-2024.9.1
     source: pull
     force_source: yes
 
@@ -90,3 +103,4 @@
     project_src: "{{ cryptpad_dir }}"
     state: present
     restarted: yes
+  when: config_stat.stat.exists

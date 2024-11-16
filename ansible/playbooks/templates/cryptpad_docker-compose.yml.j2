@@ -2,25 +2,17 @@ version: '3.7'
 
 services:
   cryptpad:
-    image: cryptpad/cryptpad:version-2024.9.1  # 特定のバージョンを指定
+    image: cryptpad/cryptpad:version-2024.9.1
     container_name: cryptpad
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - CPAD_MAIN_DOMAIN=cryptpad.{{ domain }}
-      - CPAD_SANDBOX_DOMAIN=cryptpad.{{ domain }}
-      - CPAD_INSTALL_ONLYOFFICE=false
     ports:
       - "3333:3000"
     volumes:
-      - ./data/blob:/cryptpad/blob
-      - ./data/block:/cryptpad/block
-      - ./data/data:/cryptpad/data
-      - ./data/files:/cryptpad/datastore
+      - ./data:/cryptpad/data
       - ./customize:/cryptpad/customize
-      - ./config/config.js:/cryptpad/config/config.js
-      - ./onlyoffice-dist:/cryptpad/www/common/onlyoffice/dist
-      - ./onlyoffice-conf:/cryptpad/onlyoffice-conf
+      - ./config/config.js:/cryptpad/config/config.js:ro
     networks:
       - cryptpad_network
     healthcheck:
