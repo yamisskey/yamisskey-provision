@@ -4,13 +4,18 @@
     path: "{{ item }}"
     state: directory
     mode: '0755'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: "4001"
+    group: "4001"
   with_items:
     - "{{ cryptpad_dir }}"
-    - "{{ cryptpad_dir }}/data"
+    - "{{ cryptpad_dir }}/data/blob"
+    - "{{ cryptpad_dir }}/data/block"
+    - "{{ cryptpad_dir }}/data/data"
+    - "{{ cryptpad_dir }}/data/files"
     - "{{ cryptpad_dir }}/customize"
     - "{{ cryptpad_dir }}/config"
+    - "{{ cryptpad_dir }}/onlyoffice-dist"
+    - "{{ cryptpad_dir }}/onlyoffice-conf"
 
 - name: Check if secrets file exists
   stat:
@@ -39,8 +44,8 @@
     src: cryptpad_docker-compose.yml.j2
     dest: "{{ cryptpad_dir }}/docker-compose.yml"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: root
+    group: root
   notify: restart cryptpad
 
 - name: Copy CryptPad configuration
@@ -48,8 +53,8 @@
     src: cryptpad_config.j2
     dest: "{{ cryptpad_dir }}/config/config.js"
     mode: '0644'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: "4001"
+    group: "4001"
   notify: restart cryptpad
 
 - name: Copy nginx configuration
@@ -60,6 +65,18 @@
   notify:
     - check nginx configuration
     - reload nginx
+
+- name: Set correct permissions for CryptPad directories
+  file:
+    path: "{{ item }}"
+    owner: "4001"
+    group: "4001"
+    recurse: yes
+  with_items:
+    - "{{ cryptpad_dir }}/data"
+    - "{{ cryptpad_dir }}/customize"
+    - "{{ cryptpad_dir }}/onlyoffice-dist"
+    - "{{ cryptpad_dir }}/onlyoffice-conf"
 
 - name: Start CryptPad containers
   docker_compose:
