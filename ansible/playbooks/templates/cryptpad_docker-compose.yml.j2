@@ -10,9 +10,14 @@ services:
     ports:
       - "3333:3000"
     volumes:
-      - ./config:/cryptpad/config:ro
+      - type: bind
+        source: ./config/config.js
+        target: /cryptpad/lib/config.js
+        read_only: true
       - ./data:/cryptpad/data
       - ./customize:/cryptpad/customize
+      - ./onlyoffice-dist:/cryptpad/www/common/onlyoffice/dist
+      - ./onlyoffice-conf:/cryptpad/onlyoffice-conf
     networks:
       - cryptpad_network
     healthcheck:

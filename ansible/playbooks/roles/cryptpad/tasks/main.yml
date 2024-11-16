@@ -111,8 +111,29 @@
     source: pull
     force_source: yes
 
+- name: Verify config file exists
+  stat:
+    path: "{{ cryptpad_dir }}/config/config.js"
+  register: config_stat
+
+- name: Show config file contents
+  debug:
+    msg: "{{ lookup('file', '{{ cryptpad_dir }}/config/config.js') }}"
+  when: config_stat.stat.exists
+
+- name: Stop CryptPad container if running
+  docker_compose:
+    project_src: "{{ cryptpad_dir }}"
+    state: absent
+  when: config_stat.stat.exists
+
+- name: Wait for container to stop
+  wait_for:
+    timeout: 10
+
 - name: Start CryptPad containers
   docker_compose:
     project_src: "{{ cryptpad_dir }}"
     state: present
     restarted: yes
+  when: config_stat.stat.exists

@@ -1,30 +1,42 @@
 module.exports = {
-    // 基本設定
+    /* 基本設定 */
     httpUnsafeOrigin: 'https://{{ cryptpad_server_name }}',
     httpSafeOrigin: 'https://{{ cryptpad_server_name }}',
+    httpAddress: '0.0.0.0',
+    httpPort: 3000,
     adminEmail: 'admin@{{ domain }}',
-    supportMailbox: 'support@{{ domain }}',
+    supportMailbox: 'admin@{{ domain }}',
 
-    // データ保存場所の設定
-    dataPath: '/cryptpad/data',
-    filePath: '/cryptpad/data/files',
-    archivePath: '/cryptpad/data/archive',
-    pinPath: '/cryptpad/data/pins',
-    taskPath: '/cryptpad/data/tasks',
-    blockPath: '/cryptpad/data/block',
-    blobPath: '/cryptpad/data/blob',
-    blobStagingPath: '/cryptpad/data/blobstage',
-    decreePath: '/cryptpad/data/decrees',
-    logPath: '/cryptpad/data/logs',
+    /* データ保存場所の設定 */
+    dataPath: './data',
+    filePath: './data/files',
+    archivePath: './data/archive',
+    pinPath: './data/pins',
+    taskPath: './data/tasks',
+    blockPath: './data/block',
+    blobPath: './data/blob',
+    blobStagingPath: './data/blobstage',
+    decreePath: './data/decrees',
+    logPath: './data/logs',
 
-    // セキュリティ設定
+    /* セキュリティ設定 */
     sessionSecret: '{{ cryptpad_secret_key }}',
     adminKeys: [],
     maxUploadSize: 100 * 1024 * 1024,
     defaultStorageLimit: 1024 * 1024 * 1024,
 
-    // ログ設定
+    /* ログ設定 */
     logToFile: true,
     logLevel: 'info',
-    verbose: false
+    verbose: false,
+
+    /* その他の設定 */
+    removeDonateButton: true,
+    allowSubscriptions: false,
+    requireAuthentication: false,
+    restrictRegistration: false,
+    minPasswordLength: 8,
+    defaultStorageLimit: 1024 * 1024 * 1024, // 1GB
+    maxUploadSize: 100 * 1024 * 1024, // 100MB
+    inactiveTime: 90 * 24 * 3600 * 1000, // 90 days in milliseconds
 };
