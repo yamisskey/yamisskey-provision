@@ -81,6 +81,7 @@
 - name: Pull CryptPad Docker image
   docker_image:
     name: cryptpad/cryptpad
+    tag: version-2024.9.1  # 特定のバージョンを指定
     source: pull
     force_source: yes
 
