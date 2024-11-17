@@ -58,7 +58,18 @@
       growi:
         password_seed: "{{ password_seed_output.stdout }}"
     mode: '0600'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
   when: not growi_secrets_file_stat.stat.exists
+
+# 既存のsecrets.ymlのパーミッション修正
+- name: Fix permissions on existing secrets file
+  file:
+    path: '{{ growi_secrets_file }}'
+    mode: '0600'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: growi_secrets_file_stat.stat.exists
 
 # 新しい秘密情報のロード
 - name: Load new secrets
@@ -73,6 +84,7 @@
   set_fact:
     growi_secrets: "{{ lookup('file', growi_secrets_file) | from_yaml }}"
   when: growi_secrets_file_stat.stat.exists
+  become: true
 
 # docker-compose.ymlの更新
 - name: Update docker-compose.yml
