@@ -1,78 +1,70 @@
 ---
 # 必要なディレクトリを作成
-- name: Create GROWI directory
+- name: Create GROWI parent directory
   file:
-    path: "{{ growi_dir }}"
+    path: "{{ growi_dir | dirname }}"
     state: directory
+    mode: '0755'
 
-- name: Create GROWI data directory
-  file:
-    path: "{{ growi_dir }}/growi-data"
-    state: directory
+# 公式リポジトリのクローン
+- name: Clone GROWI docker-compose repository
+  git:
+    repo: https://github.com/weseek/growi-docker-compose.git
+    dest: "{{ growi_dir }}"
+    version: master
 
-# secrets.ymlの存在確認
+# secrets.ymlの確認
 - name: Check if secrets file exists
   stat:
     path: '{{ growi_secrets_file }}'
   register: growi_secrets_file_stat
 
-# 秘密情報を生成
-- name: Generate secrets if not exists
+# 秘密情報の生成と保存
+- name: Generate and save secrets if not exists
   block:
     - name: Generate password seed
       shell: 'cat /dev/urandom | base64 -w 0 | fold -w 32 | head -n 1'
       register: password_seed_output
 
-    - name: Set MongoDB password
-      shell: 'cat /dev/urandom | base64 -w 0 | fold -w 32 | head -n 1'
-      register: mongo_password_output
-
-    - name: Set credentials facts
-      set_fact:
-        mongo_password: "{{ mongo_password_output.stdout }}"
-        mongo_user: "growi"
-        mongo_database: "growi"
+    - name: Save secrets to file
+      copy:
+        dest: '{{ growi_secrets_file }}'
+        content: |
+          growi:
+            password_seed: "{{ password_seed_output.stdout }}"
+        mode: '0600'
   when: not growi_secrets_file_stat.stat.exists
 
-# 秘密情報をファイルに保存
-- name: Save secrets to file
-  copy:
-    dest: '{{ growi_secrets_file }}'
-    content: |
-      growi:
-        password_seed: "{{ password_seed_output.stdout }}"
-      mongodb:
-        user: "{{ mongo_user }}"
-        password: "{{ mongo_password }}"
-        database: "{{ mongo_database }}"
-  when: not growi_secrets_file_stat.stat.exists
-
-# 秘密情報を読み込み
+# 秘密情報の読み込み
 - name: Load GROWI secrets
   set_fact:
     growi_secrets: "{{ lookup('file', growi_secrets_file) | from_yaml }}"
   when: growi_secrets_file_stat.stat.exists
 
-# Docker Compose設定を配置
-- name: Copy docker-compose.yml for GROWI
-  template:
-    src: growi_docker-compose.yml.j2
-    dest: "{{ growi_dir }}/docker-compose.yml"
+# docker-compose.ymlの更新
+- name: Update docker-compose.yml
+  command: sed -i 's/127.0.0.1:3000:3000/127.0.0.1:3004:3000/' {{ growi_dir }}/docker-compose.yml
 
-# Nginx設定を配置
+- name: Update password seed in docker-compose.yml
+  replace:
+    path: "{{ growi_dir }}/docker-compose.yml"
+    regexp: 'PASSWORD_SEED=changeme'
+    replace: 'PASSWORD_SEED={{ growi_secrets.growi.password_seed }}'
+
+# Nginx設定
 - name: Copy Nginx configuration
   template:
     src: nginx_growi.conf.j2
     dest: /etc/nginx/conf.d/growi.conf
   notify: reload nginx
 
-# コンテナを起動
+# コンテナの起動
 - name: Start GROWI containers
   docker_compose:
     project_src: "{{ growi_dir }}"
     state: present
 
-# GROWIの起動確認
+# 起動確認
 - name: Wait for GROWI to be available
   uri:
     url: "http://localhost:3004"
