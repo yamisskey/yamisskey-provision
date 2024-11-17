@@ -165,5 +165,7 @@
 # Element用カスタム設定ファイルのコピー
 - name: Copy element custom configuration file
   template:
-    src: config.{{ element_server_name }}.json.j2
-    dest: /var/www/element/element-config/config.{{ element_server_name }}.json
+    src: "config.{{ element_server_name }}.json.j2"
+    dest: "/var/www/element/element-config/config.json"
+    mode: '0644'
+  notify: Restart element

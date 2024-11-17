@@ -15,3 +15,9 @@
   systemd:
     name: nginx
     state: reloaded
+
+- name: Restart element
+  docker_compose:
+    project_src: /var/www/element
+    state: present
+    restarted: yes
