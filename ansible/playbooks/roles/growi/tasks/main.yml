@@ -1,3 +1,4 @@
+# playbooks/roles/growi/tasks/main.yml
 ---
 # 必要なディレクトリを作成
 - name: Create GROWI parent directory
@@ -19,24 +20,32 @@
     path: '{{ growi_secrets_file }}'
   register: growi_secrets_file_stat
 
-# 秘密情報の生成と保存
-- name: Generate and save secrets if not exists
-  block:
-    - name: Generate password seed
-      shell: 'cat /dev/urandom | base64 -w 0 | fold -w 32 | head -n 1'
-      register: password_seed_output
-
-    - name: Save secrets to file
-      copy:
-        dest: '{{ growi_secrets_file }}'
-        content: |
-          growi:
-            password_seed: "{{ password_seed_output.stdout }}"
-        mode: '0600'
+# パスワードシードの生成
+- name: Generate password seed
+  shell: 'cat /dev/urandom | base64 -w 0 | fold -w 32 | head -n 1'
+  register: password_seed_output
   when: not growi_secrets_file_stat.stat.exists
 
-# 秘密情報の読み込み
-- name: Load GROWI secrets
+# 秘密情報の保存
+- name: Save secrets to file
+  copy:
+    dest: '{{ growi_secrets_file }}'
+    content: |
+      growi:
+        password_seed: "{{ password_seed_output.stdout }}"
+    mode: '0600'
+  when: not growi_secrets_file_stat.stat.exists
+
+# 新しい秘密情報のロード
+- name: Load new secrets
+  set_fact:
+    growi_secrets: 
+      growi:
+        password_seed: "{{ password_seed_output.stdout }}"
+  when: not growi_secrets_file_stat.stat.exists
+
+# 既存の秘密情報のロード
+- name: Load existing secrets
   set_fact:
     growi_secrets: "{{ lookup('file', growi_secrets_file) | from_yaml }}"
   when: growi_secrets_file_stat.stat.exists
