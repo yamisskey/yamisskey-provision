@@ -151,7 +151,7 @@ ingress:
     service: http://localhost:8082
   - hostname: matrix.yami.ski
     service: http://localhost:8008
-  - hostname: element.yami.ski
+  - hostname: chat.yami.ski
     service: http://localhost:8081
   - hostname: ctf.yami.ski
     service: http://localhost:8000
@@ -159,17 +159,17 @@ ingress:
     service: http://localhost:9000
   - hostname: minio.yami.ski
     service: http://localhost:9001
-  - hostname: jitsi.yami.ski
+  - hostname: call.yami.ski
     service: https://localhost:8443
     originRequest:
       noTLSVerify: true
   - hostname: grafana.yami.ski
     service: http://localhost:3000
-  - hostname: vikunja.yami.ski
+  - hostname: task.yami.ski
     service: http://localhost:3456
-  - hostname: cryptpad.yami.ski
+  - hostname: pad.yami.ski
     service: http://localhost:3333
-  - hostname: growi.yami.ski
+  - hostname: wiki.yami.ski
     service: http://localhost:3004
   - service: http_status:404
 ```

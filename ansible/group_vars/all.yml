@@ -14,8 +14,8 @@ ai_dir: '/home/{{ ansible_user }}/ai'
 ctfd_dir: '/home/{{ ansible_user }}/ctfd'
 synapse_server_name: matrix.{{ domain }}
 synapse_secrets_file: '/var/www/synapse/secrets.yml'
-element_server_name: element.{{ domain }}
-jitsi_server_name: jitsi.{{ domain }}
+element_server_name: chat.{{ domain }}
+jitsi_server_name: call.{{ domain }}
 matrix_use_ssl: true
 minio_alias: yaminio
 minio_api_server_name: drive.{{ domain }}
@@ -23,7 +23,7 @@ minio_web_server_name: minio.{{ domain }}
 minio_bucket_name: "files"
 minio_secrets_file: '/opt/minio/secrets.yml'
 backup_dir: '/home/{{ ansible_user }}/backups'
-vikunja_server_name: vikunja.{{ domain }}
+vikunja_server_name: task.{{ domain }}
 vikunja_secrets_file: '/var/www/vikunja/secrets.yml'
 ctfd_server_name: ctf.{{ domain }}
 grafana_server_name: grafana.{{ domain }}
@@ -32,9 +32,9 @@ searxng_server_name: search.{{ domain }}
 searxng_dir: '/usr/local/{{ searxng_server_name }}'
 searxng_env_file: '{{ searxng_dir }}/.env'
 searxng_settings_file: '{{ searxng_dir }}/searxng/settings.yml'
-cryptpad_server_name: cryptpad.{{ domain }}
+cryptpad_server_name: pad.{{ domain }}
 cryptpad_dir: '/var/www/cryptpad'
 cryptpad_secrets_file: '{{ cryptpad_dir }}/secrets.yml'
-growi_server_name: growi.{{ domain }}
+growi_server_name: wiki.{{ domain }}
 growi_dir: '/var/www/growi'
 growi_secrets_file: '{{ growi_dir }}/secrets.yml'
