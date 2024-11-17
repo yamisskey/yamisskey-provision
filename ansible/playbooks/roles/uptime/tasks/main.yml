@@ -1,0 +1,18 @@
+- name: Create Uptime Kuma directory
+  file:
+    path: '{{ uptime_dir }}'
+    state: directory
+    mode: '0755'
+
+- name: Create docker-compose.yml
+  template:
+    src: uptime-docker-compose.yml.j2
+    dest: '{{ uptime_dir }}/docker-compose.yml'
+  notify: restart uptime-kuma
+
+- name: Start Uptime Kuma
+  docker_compose:
+    project_src: '{{ uptime_dir }}'
+    state: present
+  register: output
+

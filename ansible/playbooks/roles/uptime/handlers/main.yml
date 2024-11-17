@@ -1,0 +1,6 @@
+- name: restart uptime-kuma
+  docker_compose:
+    project_src: '{{ uptime_dir }}'
+    state: present
+    restarted: yes
+

@@ -171,6 +171,8 @@ ingress:
     service: http://localhost:3333
   - hostname: wiki.yami.ski
     service: http://localhost:3004
+  - hostname: uptime.yami.ski
+    service: http://localhost:3009
   - service: http_status:404
 ```
 
