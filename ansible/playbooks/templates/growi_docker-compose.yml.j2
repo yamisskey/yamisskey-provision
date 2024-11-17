@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  app:
+    image: weseek/growi:latest
+    container_name: growi
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3004:3000"
+    environment:
+      - MONGO_URI=mongodb://{{ growi_secrets.mongodb.user }}:{{ growi_secrets.mongodb.password }}@mongo:27017/{{ growi_secrets.mongodb.database }}
+      - NODE_ENV=production
+      - ELASTICSEARCH_URI=http://elasticsearch:9200/growi
+      - PASSWORD_SEED={{ growi_secrets.growi.password_seed }}
+    depends_on:
+      - mongo
+      - elasticsearch
+
+  mongo:
+    image: mongo:4.4
+    container_name: growi-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: {{ growi_secrets.mongodb.user }}
+      MONGO_INITDB_ROOT_PASSWORD: {{ growi_secrets.mongodb.password }}
+      MONGO_INITDB_DATABASE: {{ growi_secrets.mongodb.database }}
+    volumes:
+      - mongo_data:/data/db
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    container_name: growi-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - cluster.name=growi
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+volumes:
+  mongo_data:
+  es_data:

@@ -35,3 +35,6 @@ searxng_settings_file: '{{ searxng_dir }}/searxng/settings.yml'
 cryptpad_server_name: cryptpad.{{ domain }}
 cryptpad_dir: '/var/www/cryptpad'
 cryptpad_secrets_file: '{{ cryptpad_dir }}/secrets.yml'
+growi_server_name: growi.{{ domain }}
+growi_dir: '/var/www/growi'
+growi_secrets_file: '{{ growi_dir }}/secrets.yml'

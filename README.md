@@ -169,6 +169,8 @@ ingress:
     service: http://localhost:3456
   - hostname: cryptpad.yami.ski
     service: http://localhost:3333
+  - hostname: growi.yami.ski
+    service: http://localhost:3004
   - service: http_status:404
 ```
 
