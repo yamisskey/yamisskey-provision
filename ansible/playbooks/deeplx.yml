@@ -1,0 +1,6 @@
+- name: Configure DeepLX
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - deeplx

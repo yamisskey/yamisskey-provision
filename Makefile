@@ -101,6 +101,7 @@ provision:
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/cryptpad.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/growi.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/uptime.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/deeplx.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml and running backup..."

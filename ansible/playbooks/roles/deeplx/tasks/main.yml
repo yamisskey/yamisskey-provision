@@ -1,0 +1,20 @@
+# ansible/playbooks/roles/deeplx/tasks/main.yml
+---
+- name: Create DeepLX directory
+  file:
+    path: "{{ deeplx_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create docker-compose.yml for DeepLX
+  template:
+    src: deeplx_docker-compose.yml.j2
+    dest: "{{ deeplx_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: restart deeplx
+
+- name: Deploy DeepLX container
+  docker_compose:
+    project_src: "{{ deeplx_dir }}"
+    state: present
+    pull: yes

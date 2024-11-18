@@ -1,0 +1,7 @@
+# ansible/playbooks/roles/deeplx/handlers/main.yml
+---
+- name: restart deeplx
+  docker_compose:
+    project_src: "{{ deeplx_dir }}"
+    state: present
+    restarted: yes

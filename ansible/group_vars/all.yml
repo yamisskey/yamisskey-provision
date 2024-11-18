@@ -41,3 +41,4 @@ growi_secrets_file: '{{ growi_dir }}/secrets.yml'
 uptime_server_name: uptime.{{ domain }}
 uptime_dir: '/opt/uptime-kuma'
 uptime_secrets_file: '{{ uptime_dir }}/secrets.yml'
+deeplx_dir: '/opt/deeplx'

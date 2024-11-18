@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  deeplx:
+    image: ghcr.io/owo-network/deeplx:latest
+    container_name: deeplx
+    restart: always
+    ports:
+      - "1188:1188"
