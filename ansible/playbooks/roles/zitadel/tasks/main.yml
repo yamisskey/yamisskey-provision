@@ -11,8 +11,6 @@
     path: "{{ item }}"
     state: directory
     mode: '0755'
-    owner: "1000"  # ZitadelコンテナのデフォルトユーザーID
-    group: "1000"  # ZitadelコンテナのデフォルトグループID
   with_items:
     - "{{ zitadel_dir }}/data"
     - "{{ zitadel_dir }}/config"
@@ -24,21 +22,20 @@
     path: '{{ zitadel_secrets_file }}'
   register: zitadel_secrets_file_stat
 
-# masterkey の生成（存在しない場合）
-- name: Generate masterkey if not exists
-  shell: "openssl rand -hex 16"
-  register: masterkey_output
-  when: not zitadel_secrets_file_stat.stat.exists
-
-# PostgreSQL関連の秘密情報生成
-- name: Generate PostgreSQL credentials if not exists
+# 新規の場合の秘密情報生成
+- name: Generate new secrets
   block:
+    - name: Generate masterkey if not exists
+      shell: "openssl rand -hex 16"
+      register: masterkey_output
+
     - name: Generate PostgreSQL password
       shell: 'openssl rand -base64 32'
       register: pg_password_output
 
-    - name: Set PostgreSQL facts
+    - name: Set new secrets facts
       set_fact:
+        masterkey: "{{ masterkey_output.stdout }}"
         postgresql_user: "zitadel"
         postgresql_password: "{{ pg_password_output.stdout }}"
         postgresql_database: "zitadel"
@@ -66,7 +63,7 @@
   copy:
     dest: '{{ zitadel_secrets_file }}'
     content: |
-      masterkey: "{{ masterkey_output.stdout if not zitadel_secrets_file_stat.stat.exists else masterkey }}"
+      masterkey: "{{ masterkey }}"
       postgresql:
         user: "{{ postgresql_user }}"
         password: "{{ postgresql_password }}"
@@ -87,6 +84,18 @@
     dest: /etc/nginx/conf.d/zitadel.conf
     mode: '0644'
   notify: reload nginx
+
+- name: Set correct permissions for Zitadel directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1000"
+    group: "1000"
+  with_items:
+    - "{{ zitadel_dir }}/data"
+    - "{{ zitadel_dir }}/config"
+    - "{{ zitadel_dir }}/logs"
 
 - name: Ensure Docker Compose services are running
   community.docker.docker_compose:
