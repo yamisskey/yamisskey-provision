@@ -1,0 +1,95 @@
+# playbooks/roles/zitadel/tasks/main.yml
+---
+- name: Create Zitadel directory
+  file:
+    path: "{{ zitadel_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create Zitadel data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1000"  # ZitadelコンテナのデフォルトユーザーID
+    group: "1000"  # ZitadelコンテナのデフォルトグループID
+  with_items:
+    - "{{ zitadel_dir }}/data"
+    - "{{ zitadel_dir }}/config"
+    - "{{ zitadel_dir }}/logs"
+
+# 秘密情報ファイルの存在確認
+- name: Check if secrets file exists
+  stat:
+    path: '{{ zitadel_secrets_file }}'
+  register: zitadel_secrets_file_stat
+
+# masterkey の生成（存在しない場合）
+- name: Generate masterkey if not exists
+  shell: "openssl rand -hex 16"
+  register: masterkey_output
+  when: not zitadel_secrets_file_stat.stat.exists
+
+# PostgreSQL関連の秘密情報生成
+- name: Generate PostgreSQL credentials if not exists
+  block:
+    - name: Generate PostgreSQL password
+      shell: 'openssl rand -base64 32'
+      register: pg_password_output
+
+    - name: Set PostgreSQL facts
+      set_fact:
+        postgresql_user: "zitadel"
+        postgresql_password: "{{ pg_password_output.stdout }}"
+        postgresql_database: "zitadel"
+        postgresql_host: "db"
+  when: not zitadel_secrets_file_stat.stat.exists
+
+# 既存の秘密情報を読み込む
+- name: Load existing secrets
+  block:
+    - name: Load secrets from file
+      set_fact:
+        existing_secrets: "{{ lookup('file', zitadel_secrets_file) | from_yaml }}"
+    
+    - name: Set existing secrets as facts
+      set_fact:
+        masterkey: "{{ existing_secrets.masterkey }}"
+        postgresql_user: "{{ existing_secrets.postgresql.user }}"
+        postgresql_password: "{{ existing_secrets.postgresql.password }}"
+        postgresql_database: "{{ existing_secrets.postgresql.database }}"
+        postgresql_host: "{{ existing_secrets.postgresql.host }}"
+  when: zitadel_secrets_file_stat.stat.exists
+
+# 新しい秘密情報をファイルに保存
+- name: Save secrets to file
+  copy:
+    dest: '{{ zitadel_secrets_file }}'
+    content: |
+      masterkey: "{{ masterkey_output.stdout if not zitadel_secrets_file_stat.stat.exists else masterkey }}"
+      postgresql:
+        user: "{{ postgresql_user }}"
+        password: "{{ postgresql_password }}"
+        database: "{{ postgresql_database }}"
+        host: "{{ postgresql_host }}"
+    mode: '0600'
+  when: not zitadel_secrets_file_stat.stat.exists
+
+- name: Create Docker Compose file
+  template:
+    src: zitadel_docker-compose.yml.j2
+    dest: "{{ zitadel_dir }}/docker-compose.yml"
+    mode: '0644'
+
+- name: Create Nginx configuration
+  template:
+    src: nginx_zitadel.conf.j2
+    dest: /etc/nginx/conf.d/zitadel.conf
+    mode: '0644'
+  notify: reload nginx
+
+- name: Ensure Docker Compose services are running
+  community.docker.docker_compose:
+    project_src: "{{ zitadel_dir }}"
+    state: present
+    pull: yes

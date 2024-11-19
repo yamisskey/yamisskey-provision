@@ -1,0 +1,6 @@
+- name: Setup Zitadel
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - zitadel

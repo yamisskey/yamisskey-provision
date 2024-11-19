@@ -42,3 +42,6 @@ uptime_server_name: uptime.{{ domain }}
 uptime_dir: '/opt/uptime-kuma'
 uptime_secrets_file: '{{ uptime_dir }}/secrets.yml'
 deeplx_dir: '/opt/deeplx'
+zitadel_server_name: auth.{{ domain }}
+zitadel_dir: '/var/www/zitadel'
+zitadel_secrets_file: '{{ zitadel_dir }}/secrets.yml'

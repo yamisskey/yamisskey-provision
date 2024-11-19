@@ -1,0 +1,76 @@
+---
+version: '3.8'
+
+services:
+  zitadel:
+    restart: 'always'
+    networks:
+      - 'zitadel'
+    image: 'ghcr.io/zitadel/zitadel:latest'
+    command: >
+      start-from-init
+      --masterkey "{{ masterkey }}"
+      --tlsMode external
+    environment:
+      ZITADEL_DATABASE_POSTGRES_HOST: "{{ postgresql_host }}"
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: "{{ postgresql_database }}"
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: "{{ postgresql_user }}"
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: "{{ postgresql_password }}"
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: "{{ postgresql_user }}"
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: "{{ postgresql_password }}"
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALSECURE: "true"
+      ZITADEL_EXTERNALDOMAIN: "{{ zitadel_server_name }}"
+      ZITADEL_EXTERNALPORT: "443"
+      ZITADEL_TLS_GRPC_ALLOW_HTTP1: "true"
+      ZITADEL_TLS_GRPC_ALLOW_HTTP2: "true"
+      ZITADEL_TLS_GRPC_FORCE_HTTP2: "true"
+      ZITADEL_GRPCSERVERGATEWAY_CORS_ALLOWMETHODS: "POST,GET,PUT,DELETE,PATCH,HEAD,OPTIONS"
+      ZITADEL_GRPCSERVERGATEWAY_CORS_ALLOWHEADERS: "Accept,Accept-Language,Content-Language,Content-Type,Authorization,grpc-status,grpc-message"
+      ZITADEL_GRPCSERVERGATEWAY_CORS_ALLOWORIGINS: "https://{{ zitadel_server_name }}"
+      ZITADEL_GRPCSERVERGATEWAY_CORS_ALLOWCREDENTIALS: "true"
+      ZITADEL_CSPMAIN: "default-src 'self' https://{{ zitadel_server_name }}; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://{{ zitadel_server_name }}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+      ZITADEL_AUTH_REQUEST_CACHE_MAX_SIZE: "10000"
+      ZITADEL_AUTH_REQUEST_CACHE_TTL: "5m"
+      ZITADEL_LOG_LEVEL: "debug"
+      # ファイルシステムの設定
+      ZITADEL_LOG_FILE: "/logs/zitadel.log"
+      ZITADEL_CONFIG_PATH: "/config"
+    volumes:
+      - "{{ zitadel_dir }}/data:/data"
+      - "{{ zitadel_dir }}/config:/config"
+      - "{{ zitadel_dir }}/logs:/logs"
+    depends_on:
+      db:
+        condition: 'service_healthy'
+    ports:
+      - '8993:8080'
+
+  db:
+    restart: 'always'
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "{{ postgresql_database }}"
+      POSTGRES_USER: "{{ postgresql_user }}"
+      POSTGRES_PASSWORD: "{{ postgresql_password }}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - "{{ zitadel_dir }}/postgres-init:/docker-entrypoint-initdb.d"
+    networks:
+      - 'zitadel'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d {{ postgresql_database }} -U {{ postgresql_user }}"]
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '20s'
+
+volumes:
+  postgres_data:
+    name: zitadel_postgres_data
+
+networks:
+  zitadel:
+    name: zitadel_network
