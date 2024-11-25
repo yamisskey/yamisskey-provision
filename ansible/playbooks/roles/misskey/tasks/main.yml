@@ -198,3 +198,45 @@
     msg:
       - 'Public Key: {{ vapid_public_key }}'
       - 'Private Key: {{ vapid_private_key }}'
+
+- name: Ensure Meilisearch config directory exists
+  file:
+    path: '{{ misskey_dir }}/.config'
+    state: directory
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: '0755'
+
+- name: Generate Meilisearch master key if not exists
+  block:
+    - name: Check if master key file exists
+      stat:
+        path: '{{ backup_dir }}/misskey/meilisearch_master_key'
+      register: master_key_file
+
+    - name: Generate new master key
+      shell: openssl rand -base64 32
+      register: new_master_key
+      when: not master_key_file.stat.exists
+
+    - name: Save master key to backup directory
+      copy:
+        content: '{{ new_master_key.stdout }}'
+        dest: '{{ backup_dir }}/misskey/meilisearch_master_key'
+        mode: '0600'
+      when: not master_key_file.stat.exists
+
+- name: Load existing master key
+  slurp:
+    src: '{{ backup_dir }}/misskey/meilisearch_master_key'
+  register: master_key_content
+
+- name: Create Meilisearch environment file
+  template:
+    src: templates/meilisearch.env.j2
+    dest: '{{ misskey_dir }}/.config/meilisearch.env'
+    mode: '0600'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+  vars:
+    meili_master_key: "{{ master_key_content.content | b64decode | trim }}"
