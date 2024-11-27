@@ -70,9 +70,15 @@
 
 - name: Build Misskey image if updates are needed
   shell: |
-    IMAGE_TAG="misskey-web:{{ ansible_date_time.iso8601_basic }}"
-    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=$IMAGE_TAG
-    docker tag misskey_web:latest $IMAGE_TAG
+    TIMESTAMP_TAG="{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_NAME="misskey-web"
+
+    # Build with timestamp tag
+    COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build --no-cache --build-arg TAG=${IMAGE_NAME}:${TIMESTAMP_TAG}
+
+    # Tag both with timestamp and latest
+    docker tag misskey_web:latest ${IMAGE_NAME}:${TIMESTAMP_TAG}
+    docker tag misskey_web:latest ${IMAGE_NAME}:latest
   args:
     chdir: '{{ misskey_dir }}'
   when: updates_needed
