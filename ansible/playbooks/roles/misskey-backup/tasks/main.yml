@@ -112,28 +112,41 @@
   register: ghcr_login_output
   failed_when: ghcr_login_output.failed
 
+- name: Verify Docker image exists
+  shell: docker image inspect misskey-web:latest
+  register: image_exists
+  ignore_errors: true
+
 - name: Tag and push Docker images to registries
   shell: |
     # Set timestamp tag
     TIMESTAMP_TAG="{{ ansible_date_time.iso8601_basic }}"
+    IMAGE_NAME="misskey-web"
+
+    # Verify image exists
+    if ! docker image inspect ${IMAGE_NAME}:latest >/dev/null 2>&1; then
+      echo "Error: Image ${IMAGE_NAME}:latest not found"
+      exit 1
+    fi
 
     # DockerHub tagging and pushing
-    DOCKERHUB_IMAGE="{{ github_org }}/misskey-web"
-    docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
-    docker tag misskey-web:latest "${DOCKERHUB_IMAGE}:latest"
+    DOCKERHUB_IMAGE="{{ github_org }}/${IMAGE_NAME}"
+    docker tag ${IMAGE_NAME}:latest "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
+    docker tag ${IMAGE_NAME}:latest "${DOCKERHUB_IMAGE}:latest"
     docker push "${DOCKERHUB_IMAGE}:latest"
     docker push "${DOCKERHUB_IMAGE}:${TIMESTAMP_TAG}"
 
     # GitHub Container Registry tagging and pushing
-    GHCR_IMAGE="ghcr.io/{{ github_org }}/misskey-web"
-    docker tag misskey-web:latest "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
-    docker tag misskey-web:latest "${GHCR_IMAGE}:latest"
+    GHCR_IMAGE="ghcr.io/{{ github_org }}/${IMAGE_NAME}"
+    docker tag ${IMAGE_NAME}:latest "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
+    docker tag ${IMAGE_NAME}:latest "${GHCR_IMAGE}:latest"
     docker push "${GHCR_IMAGE}:latest"
     docker push "${GHCR_IMAGE}:${TIMESTAMP_TAG}"
   args:
     executable: /bin/bash
   register: registry_push_output
   failed_when: registry_push_output.rc != 0
+  when: image_exists.rc == 0
 
 - name: Ensure backup directory
   file:
