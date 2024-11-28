@@ -38,11 +38,17 @@
     port: 9000
     timeout: 30
 
+- name: Check if Minio Client exists
+  stat:
+    path: /usr/local/bin/mc
+  register: mc_check
+
 - name: Download Minio Client
   get_url:
     url: https://dl.min.io/client/mc/release/linux-amd64/mc
     dest: /usr/local/bin/mc
     mode: '0755'
+  when: not mc_check.stat.exists
 
 - name: Set Minio Client alias
   command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
