@@ -10,6 +10,8 @@ services:
       - MINIO_ROOT_PASSWORD={{ minio_root_password }}
       - MINIO_API_CORS_ALLOW_ORIGIN=*
       - MINIO_BROWSER=on
+      - MINIO_REGION=ap-northeast-3
+      - MINIO_DOMAIN={{ minio_api_server_name }}
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"

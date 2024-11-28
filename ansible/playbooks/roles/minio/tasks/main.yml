@@ -1,18 +1,13 @@
-- name: Create Docker Compose directory
+- name: Create required directories
   file:
-    path: /opt/minio
+    path: "{{ item }}"
     state: directory
     owner: root
     group: root
     mode: '0755'
-
-- name: Create Minio data directory
-  file:
-    path: /opt/minio/minio-data
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
+  loop:
+    - /opt/minio
+    - /opt/minio/minio-data
 
 - name: Load Minio secrets from secrets.yml
   set_fact:
@@ -27,10 +22,21 @@
     group: root
     mode: '0644'
 
+- name: Create Docker network if not exists
+  docker_network:
+    name: external_network
+    state: present
+
 - name: Start Minio using Docker Compose
-  command: docker-compose up -d
-  args:
-    chdir: /opt/minio
+  docker_compose:
+    project_src: /opt/minio
+    state: present
+
+- name: Wait for MinIO to be ready
+  wait_for:
+    host: localhost
+    port: 9000
+    timeout: 30
 
 - name: Download Minio Client
   get_url:
@@ -40,28 +46,42 @@
 
 - name: Set Minio Client alias
   command: /usr/local/bin/mc alias set "{{ minio_alias }}" http://localhost:9000 "{{ minio_root_user }}" "{{ minio_root_password }}"
+  register: mc_alias_result
+  changed_when: mc_alias_result.rc == 0
 
-- name: Check if bucket exists
-  command: /usr/local/bin/mc ls "{{ minio_alias }}/{{ minio_bucket_name }}"
-  register: bucket_check
-  ignore_errors: yes
+- name: Create and configure bucket
+  block:
+    - name: Check if bucket exists
+      command: /usr/local/bin/mc ls "{{ minio_alias }}/{{ minio_bucket_name }}"
+      register: bucket_check
+      ignore_errors: yes
+      changed_when: false
 
-- name: Create bucket in MinIO
-  command: /usr/local/bin/mc mb "{{ minio_alias }}/{{ minio_bucket_name }}"
-  when: bucket_check.rc != 0
+    - name: Create bucket if not exists
+      command: /usr/local/bin/mc mb "{{ minio_alias }}/{{ minio_bucket_name }}"
+      when: bucket_check.rc != 0
 
-- name: Configure Nginx for MinIO
-  template:
-    src: templates/nginx_minio.conf.j2
-    dest: /etc/nginx/conf.d/minio.conf
-    owner: root
-    group: root
-    mode: '0644'
+    - name: Set bucket policy to public
+      command: /usr/local/bin/mc anonymous set download "{{ minio_alias }}/{{ minio_bucket_name }}"
 
-- name: Enable Nginx site configuration
-  command: nginx -s reload
+    - name: Configure CORS for bucket
+      command: /usr/local/bin/mc policy set-json "{{ minio_alias }}/{{ minio_bucket_name }}" '{{ lookup("template", "templates/minio_cors_policy.json.j2") | to_json }}'
 
-- name: Restart Nginx
-  service:
-    name: nginx
-    state: restarted
+- name: Configure and restart Nginx
+  block:
+    - name: Configure Nginx for MinIO
+      template:
+        src: templates/nginx_minio.conf.j2
+        dest: /etc/nginx/conf.d/minio.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Validate Nginx configuration
+      command: nginx -t
+      changed_when: false
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
