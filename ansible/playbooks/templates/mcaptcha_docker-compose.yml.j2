@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  mcaptcha:
+    restart: always
+    image: mcaptcha/mcaptcha:latest
+    networks:
+      - mcaptcha_network
+      - external_network
+    ports:
+      - 7493:7493
+    volumes:
+      - type: bind
+        source: ./.config/mcaptcha.toml
+        target: /app/config/default.toml
+        read_only: true
+    env_file:
+      - ./.config/mcaptcha_db.env
+    environment:
+      PORT: 7493
+      MCAPTCHA_redis_URL: "redis://mcaptcha_redis/"
+      MCAPTCHA_CONFIG: "/app/config/default.toml"
+      MCAPTCHA_DOMAIN: "captcha.yami.ski"
+      RUST_LOG: "debug"
+    depends_on:
+      mcaptcha_db:
+        condition: service_healthy
+      mcaptcha_redis:
+        condition: service_healthy
+
+  mcaptcha_db:
+    restart: always
+    image: postgres:15-alpine
+    networks:
+      - mcaptcha_network
+    env_file:
+      - ./.config/mcaptcha_db.env
+    volumes:
+      - ./mcaptcha_db:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      interval: 5s
+      retries: 20
+
+  mcaptcha_redis:
+    image: mcaptcha/cache:latest
+    networks:
+      - mcaptcha_network
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 5s
+      retries: 20
+
+networks:
+  mcaptcha_network:
+    internal: true
+  external_network:
+    external: true
