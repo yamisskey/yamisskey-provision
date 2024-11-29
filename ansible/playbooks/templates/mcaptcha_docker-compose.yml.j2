@@ -15,7 +15,7 @@ services:
         target: /app/config/default.toml
         read_only: true
     env_file:
-      - ./.config/mcaptcha_db.env
+      - {{ mcaptcha_dir }}/.config/mcaptcha_db.env
     environment:
       PORT: 7493
       MCAPTCHA_redis_URL: "redis://mcaptcha_redis/"
@@ -34,7 +34,7 @@ services:
     networks:
       - mcaptcha_network
     env_file:
-      - ./.config/mcaptcha_db.env
+      - {{ mcaptcha_dir }}/.config/mcaptcha_db.env
     volumes:
       - {{ mcaptcha_dir }}/mcaptcha_db:/var/lib/postgresql/data
     healthcheck:

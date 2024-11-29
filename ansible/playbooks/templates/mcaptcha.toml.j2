@@ -6,6 +6,7 @@ allow_demo = false
 
 [database]
 pool = 5
+url = "postgres://{{ mcaptcha_postgres_user }}:{{ mcaptcha_postgres_password }}@mcaptcha_db:5432/{{ mcaptcha_postgres_db }}"
 
 [redis]
 pool = 10
