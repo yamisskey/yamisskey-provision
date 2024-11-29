@@ -11,7 +11,7 @@ services:
       - 7493:7493
     volumes:
       - type: bind
-        source: ./.config/mcaptcha.toml
+        source: {{ mcaptcha_dir }}/.config/mcaptcha.toml
         target: /app/config/default.toml
         read_only: true
     env_file:
@@ -36,7 +36,7 @@ services:
     env_file:
       - ./.config/mcaptcha_db.env
     volumes:
-      - ./mcaptcha_db:/var/lib/postgresql/data
+      - {{ mcaptcha_dir }}/mcaptcha_db:/var/lib/postgresql/data
     healthcheck:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
