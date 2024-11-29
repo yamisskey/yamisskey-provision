@@ -1,0 +1,33 @@
+debug = true
+commercial = false
+source_code = "https://github.com/mCaptcha/mCaptcha"
+allow_registration = true
+allow_demo = false
+
+[database]
+pool = 5
+
+[redis]
+pool = 10
+[server]
+domain = "{{ mcaptcha_server_name }}"
+cookie_secret = "{{ mcaptcha_cookie_secret }}"
+proxy_has_tls = true
+ip = "0.0.0.0"
+port = 7493
+
+[captcha]
+salt = "{{ mcaptcha_captcha_salt }}"
+gc = 30
+runners = 4
+queue_length = 100
+enable_stats = true
+
+[captcha.default_difficulty_strategy]
+avg_traffic_difficulty = 1000
+avg_traffic_time = 300
+peak_sustainable_traffic_difficulty = 3000
+peak_sustainable_traffic_time = 300
+broke_my_site_traffic_difficulty = 5000
+broke_my_site_traffic_time = 300
+duration = 300

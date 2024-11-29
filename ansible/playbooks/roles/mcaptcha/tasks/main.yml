@@ -1,0 +1,89 @@
+# 事前に秘密情報ファイルの存在確認
+- name: Check if mcaptcha secrets file exists
+  stat:
+    path: '{{ mcaptcha_dir }}/.config/secrets.yml'
+  register: mcaptcha_secrets_file_stat
+
+# PostgreSQLパスワードの生成
+- name: Generate PostgreSQL password if not exists
+  shell: 'cat /dev/urandom | base64 -w 0 | fold -w 64 | head -n 1'
+  register: postgres_password_output
+  when: not mcaptcha_secrets_file_stat.stat.exists
+
+# Cookie Secretの生成
+- name: Generate cookie secret if not exists
+  shell: 'cat /dev/urandom | base64 -w 0 | fold -w 64 | head -n 1'
+  register: cookie_secret_output
+  when: not mcaptcha_secrets_file_stat.stat.exists
+
+# Captcha Saltの生成
+- name: Generate captcha salt if not exists
+  shell: 'cat /dev/urandom | base64 -w 0 | fold -w 64 | head -n 1'
+  register: captcha_salt_output
+  when: not mcaptcha_secrets_file_stat.stat.exists
+
+# 既存の秘密情報を読み込むか、新規生成した値を設定
+- name: Set secrets facts
+  set_fact:
+    mcaptcha_postgres_password: "{{ (lookup('file', mcaptcha_dir + '/.config/mcaptcha_secrets.yml') | from_yaml).postgresql.password if mcaptcha_secrets_file_stat.stat.exists else postgres_password_output.stdout }}"
+    mcaptcha_cookie_secret: "{{ (lookup('file', mcaptcha_dir + '/.config/mcaptcha_secrets.yml') | from_yaml).cookie_secret if mcaptcha_secrets_file_stat.stat.exists else cookie_secret_output.stdout }}"
+    mcaptcha_captcha_salt: "{{ (lookup('file', mcaptcha_dir + '/.config/mcaptcha_secrets.yml') | from_yaml).captcha_salt if mcaptcha_secrets_file_stat.stat.exists else captcha_salt_output.stdout }}"
+
+# 必要なディレクトリの作成
+- name: Create mCaptcha directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0755'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+  loop:
+    - '{{ mcaptcha_dir }}'
+    - '{{ mcaptcha_dir }}/.config'
+    - '{{ mcaptcha_dir }}/mcaptcha_db'
+
+# 初回実行時のみ秘密情報をYAMLファイルに保存
+- name: Save secrets to yaml file
+  copy:
+    dest: '{{ mcaptcha_dir }}/.config/secrets.yml'
+    content: |
+      postgresql:
+        user: "{{ mcaptcha_postgres_user }}"
+        password: "{{ mcaptcha_postgres_password }}"
+        database: "{{ mcaptcha_postgres_db }}"
+      cookie_secret: "{{ mcaptcha_cookie_secret }}"
+      captcha_salt: "{{ mcaptcha_captcha_salt }}"
+  when: not mcaptcha_secrets_file_stat.stat.exists
+
+# 各設定ファイルの配置
+- name: Configure mCaptcha database environment
+  template:
+    src: mcaptcha_db.env.j2
+    dest: '{{ mcaptcha_dir }}/.config/mcaptcha_db.env'
+    mode: '0600'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+- name: Configure mCaptcha configuration
+  template:
+    src: mcaptcha.toml.j2
+    dest: '{{ mcaptcha_dir }}/.config/mcaptcha.toml'
+    mode: '0600'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+- name: Copy docker-compose configuration
+  template:
+    src: mcaptcha_docker-compose.yml.j2
+    dest: '{{ mcaptcha_dir }}/docker-compose.yml'
+    mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+# サービスの起動
+- name: Start mCaptcha services
+  community.docker.docker_compose:
+    project_src: '{{ mcaptcha_dir }}'
+    state: present
+    pull: yes
+

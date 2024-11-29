@@ -45,3 +45,8 @@ deeplx_dir: '/opt/deeplx'
 zitadel_server_name: auth.{{ domain }}
 zitadel_dir: '/var/www/zitadel'
 zitadel_secrets_file: '{{ zitadel_dir }}/secrets.yml'
+mcaptcha_server_name: captcha.{{ domain }}
+mcaptcha_dir: '/var/www/mcaptcha'
+mcaptcha_secrets_file: '{{ mcaptcha_dir }}/secrets.yml'
+mcaptcha_postgres_user: mcaptcha
+mcaptcha_postgres_db: mcaptcha

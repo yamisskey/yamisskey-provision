@@ -1,0 +1,7 @@
+- name: Configure mCaptcha
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - mcaptcha
+
