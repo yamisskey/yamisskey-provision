@@ -173,12 +173,14 @@ ingress:
     service: http://localhost:3004
   - hostname: uptime.yami.ski
     service: http://localhost:3009
-  - hostname: sso.yami.ski
+  - hostname: auth.yami.ski
     service: http://localhost:8993
     originRequest:
       noTLSVerify: true
       http2Origin: true
       proxyType: "h2c"
+  - hostname: captcha.yami.ski
+    service: http://localhost:7493
   - service: http_status:404
 ```
 
