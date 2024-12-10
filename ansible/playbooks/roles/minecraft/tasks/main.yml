@@ -4,12 +4,16 @@
     path: '{{ minecraft_dir }}'
     state: directory
     mode: '0755'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 - name: Create Minecraft data directory
   file:
     path: '{{ minecraft_dir }}/data'
     state: directory
     mode: '0755'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 # secrets.ymlの存在確認
 - name: Check if secrets file exists
@@ -45,7 +49,15 @@
       whitelist_players:
         - "hitalin4668"
     mode: '0600'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
   when: not minecraft_secrets_file_stat.stat.exists
+
+# 現在の秘密情報の読み込み
+- name: Load current secrets
+  set_fact:
+    current_secrets: "{{ lookup('file', minecraft_secrets_file) | from_yaml }}"
+  when: minecraft_secrets_file_stat.stat.exists
 
 # ops.jsonの作成
 - name: Create ops.json
@@ -61,6 +73,8 @@
         }
       ]
     mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
   when: not minecraft_secrets_file_stat.stat.exists
 
 # whitelist.jsonの作成（プレイヤー名のみ）
@@ -69,13 +83,17 @@
     dest: '{{ minecraft_dir }}/data/whitelist.json'
     content: |
       [
-        {% for player in ((lookup('file', minecraft_secrets_file) | from_yaml).whitelist_players | default([])) %}
+        {% if minecraft_secrets_file_stat.stat.exists %}
+        {% for player in current_secrets.whitelist_players | default([]) %}
         {
           "name": "{{ player }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
+        {% endif %}
       ]
     mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 # Docker Compose設定の展開
 - name: Copy docker-compose.yml
@@ -83,6 +101,8 @@
     src: templates/minecraft_docker-compose.yml.j2
     dest: '{{ minecraft_dir }}/docker-compose.yml'
     mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 # サーバーの起動
 - name: Start Minecraft server
