@@ -10,10 +10,10 @@
     path: '{{ minecraft_secrets_file }}'
   register: minecraft_secrets_file_stat
 
-# 管理者パスワードの生成
-- name: Generate admin password if not exists
-  shell: 'cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 32 | head -n 1'
-  register: admin_password_output
+# 管理者UUIDの生成
+- name: Generate admin UUID if not exists
+  shell: 'python3 -c "import uuid; print(uuid.uuid4())"'
+  register: admin_uuid_output
   when: not minecraft_secrets_file_stat.stat.exists
 
 # RCONパスワードの生成
@@ -25,7 +25,7 @@
 # 秘密情報の設定
 - name: Set secrets facts
   set_fact:
-    admin_password: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).admin_password if minecraft_secrets_file_stat.stat.exists else admin_password_output.stdout }}"
+    admin_uuid: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).admin_uuid if minecraft_secrets_file_stat.stat.exists else admin_uuid_output.stdout }}"
     rcon_password: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).rcon_password if minecraft_secrets_file_stat.stat.exists else rcon_password_output.stdout }}"
 
 # 秘密情報の保存
@@ -33,9 +33,25 @@
   copy:
     dest: '{{ minecraft_secrets_file }}'
     content: |
-      admin_password: "{{ admin_password }}"
+      admin_uuid: "{{ admin_uuid }}"
       rcon_password: "{{ rcon_password }}"
     mode: '0600'
+  when: not minecraft_secrets_file_stat.stat.exists
+
+# ops.jsonの作成
+- name: Create ops.json
+  copy:
+    dest: '{{ minecraft_dir }}/data/ops.json'
+    content: |
+      [
+        {
+          "uuid": "{{ admin_uuid }}",
+          "name": "admin",
+          "level": 4,
+          "bypassesPlayerLimit": true
+        }
+      ]
+    mode: '0644'
   when: not minecraft_secrets_file_stat.stat.exists
 
 # Docker Compose設定の展開
@@ -57,3 +73,4 @@
     name: docker
     state: started
     enabled: yes
+
