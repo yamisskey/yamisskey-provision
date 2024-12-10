@@ -46,19 +46,10 @@
     content: |
       admin_uuid: "{{ admin_uuid }}"
       rcon_password: "{{ rcon_password }}"
-      whitelist_players:
-        - admin
-        - hitalin4668
     mode: '0600'
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
   when: not minecraft_secrets_file_stat.stat.exists
-
-# 現在の秘密情報の読み込み
-- name: Load current secrets
-  set_fact:
-    current_secrets: "{{ lookup('file', minecraft_secrets_file) | from_yaml }}"
-  when: minecraft_secrets_file_stat.stat.exists
 
 # ops.jsonの作成
 - name: Create ops.json
@@ -77,28 +68,6 @@
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
   when: not minecraft_secrets_file_stat.stat.exists
-
-# whitelist.jsonの作成（修正版）
-- name: Create whitelist.json
-  copy:
-    dest: '{{ minecraft_dir }}/data/whitelist.json'
-    content: |
-      [
-        {
-          "name": "admin"
-        }
-        {% if lookup('file', minecraft_secrets_file) | from_yaml | json_query('whitelist_players') %}
-        ,
-        {% for player in (lookup('file', minecraft_secrets_file) | from_yaml).whitelist_players %}
-        {
-          "name": "{{ player }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-        {% endif %}
-      ]
-    mode: '0644'
-    owner: '{{ ansible_user }}'
-    group: '{{ ansible_user }}'
 
 # Docker Compose設定の展開
 - name: Copy docker-compose.yml
