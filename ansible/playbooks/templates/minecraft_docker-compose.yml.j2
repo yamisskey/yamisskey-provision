@@ -16,7 +16,10 @@ services:
       ENABLE_RCON: "true"
       RCON_PASSWORD: "{{ rcon_password }}"
       RCON_PORT: 25575
-      OPS: "admin:{{ admin_password }}"
+      ENABLE_COMMAND_BLOCK: "false"
+      ENFORCE_SECURE_PROFILE: "true"
+      ENABLE_WHITELIST: "true"
+      OVERRIDE_OPS: "true"
     volumes:
       - ./data:/data
     restart: unless-stopped
