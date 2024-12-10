@@ -1,3 +1,4 @@
+# tasks/main.yml
 - name: Create Minecraft directory
   file:
     path: '{{ minecraft_dir }}'
@@ -34,13 +35,15 @@
     admin_uuid: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).admin_uuid if minecraft_secrets_file_stat.stat.exists else admin_uuid_output.stdout }}"
     rcon_password: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).rcon_password if minecraft_secrets_file_stat.stat.exists else rcon_password_output.stdout }}"
 
-# 秘密情報の保存
+# 秘密情報の保存（初回のみ）
 - name: Save secrets to file
   copy:
     dest: '{{ minecraft_secrets_file }}'
     content: |
       admin_uuid: "{{ admin_uuid }}"
       rcon_password: "{{ rcon_password }}"
+      whitelist_players:
+        - "hitalin4668"
     mode: '0600'
   when: not minecraft_secrets_file_stat.stat.exists
 
@@ -59,6 +62,20 @@
       ]
     mode: '0644'
   when: not minecraft_secrets_file_stat.stat.exists
+
+# whitelist.jsonの作成（プレイヤー名のみ）
+- name: Create whitelist.json
+  copy:
+    dest: '{{ minecraft_dir }}/data/whitelist.json'
+    content: |
+      [
+        {% for player in ((lookup('file', minecraft_secrets_file) | from_yaml).whitelist_players | default([])) %}
+        {
+          "name": "{{ player }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    mode: '0644'
 
 # Docker Compose設定の展開
 - name: Copy docker-compose.yml
@@ -79,4 +96,3 @@
     name: docker
     state: started
     enabled: yes
-
