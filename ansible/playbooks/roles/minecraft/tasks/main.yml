@@ -47,7 +47,8 @@
       admin_uuid: "{{ admin_uuid }}"
       rcon_password: "{{ rcon_password }}"
       whitelist_players:
-        - "hitalin4668"
+        - admin
+        - hitalin4668
     mode: '0600'
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
@@ -77,14 +78,18 @@
     group: '{{ ansible_user }}'
   when: not minecraft_secrets_file_stat.stat.exists
 
-# whitelist.jsonの作成（プレイヤー名のみ）
+# whitelist.jsonの作成（修正版）
 - name: Create whitelist.json
   copy:
     dest: '{{ minecraft_dir }}/data/whitelist.json'
     content: |
       [
-        {% if minecraft_secrets_file_stat.stat.exists %}
-        {% for player in current_secrets.whitelist_players | default([]) %}
+        {
+          "name": "admin"
+        }
+        {% if lookup('file', minecraft_secrets_file) | from_yaml | json_query('whitelist_players') %}
+        ,
+        {% for player in (lookup('file', minecraft_secrets_file) | from_yaml).whitelist_players %}
         {
           "name": "{{ player }}"
         }{% if not loop.last %},{% endif %}
