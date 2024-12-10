@@ -1,0 +1,59 @@
+- name: Create Minecraft directory
+  file:
+    path: '{{ minecraft_dir }}'
+    state: directory
+    mode: '0755'
+
+# secrets.ymlの存在確認
+- name: Check if secrets file exists
+  stat:
+    path: '{{ minecraft_secrets_file }}'
+  register: minecraft_secrets_file_stat
+
+# 管理者パスワードの生成
+- name: Generate admin password if not exists
+  shell: 'cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 32 | head -n 1'
+  register: admin_password_output
+  when: not minecraft_secrets_file_stat.stat.exists
+
+# RCONパスワードの生成
+- name: Generate RCON password if not exists
+  shell: 'cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 32 | head -n 1'
+  register: rcon_password_output
+  when: not minecraft_secrets_file_stat.stat.exists
+
+# 秘密情報の設定
+- name: Set secrets facts
+  set_fact:
+    admin_password: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).admin_password if minecraft_secrets_file_stat.stat.exists else admin_password_output.stdout }}"
+    rcon_password: "{{ (lookup('file', minecraft_secrets_file) | from_yaml).rcon_password if minecraft_secrets_file_stat.stat.exists else rcon_password_output.stdout }}"
+
+# 秘密情報の保存
+- name: Save secrets to file
+  copy:
+    dest: '{{ minecraft_secrets_file }}'
+    content: |
+      admin_password: "{{ admin_password }}"
+      rcon_password: "{{ rcon_password }}"
+    mode: '0600'
+  when: not minecraft_secrets_file_stat.stat.exists
+
+# Docker Compose設定の展開
+- name: Copy docker-compose.yml
+  template:
+    src: templates/minecraft_docker-compose.yml.j2
+    dest: '{{ minecraft_dir }}/docker-compose.yml'
+    mode: '0644'
+
+# サーバーの起動
+- name: Start Minecraft server
+  docker_compose:
+    project_src: '{{ minecraft_dir }}'
+    state: present
+    pull: yes
+
+- name: Enable and start Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes

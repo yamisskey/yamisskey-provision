@@ -45,6 +45,10 @@ install:
 	@sudo chmod a+r /etc/apt/keyrings/docker.asc
 	@echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$(OS) $(CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 	@sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || (echo "Docker installation failed" && exit 1)
+	@curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+	@echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+	@sudo apt update
+	@sudo apt install playit
 
 inventory:
 	@echo "Creating inventory file..."
