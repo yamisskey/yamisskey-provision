@@ -1,4 +1,3 @@
-# templates/minecraft_docker-compose.yml.j2
 version: '3'
 
 services:
@@ -6,23 +5,43 @@ services:
     image: itzg/minecraft-server:java8-multiarch
     ports:
       - "25565:25565"
-      - "127.0.0.1:25575:25575"  # RCONは内部ネットワークからのみアクセス可能
+      - "127.0.0.1:25575:25575"
     environment:
       EULA: "TRUE"
       TYPE: FORGE
-      MODE: "creative"
-      VERSION: "{{ minecraft_version }}"
-      FORGE_VERSION: "{{ forge_version }}"
-      MEMORY: "{{ server_memory }}"
+      VERSION: "1.7.10"
+      FORGE_VERSION: "10.13.4.1614"
+      MEMORY: "8G"
       ENABLE_RCON: "true"
       RCON_PASSWORD: "{{ rcon_password }}"
       RCON_PORT: 25575
-      ENABLE_COMMAND_BLOCK: "false"
+      ENABLE_COMMAND_BLOCK: "true"
       ENFORCE_SECURE_PROFILE: "true"
       OVERRIDE_OPS: "true"
-      JAVA_VERSION: "{{ java_version }}"
+      JAVA_VERSION: "8"
+      MODS_FILE: "/data/config/mods.txt"
+      # パフォーマンス最適化のためのJVM設定
+      JVM_XX_OPTS: >-
+        -XX:+UseG1GC 
+        -XX:+ParallelRefProcEnabled 
+        -XX:MaxGCPauseMillis=200 
+        -XX:+UnlockExperimentalVMOptions 
+        -XX:+DisableExplicitGC 
+        -XX:G1NewSizePercent=30 
+        -XX:G1MaxNewSizePercent=40 
+        -XX:G1HeapRegionSize=8M 
+        -XX:G1ReservePercent=20 
+        -XX:G1HeapWastePercent=5 
+        -XX:G1MixedGCCountTarget=4 
+        -XX:InitiatingHeapOccupancyPercent=15 
+        -XX:G1MixedGCLiveThresholdPercent=90 
+        -XX:G1RSetUpdatingPauseTimePercent=5 
+        -XX:SurvivorRatio=32 
+        -XX:+PerfDisableSharedMem 
+        -XX:MaxTenuringThreshold=1
     volumes:
       - ./data:/data
+      - ./config:/data/config
     restart: unless-stopped
     tty: true
     stdin_open: true

@@ -78,6 +78,24 @@
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
 
+# MODの設定ディレクトリの作成
+- name: Create Minecraft mods config directory
+  file:
+    path: '{{ minecraft_dir }}/config'
+    state: directory
+    mode: '0755'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+# MODリストファイルの配置
+- name: Copy mods list file
+  template:
+    src: templates/minecraft_mods.txt.j2
+    dest: '{{ minecraft_dir }}/config/mods.txt'
+    mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
 # サーバーの起動
 - name: Start Minecraft server
   docker_compose:
