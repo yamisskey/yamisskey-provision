@@ -19,6 +19,7 @@ services:
       ENABLE_COMMAND_BLOCK: "false"
       ENFORCE_SECURE_PROFILE: "true"
       OVERRIDE_OPS: "true"
+      JAVA_VERSION: "{{ java_version }}"
     volumes:
       - ./data:/data
     restart: unless-stopped
