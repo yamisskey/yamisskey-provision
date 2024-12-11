@@ -1,0 +1,13 @@
+[Unit]
+Description=Playit.gg Agent
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user }}
+ExecStart=/usr/local/bin/playit
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
