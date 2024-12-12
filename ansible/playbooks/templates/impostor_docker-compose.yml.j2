@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  impostor:
+    image: aeonlucid/impostor:nightly
+    container_name: impostor
+    restart: unless-stopped
+    ports:
+      - "22023:22023/tcp"
+      - "22023:22023/udp"
+    environment:
+      - IMPOSTOR_Server__PublicIp={{ impostor_server_name }}
+    volumes:
+      - ./config.json:/app/config.json
+      - ./plugins:/app/plugins
+      - ./libraries:/app/libraries
+    networks:
+      - impostor-net
+
+networks:
+  impostor-net:
+    driver: bridge

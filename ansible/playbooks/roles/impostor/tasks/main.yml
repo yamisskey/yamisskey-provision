@@ -1,0 +1,58 @@
+- name: Create Impostor directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  loop:
+    - "{{ impostor_dir }}"
+    - "{{ impostor_dir }}/data"
+    - "{{ impostor_dir }}/plugins"
+    - "{{ impostor_dir }}/libraries"
+    - "{{ impostor_dir }}/logs"
+
+- name: Template config.json
+  template:
+    src: impostor_config.json.j2
+    dest: "{{ impostor_dir }}/data/config.json"
+    mode: '0644'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copy docker-compose.yml
+  template:
+    src: templates/impostor_docker-compose.yml.j2
+    dest: "{{ impostor_dir }}/docker-compose.yml"
+    mode: '0644'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: true
+
+- name: Deploy Impostor server
+  docker_compose:
+    project_src: "{{ impostor_dir }}"
+    state: present
+    pull: yes
+  register: compose_result
+
+- name: Create playit service
+  template:
+    src: templates/playit.service.j2
+    dest: /etc/systemd/system/playit.service
+    mode: '0644'
+  become: true
+
+- name: Configure playit service
+  systemd:
+    name: playit
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: true

@@ -1,0 +1,6 @@
+- name: Setup Impostor server
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - impostor

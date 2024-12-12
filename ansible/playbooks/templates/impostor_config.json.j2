@@ -1,0 +1,32 @@
+{
+  "server": {
+    "ip": "0.0.0.0",
+    "port": 22023,
+    "publicIp": "{{ impostor_server_name }}",
+    "publicPort": {{ impostor_playit_port }},
+    "httpServer": {
+      "enabled": true,
+      "listenIp": "0.0.0.0",
+      "listenPort": 22023
+    }
+  },
+  "anticheat": {
+    "enabled": true,
+    "banIpFromGame": true
+  },
+  "compatibility": {
+    "allowFutureGameVersions": false
+  },
+  "serilog": {
+    "minimumLevel": "Information",
+    "writeTo": [
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/log.txt",
+          "rollingInterval": "Day"
+        }
+      }
+    ]
+  }
+}
