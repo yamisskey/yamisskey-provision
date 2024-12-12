@@ -11,9 +11,10 @@ services:
     environment:
       - IMPOSTOR_Server__PublicIp={{ impostor_server_name }}
     volumes:
-      - ./config.json:/app/config.json
-      - ./plugins:/app/plugins
-      - ./libraries:/app/libraries
+      - ./data/config.json:/app/config.json
+      - ./data/plugins:/app/plugins
+      - ./data/libraries:/app/libraries
+      - ./logs:/app/logs
     networks:
       - impostor-net
 
