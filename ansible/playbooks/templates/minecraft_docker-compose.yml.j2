@@ -20,7 +20,13 @@ services:
       OVERRIDE_OPS: "true"
       JAVA_VERSION: "8"
       MODS_FILE: "/data/config/mods.txt"
-      # パフォーマンス最適化のためのJVM設定
+      MODE: "creative"
+      PVP: "false"
+      FORCE_GAMEMODE: "true"
+      SPAWN_PROTECTION: "0"
+      ALLOW_FLIGHT: "true"
+      GENERATE_STRUCTURES: "true"
+      MAX_BUILD_HEIGHT: "256"
       JVM_XX_OPTS: >-
         -XX:+UseG1GC 
         -XX:+ParallelRefProcEnabled 
