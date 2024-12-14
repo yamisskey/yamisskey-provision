@@ -47,7 +47,6 @@ services:
         -XX:MaxTenuringThreshold=1
     volumes:
       - ./data:/data
-      - ./config:/data/config
     restart: unless-stopped
     tty: true
     stdin_open: true
