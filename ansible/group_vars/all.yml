@@ -54,4 +54,4 @@ minecraft_dir: '/opt/minecraft'
 minecraft_secrets_file: '{{ minecraft_dir }}/secrets.yml'
 impostor_dir: '/opt/impostor'
 impostor_server_name: au.{{ domain }}
-impostor_playit_port: 1860
+impostor_playit_port: 1112

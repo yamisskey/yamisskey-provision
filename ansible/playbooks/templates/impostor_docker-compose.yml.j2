@@ -6,15 +6,13 @@ services:
     container_name: impostor
     restart: unless-stopped
     ports:
-      - "22023:22023/tcp"
-      - "22023:22023/udp"
-    environment:
-      - IMPOSTOR_Server__PublicIp={{ impostor_server_name }}
+      - "127.0.0.1:22023:22023/tcp"
+      - "127.0.0.1:22023:22023/udp"
     volumes:
-      - ./data/config.json:/app/config.json
-      - ./data/plugins:/app/plugins
-      - ./data/libraries:/app/libraries
-      - ./logs:/app/logs
+      - {{ impostor_dir }}/data/config.json:/app/config.json
+      - {{ impostor_dir }}/data/plugins:/app/plugins
+      - {{ impostor_dir }}/data/libraries:/app/libraries
+      - {{ impostor_dir }}/logs:/app/logs
     networks:
       - impostor-net
 
