@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 services:
   mcaptcha:
@@ -9,32 +9,25 @@ services:
       - external_network
     ports:
       - 7493:7493
-    volumes:
-      - type: bind
-        source: {{ mcaptcha_dir }}/.config/mcaptcha.toml
-        target: /app/config/default.toml
-        read_only: true
     env_file:
-      - {{ mcaptcha_dir }}/.config/mcaptcha_db.env
+      - .env-docker-compose
     environment:
-      PORT: 7493
-      MCAPTCHA_redis_URL: "redis://mcaptcha_redis/"
-      MCAPTCHA_CONFIG: "/app/config/default.toml"
-      MCAPTCHA_DOMAIN: "{{ mcaptcha_server_name }}"
       RUST_LOG: "debug"
     depends_on:
-      mcaptcha_db:
+      mcaptcha_postgres:
         condition: service_healthy
       mcaptcha_redis:
         condition: service_healthy
 
-  mcaptcha_db:
+  mcaptcha_postgres:
     restart: always
     image: postgres:15-alpine
     networks:
       - mcaptcha_network
-    env_file:
-      - {{ mcaptcha_dir }}/.config/mcaptcha_db.env
+    environment:
+      POSTGRES_USER: {{ mcaptcha_postgres_user }}
+      POSTGRES_PASSWORD: {{ mcaptcha_postgres_password }}
+      POSTGRES_DB: {{ mcaptcha_postgres_db }}
     volumes:
       - {{ mcaptcha_dir }}/mcaptcha_db:/var/lib/postgresql/data
     healthcheck:

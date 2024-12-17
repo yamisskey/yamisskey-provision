@@ -55,23 +55,16 @@
       captcha_salt: "{{ mcaptcha_captcha_salt }}"
   when: not mcaptcha_secrets_file_stat.stat.exists
 
-# 各設定ファイルの配置
-- name: Configure mCaptcha database environment
+# 環境変数ファイルの配置
+- name: Configure mCaptcha environment
   template:
-    src: mcaptcha_db.env.j2
-    dest: '{{ mcaptcha_dir }}/.config/mcaptcha_db.env'
+    src: mcaptcha.env-docker-compose.j2
+    dest: '{{ mcaptcha_dir }}/.env-docker-compose'
     mode: '0600'
     owner: '{{ ansible_user }}'
     group: '{{ ansible_user }}'
 
-- name: Configure mCaptcha configuration
-  template:
-    src: mcaptcha.toml.j2
-    dest: '{{ mcaptcha_dir }}/.config/mcaptcha.toml'
-    mode: '0600'
-    owner: '{{ ansible_user }}'
-    group: '{{ ansible_user }}'
-
+# docker-compose.yml の配置
 - name: Copy docker-compose configuration
   template:
     src: mcaptcha_docker-compose.yml.j2
@@ -86,4 +79,3 @@
     project_src: '{{ mcaptcha_dir }}'
     state: present
     pull: yes
-
