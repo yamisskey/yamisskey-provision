@@ -1,0 +1,6 @@
+- name: Setup neo-quesdon
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - neo-quesdon

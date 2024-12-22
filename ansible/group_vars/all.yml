@@ -55,3 +55,7 @@ minecraft_secrets_file: '{{ minecraft_dir }}/secrets.yml'
 impostor_dir: '/opt/impostor'
 impostor_server_name: au.{{ domain }}
 impostor_playit_port: 1112
+neo_quesdon_dir: '/var/www/neo-quesdon'
+neo_quesdon_secrets_file: '{{ neo_quesdon_dir }}/secrets.yml'
+neo_quesdon_server_name: neo-quesdon.{{ domain }}
+neo_quesdon_version: "v1.3.4"

@@ -1,0 +1,63 @@
+# tasks/main.yml
+
+# 必要なディレクトリを作成
+- name: Create neo-quesdon directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - "{{ neo_quesdon_dir }}"
+    - "{{ neo_quesdon_dir }}/config"
+
+# secrets.ymlの存在確認
+- name: Check if secrets file exists
+  stat:
+    path: "{{ neo_quesdon_secrets_file }}"
+  register: secrets_file_stat
+
+# 秘密情報の生成
+- name: Generate secrets if not exists
+  when: not secrets_file_stat.stat.exists
+  block:
+    - name: Generate JWT secret
+      shell: 'openssl rand -hex 32'
+      register: jwt_secret_output
+
+    - name: Generate notification token
+      shell: 'openssl rand -hex 32'
+      register: noti_token_output
+
+    - name: Generate PostgreSQL password
+      shell: 'openssl rand -base64 32'
+      register: postgres_password_output
+
+    - name: Save secrets to file
+      copy:
+        dest: "{{ neo_quesdon_secrets_file }}"
+        mode: '0600'
+        content: |
+          jwt_secret: "{{ jwt_secret_output.stdout }}"
+          noti_token: "{{ noti_token_output.stdout }}"
+          postgres_password: "{{ postgres_password_output.stdout }}"
+          postgres_user: "postgres"
+          postgres_db: "quesdon"
+
+# 設定ファイルの生成
+- name: Generate docker.env from template
+  template:
+    src: neo-quesdon_docker.env.j2
+    dest: "{{ neo_quesdon_dir }}/config/docker.env"
+    mode: '0600'
+
+- name: Copy docker-compose.yml
+  template:
+    src: neo-quesdon_docker-compose.yml.j2
+    dest: "{{ neo_quesdon_dir }}/docker-compose.yml"
+    mode: '0644'
+
+# コンテナの起動
+- name: Start Neo-Quesdon containers
+  docker_compose:
+    project_src: "{{ neo_quesdon_dir }}"
+    state: present
