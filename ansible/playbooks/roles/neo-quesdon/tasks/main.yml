@@ -13,34 +13,38 @@
     path: "{{ neo_quesdon_secrets_file }}"
   register: secrets_file_stat
 
-# 秘密情報の生成
-- name: Generate secrets if not exists
+# 秘密情報の生成と保存
+- name: Generate and save secrets if not exists
   when: not secrets_file_stat.stat.exists
   block:
-    - name: Generate JWT secret
-      shell: 'openssl rand -hex 32'
-      register: jwt_secret_output
-
-    - name: Generate notification token
-      shell: 'openssl rand -hex 32'
-      register: noti_token_output
-
-    - name: Generate PostgreSQL password
-      shell: 'openssl rand -base64 32'
-      register: postgres_password_output
+    - name: Generate secrets
+      set_fact:
+        jwt_secret: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+        noti_token: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+        postgres_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
 
     - name: Save secrets to file
       copy:
         dest: "{{ neo_quesdon_secrets_file }}"
         mode: '0600'
         content: |
-          jwt_secret: "{{ jwt_secret_output.stdout }}"
-          noti_token: "{{ noti_token_output.stdout }}"
-          postgres_password: "{{ postgres_password_output.stdout }}"
-          postgres_user: "postgres"
-          postgres_db: "quesdon"
+          jwt_secret: "{{ jwt_secret }}"
+          noti_token: "{{ noti_token }}"
+          postgres_password: "{{ postgres_password }}"
 
-# 環境変数設定
+- name: Load secrets
+  when: secrets_file_stat.stat.exists
+  set_fact:
+    secrets: "{{ lookup('file', neo_quesdon_secrets_file) | from_yaml }}"
+    
+- name: Set secrets as variables
+  when: secrets_file_stat.stat.exists
+  set_fact:
+    jwt_secret: "{{ secrets.jwt_secret }}"
+    noti_token: "{{ secrets.noti_token }}"
+    postgres_password: "{{ secrets.postgres_password }}"
+
+# 設定ファイルの生成
 - name: Generate docker.env from template
   template:
     src: neo-quesdon_docker.env.j2
