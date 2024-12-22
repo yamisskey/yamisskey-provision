@@ -2,13 +2,15 @@ version: '3'
 
 services:
   app:
-    image: ghcr.io/serafuku/neo-quesdon:{{ neo_quesdon_version }}:-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - db
       - redis
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3025:3000"
+      - "127.0.0.1:{{ neo_quesdon_port | default(3025) }}:3000"
     networks:
       - internal
       - external

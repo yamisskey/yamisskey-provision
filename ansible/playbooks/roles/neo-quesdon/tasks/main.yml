@@ -1,14 +1,11 @@
 # tasks/main.yml
 
-# 必要なディレクトリを作成
-- name: Create neo-quesdon directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  with_items:
-    - "{{ neo_quesdon_dir }}"
-    - "{{ neo_quesdon_dir }}/config"
+# プロジェクトのクローン
+- name: Clone neo-quesdon repository
+  git:
+    repo: "https://github.com/yamisskey/neo-quesdon.git"
+    dest: "{{ neo_quesdon_dir }}"
+    version: "{{ neo_quesdon_version | default('develop') }}"
 
 # secrets.ymlの存在確認
 - name: Check if secrets file exists
@@ -43,7 +40,7 @@
           postgres_user: "postgres"
           postgres_db: "quesdon"
 
-# 設定ファイルの生成
+# 環境変数設定
 - name: Generate docker.env from template
   template:
     src: neo-quesdon_docker.env.j2
