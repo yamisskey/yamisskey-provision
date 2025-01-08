@@ -7,7 +7,6 @@ services:
     links:
       - db
       - redis
-        #      - mcaptcha
       - meilisearch
     depends_on:
       db:
@@ -44,6 +43,8 @@ services:
       - .config/docker.env
     volumes:
       - ./db:/var/lib/postgresql/data
+      - ./.config/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     healthcheck:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
