@@ -43,7 +43,11 @@
 - name: Load secrets
   include_vars:
     file: '{{ stalwart_secrets_file }}'
-    name: mail_secrets
+
+- name: Set admin credentials from secrets
+  set_fact:
+    admin_user: "{{ admin_user | default('admin') }}"
+    admin_password: "{{ admin_password }}"
 
 - name: Copy docker-compose.yml
   template:
@@ -71,8 +75,7 @@
   debug:
     msg:
       - 'Admin credentials:'
-      - '  User: {{ mail_secrets.admin_user }}'
-      - '  Password: {{ mail_secrets.admin_password }}'
+      - '  User: {{ admin_user }}'
+      - '  Password: {{ admin_password }}'
       - 'Web Interface: http://{{ stalwart_server_name }}:8088'
       - 'Required DNS records will be shown in the web interface after first login'
-
