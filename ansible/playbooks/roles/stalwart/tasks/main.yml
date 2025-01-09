@@ -47,7 +47,7 @@
 
 - name: Copy docker-compose.yml
   template:
-    src: docker-compose.yml.j2
+    src: stalwart_docker-compose.yml.j2
     dest: '{{ stalwart_dir }}/docker-compose.yml'
     mode: '0644'
     owner: '{{ ansible_user }}'
@@ -55,7 +55,7 @@
 
 - name: Copy Stalwart config
   template:
-    src: config.toml.j2
+    src: stalwart_config.toml.j2
     dest: '{{ stalwart_dir }}/etc/config.toml'
     mode: '0644'
     owner: '{{ ansible_user }}'
