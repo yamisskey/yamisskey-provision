@@ -1,0 +1,78 @@
+[server]
+hostname = "{{ stalwart_server_name }}"
+
+# Core Storage Configuration
+[storage]
+data = "rocksdb"
+blob = "rocksdb"
+lookup = "rocksdb"
+fts = "rocksdb"
+directory = "internal"
+
+# RocksDB Store Configuration
+[store."rocksdb"]
+type = "rocksdb"
+path = "%{env:STALWART_PATH}%/data"
+compression = "lz4"
+
+# Directory Configuration
+[directory."internal"]
+type = "internal"
+store = "rocksdb"
+
+# SMTP Listener Configurations
+[server.listener."smtp"]
+bind = ["[::]:25"]
+protocol = "smtp"
+
+[server.listener."submission"]
+bind = ["[::]:587"]
+protocol = "smtp"
+tls.enable = true
+
+[server.listener."submissions"]
+bind = ["[::]:465"]
+protocol = "smtp"
+tls.implicit = true
+
+# IMAP Listener Configurations
+[server.listener."imap"]
+bind = ["[::]:143"]
+protocol = "imap"
+tls.enable = true
+
+[server.listener."imaps"]
+bind = ["[::]:993"]
+protocol = "imap"
+tls.implicit = true
+
+# Web Admin Interface - ポート8088に変更
+[server.listener."http"]
+bind = ["[::]:8080"]  # 内部ポートは8080のまま
+protocol = "http"
+
+# Logging Configuration
+[tracer."stdout"]
+type = "stdout"
+level = "info"
+ansi = false
+enable = true
+
+# Admin Authentication
+[authentication.fallback-admin]
+user = "{{ admin_user }}"
+secret = "{{ admin_password }}"
+
+# Local Configuration Keys
+[config]
+local-keys = [
+    "store.*",
+    "directory.*",
+    "tracer.*",
+    "server.*",
+    "!server.blocked-ip.*",
+    "authentication.fallback-admin.*",
+    "storage.*",
+    "lookup.default.hostname",
+    "certificate.*"
+]

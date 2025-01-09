@@ -1,0 +1,6 @@
+- name: Configure Stalwart mail server
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - stalwart

@@ -58,3 +58,6 @@ impostor_playit_port: 1112
 neo_quesdon_dir: '/var/www/neo-quesdon'
 neo_quesdon_secrets_file: '{{ neo_quesdon_dir }}/secrets.yml'
 neo_quesdon_server_name: neo-quesdon.{{ domain }}
+stalwart_dir: '/var/www/stalwart'
+stalwart_secrets_file: '{{ stalwart_dir }}/secrets.yml'
+stalwart_server_name: mail.{{ domain }}

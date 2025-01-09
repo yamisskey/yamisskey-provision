@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  mail-server:
+    image: stalwartlabs/mail-server:latest
+    container_name: stalwart-mail
+    ports:
+      # メールサーバー標準ポート
+      - "25:25"      # SMTP (標準)
+      - "587:587"    # Submission (標準)
+      - "465:465"    # SMTPS (標準)
+      - "143:143"    # IMAP (標準)
+      - "993:993"    # IMAPS (標準)
+      # 管理インターフェース - 8088に変更
+      - "8088:8080"  # Web Admin
+    volumes:
+      - {{ stalwart_dir }}:/opt/stalwart-mail
+    environment:
+      - STALWART_PATH=/opt/stalwart-mail
+    restart: unless-stopped

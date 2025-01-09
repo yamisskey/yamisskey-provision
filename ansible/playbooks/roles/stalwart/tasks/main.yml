@@ -1,0 +1,62 @@
+- name: Create Stalwart directory structure
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0755'
+  loop:
+    - '{{ stalwart_dir }}'
+    - '{{ stalwart_dir }}/data'
+    - '{{ stalwart_dir }}/etc'
+    - '{{ stalwart_dir }}/blobs'
+
+- name: Check if secrets file exists
+  stat:
+    path: '{{ stalwart_secrets_file }}'
+  register: secrets_stat
+
+- name: Generate admin credentials
+  when: not secrets_stat.stat.exists
+  block:
+    - name: Generate admin password
+      shell: openssl rand -base64 12
+      register: admin_password_output
+
+    - name: Create secrets file
+      copy:
+        dest: '{{ stalwart_secrets_file }}'
+        content: |
+          admin_user: "admin"
+          admin_password: "{{ admin_password_output.stdout }}"
+        mode: '0600'
+
+- name: Load secrets
+  include_vars:
+    file: '{{ stalwart_secrets_file }}'
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: '{{ stalwart_dir }}/docker-compose.yml'
+    mode: '0644'
+
+- name: Copy Stalwart config
+  template:
+    src: config.toml.j2
+    dest: '{{ stalwart_dir }}/etc/config.toml'
+    mode: '0644'
+
+- name: Start Stalwart container
+  docker_compose:
+    project_src: '{{ stalwart_dir }}'
+    state: present
+    restarted: yes
+
+- name: Show admin credentials and next steps
+  debug:
+    msg:
+      - 'Admin credentials:'
+      - '  User: {{ admin_user }}'
+      - '  Password: {{ admin_password }}'
+      - 'Web Interface: http://{{ stalwart_server_name }}:8088'
+      - 'Required DNS records will be shown in the web interface after first login'
+

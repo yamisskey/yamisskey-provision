@@ -181,6 +181,8 @@ ingress:
       proxyType: "h2c"
   - hostname: captcha.yami.ski
     service: http://localhost:7493
+  - hostname: mail.yami.ski
+    service: http://localhost:8088
   - service: http_status:404
 ```
 
