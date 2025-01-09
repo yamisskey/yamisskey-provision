@@ -3,6 +3,8 @@
     path: '{{ item }}'
     state: directory
     mode: '0755'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
   loop:
     - '{{ stalwart_dir }}'
     - '{{ stalwart_dir }}/data'
@@ -28,22 +30,36 @@
           admin_user: "admin"
           admin_password: "{{ admin_password_output.stdout }}"
         mode: '0600'
+        owner: '{{ ansible_user }}'
+        group: '{{ ansible_user }}'
+
+- name: Set proper permissions on secrets file
+  file:
+    path: '{{ stalwart_secrets_file }}'
+    mode: '0600'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 - name: Load secrets
   include_vars:
     file: '{{ stalwart_secrets_file }}'
+    name: mail_secrets
 
 - name: Copy docker-compose.yml
   template:
     src: docker-compose.yml.j2
     dest: '{{ stalwart_dir }}/docker-compose.yml'
     mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 - name: Copy Stalwart config
   template:
     src: config.toml.j2
     dest: '{{ stalwart_dir }}/etc/config.toml'
     mode: '0644'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
 
 - name: Start Stalwart container
   docker_compose:
@@ -55,8 +71,8 @@
   debug:
     msg:
       - 'Admin credentials:'
-      - '  User: {{ admin_user }}'
-      - '  Password: {{ admin_password }}'
+      - '  User: {{ mail_secrets.admin_user }}'
+      - '  Password: {{ mail_secrets.admin_password }}'
       - 'Web Interface: http://{{ stalwart_server_name }}:8088'
       - 'Required DNS records will be shown in the web interface after first login'
 
