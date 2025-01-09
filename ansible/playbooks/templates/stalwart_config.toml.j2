@@ -20,7 +20,7 @@ compression = "lz4"
 type = "internal"
 store = "rocksdb"
 
-# SMTP Listener Configurations
+# SMTP Listeners
 [server.listener."smtp"]
 bind = ["[::]:25"]
 protocol = "smtp"
@@ -35,7 +35,7 @@ bind = ["[::]:465"]
 protocol = "smtp"
 tls.implicit = true
 
-# IMAP Listener Configurations
+# IMAP Listeners
 [server.listener."imap"]
 bind = ["[::]:143"]
 protocol = "imap"
@@ -46,9 +46,9 @@ bind = ["[::]:993"]
 protocol = "imap"
 tls.implicit = true
 
-# Web Admin Interface - ポート8088に変更
+# Web Admin Interface
 [server.listener."http"]
-bind = ["[::]:8080"]  # 内部ポートは8080のまま
+bind = ["[::]:8080"]
 protocol = "http"
 
 # Logging Configuration
@@ -76,3 +76,7 @@ local-keys = [
     "lookup.default.hostname",
     "certificate.*"
 ]
+
+# Default Domain
+[directory.domain."{{ stalwart_server_name | replace('mail.', '') }}"]
+enable = true
