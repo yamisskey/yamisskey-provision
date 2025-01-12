@@ -57,6 +57,22 @@
     dest: "{{ neo_quesdon_dir }}/docker-compose.yml"
     mode: '0644'
 
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ neo_quesdon_dir }}/data/postgres"
+    - "{{ neo_quesdon_dir }}/data/redis"
+
+- name: Set PostgreSQL data directory permissions
+  file:
+    path: "{{ neo_quesdon_dir }}/data/postgres"
+    owner: "70"
+    group: "70"
+    mode: '0700'
+
 # コンテナの起動
 - name: Start Neo-Quesdon containers
   docker_compose:
