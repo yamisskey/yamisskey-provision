@@ -242,25 +242,7 @@ sudo systemctl restart warp-svc.service
 
 ### ai
 
-You need to manually prepare the configuration file `config.json` in ai repository to run:
-
-```config
-{
-	"host": "https://yami.ski",
-	"i": "唯として動かしたいアカウントのアクセストークン",
-	"master": "admin",
-	"notingEnabled": "true",
-	"keywordEnabled": "true",
-	"chartEnabled": "true,
-	"reversiEnabled": "true",
-	"serverMonitoring": "true",
-	"checkEmojisEnabled": "false",
-	"checkEmojisAtOnce": "true",
-	"mecab": "/usr/bin/mecab",
-	"mecabDic": "/usr/lib/x86_64-linux-gnu/mecab/dic/mecab-ipadic-neologd/",
-	"memoryDir": "data"
-}
-```
+You need to manually prepare the configuration file `config.json` in ai repository to run. please see [this document](https://github.com/yamisskey/yui?tab=readme-ov-file#docker%E3%81%A7%E5%8B%95%E3%81%8B%E3%81%99).
 
 ### provision
 
