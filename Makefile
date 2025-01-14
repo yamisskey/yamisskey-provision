@@ -106,6 +106,11 @@ provision:
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/growi.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/uptime.yml --ask-become-pass
 	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/deeplx.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/mcaptcha.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/ctfd.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/impostor.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/minecraft.yml --ask-become-pass
+	@ansible-playbook -i ansible/inventory --limit source ansible/playbooks/neo-quesdon.yml --ask-become-pass
 
 backup:
 	@echo "Converting .env to env.yml and running backup..."
