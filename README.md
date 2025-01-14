@@ -42,7 +42,7 @@ Clone the yamisskey-provision repository from GitLab to your local machine:
 `~/.ssh/config`
 
 ```config
-Host vps.com
+Host hostname
     User your_username
     port 22
     Hostname 00.000.000.000
@@ -131,9 +131,10 @@ cloudflared tunnel login
 ```consol
 cloudflared tunnel create yamisskey
 cloudflared tunnel list
+sudo mkdir -p /etc/cloudflared
+sudo vim /etc/cloudflared/config.yml
 ```
 
-`.cloudflared` directory, create a `config.yml` file using any text editor. This file will configure the tunnel to route traffic from a given origin to the hostname of your choice.
 ```yml
 tunnel: <Tunnel-UUID>
 credentials-file: /home/taka/.cloudflared/<Tunnel-UUID>.json
@@ -181,8 +182,8 @@ ingress:
       proxyType: "h2c"
   - hostname: captcha.yami.ski
     service: http://localhost:7493
-  - hostname: mail.yami.ski
-    service: http://localhost:8088
+  - hostname: neo-quesdon.yami.ski
+    service: http://localhost:3025
   - service: http_status:404
 ```
 
@@ -191,8 +192,6 @@ sudo cloudflared tunnel --config /home/taka/.cloudflared/config.yml run yamisske
 ```
 
 ```consol
-sudo mkdir -p /etc/cloudflared
-sudo cp /home/taka/.cloudflared/config.yml /etc/cloudflared/config.yml
 sudo cloudflared service install
 sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
